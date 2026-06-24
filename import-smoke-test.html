@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascent Import Smoke Test</title>
+<style>
+  :root { --charcoal:#2E3F4A; --ascent-blue:#55A4DB; --paper:#F7F9FA; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; color:var(--charcoal); background:var(--paper); line-height:1.5; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px; }
+  .hero { background: var(--charcoal); color:#fff; border-radius:14px; padding:40px; }
+  .hero h1 { font-size: 30px; letter-spacing:0.3px; }
+  .hero p { margin-top:10px; color:#D7E3EA; font-size:16px; }
+  .badge { display:inline-block; margin-bottom:16px; padding:6px 12px; border-radius:999px;
+           background:var(--ascent-blue); color:#0C1A22; font-size:12px; font-weight:bold; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:28px; }
+  .card { background:#fff; border-radius:12px; padding:22px; box-shadow:0 1px 3px rgba(46,63,74,0.12); }
+  .card h2 { font-size:17px; margin-bottom:8px; }
+  .card p { font-size:14px; color:#52606A; }
+  .mark { margin-top:28px; text-align:center; }
+  @media (max-width:640px){ .grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <span class="badge">PIPELINE CHECK</span>
+      <h1>If you can read this in Wix, the loop works.</h1>
+      <p>GitHub raw URL in, live Wix-hosted site out. No manual canvas work, no external assets to break.</p>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Layout survived</h2>
+        <p>Two-column grid, rounded cards, and the hero block confirm structure imports, not just text.</p>
+      </div>
+      <div class="card">
+        <h2>Brand colors survived</h2>
+        <p>Charcoal and Ascent Blue are inline. No stylesheet link to drop on the way over.</p>
+      </div>
+      <div class="card">
+        <h2>Vector survived</h2>
+        <p>The shape below is an inline SVG. If it renders, embedded graphics make the trip.</p>
+      </div>
+      <div class="card">
+        <h2>Responsive survived</h2>
+        <p>The grid collapses to one column under 640px. Worth checking on the imported mobile view.</p>
+      </div>
+    </div>
+
+    <div class="mark">
+      <svg width="120" height="64" viewBox="0 0 120 64" xmlns="http://www.w3.org/2000/svg" aria-label="Ascent mark">
+        <polyline points="6,58 40,22 64,40 114,6" fill="none" stroke="#55A4DB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="114" cy="6" r="6" fill="#2E3F4A"/>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
