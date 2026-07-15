@@ -289,9 +289,45 @@
     .hero-chip{padding:8px 12px 8px 10px}
     .hero-lead{gap:8px}
   }
+
+  /* ---- login gate (Firebase, July 2026) ---- */
+  .gate{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:26px;font-family:'Inter',system-ui,sans-serif;overflow:auto}
+  .gate.authed{display:none}
+  .gate-card{max-width:370px;width:100%;text-align:center;color:#fff}
+  .gate-logo{width:88px;height:88px;border-radius:19px;box-shadow:0 12px 34px rgba(0,0,0,.55);margin:0 auto 22px;display:block}
+  .gate-h{font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;font-size:33px;letter-spacing:-1px;line-height:.9}
+  .gate-h span{color:var(--gold)}
+  .gate-ey{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:#8f8a7f;margin-bottom:14px}
+  .gate-sub{color:#b7b2a6;font-size:14px;margin:13px 0 26px;line-height:1.55}
+  .gate-btn{display:inline-flex;align-items:center;gap:12px;background:#fff;color:#1b1a17;border:none;border-radius:12px;padding:13px 22px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.4);transition:transform .15s}
+  .gate-btn:hover{transform:translateY(-2px)}
+  .gate-btn:disabled{opacity:.6;cursor:default;transform:none}
+  .gate-btn svg{width:19px;height:19px;flex:none}
+  .gate-msg{margin-top:18px;font-size:13px;min-height:18px;line-height:1.5;color:#cfcabd}
+  .gate-msg.err{color:#f2b0a8}
+  .gate-msg b{color:#fff}
+  .gate-foot{margin-top:30px;font-size:11px;color:#7d786d;line-height:1.55}
+  .gate-signout{margin-top:16px;background:none;border:1px solid rgba(255,255,255,.22);color:#b7b2a6;border-radius:9px;padding:9px 16px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer}
+  .gate-signout:hover{border-color:rgba(255,255,255,.4);color:#fff}
+  html.gated,body.gated{overflow:hidden}
 </style>
 </head>
 <body>
+
+<div id="gate" class="gate" role="dialog" aria-label="Sign in">
+  <div class="gate-card">
+    <img class="gate-logo" src="tour-icon-192.png" alt="Col du Fantasy">
+    <div class="gate-ey">Friend Group Fantasy - Cycling</div>
+    <div class="gate-h">COL DU <span>FANTASY</span></div>
+    <div class="gate-sub">This board is for the pool. Sign in to see the standings.</div>
+    <button id="gate-google" class="gate-btn">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16z"/><path fill="#FBBC05" d="M10.4 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.1-5.5c-2 1.3-4.5 2.1-8.5 2.1-6.3 0-11.7-3.7-13.6-9.1l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="gate-msg" class="gate-msg" aria-live="polite"></div>
+    <div class="gate-foot">Private board. Names and picks are visible only to the four players.</div>
+  </div>
+</div>
 
 <header class="mast">
   <svg class="profile" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><path class="fill" d="M0,120 L0,111 L70,106 L150,99 L230,95 L300,86 L380,75 L455,69 L525,67 L600,57 L680,47 L760,41 L825,40 L900,31 L985,22 L1065,16 L1135,12 L1200,14 L1200,120 Z" fill="#e8b31e"/><path class="line" d="M0,111 L70,106 L150,99 L230,95 L300,86 L380,75 L455,69 L525,67 L600,57 L680,47 L760,41 L825,40 L900,31 L985,22 L1065,16 L1135,12 L1200,14" fill="none" stroke="#e8b31e" stroke-width="2.5" stroke-linjoin="round"/><circle class="summit" cx="1135" cy="12" r="4" fill="#e8b31e"/></svg>
@@ -849,6 +885,74 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     b.classList.add('on'); document.getElementById('tab-'+b.dataset.tab).classList.add('on');
   });
 });
+</script>
+<script>document.documentElement.classList.add('gated');document.body.classList.add('gated');</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script>
+/* Login gate. Firebase project col-du-fantasy (owner allen@ascentpartnersltd.com).
+   Config values are PUBLIC by design. ALLOW is the pool roster: only these
+   Google accounts see the board. Add each friend's Gmail here. */
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw",
+    authDomain: "col-du-fantasy.firebaseapp.com",
+    projectId: "col-du-fantasy",
+    storageBucket: "col-du-fantasy.firebasestorage.app",
+    messagingSenderId: "243850980867",
+    appId: "1:243850980867:web:77c8455a03d972cb4fa836"
+  };
+  var ALLOW = [
+    "allen@ascentpartnersltd.com",
+    "allen@ascentexeccoaching.com",
+    "allenlabbott@gmail.com",
+    "bogie509@gmail.com"
+    // add JP, JB, JJ Gmail addresses here (lowercase)
+  ];
+
+  var gate = document.getElementById('gate');
+  var msg  = document.getElementById('gate-msg');
+  var btn  = document.getElementById('gate-google');
+  function say(html, err){ msg.className = 'gate-msg' + (err ? ' err' : ''); msg.innerHTML = html; }
+  function open(){ gate.classList.remove('authed'); document.documentElement.classList.add('gated'); document.body.classList.add('gated'); }
+  function pass(){ gate.classList.add('authed'); document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); }
+
+  if(!window.firebase || !firebase.auth){ say('Could not load the sign-in service. Check your connection and refresh.', true); return; }
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  btn.addEventListener('click', function(){
+    btn.disabled = true; say('Opening Google sign-in...');
+    auth.signInWithPopup(provider).catch(function(e){
+      var c = e && e.code;
+      if(c === 'auth/popup-blocked' || c === 'auth/cancelled-popup-request' || c === 'auth/popup-closed-by-user' || c === 'auth/operation-not-supported-in-this-environment'){
+        auth.signInWithRedirect(provider);
+      } else {
+        btn.disabled = false; say('Sign-in did not complete: ' + (e ? e.message : 'unknown error'), true);
+      }
+    });
+  });
+
+  auth.getRedirectResult().catch(function(e){ if(e){ say('Sign-in did not complete: ' + e.message, true); } });
+
+  auth.onAuthStateChanged(function(user){
+    if(!user){ open(); btn.disabled = false; return; }
+    var email = (user.email || '').toLowerCase();
+    if(ALLOW.indexOf(email) >= 0){ pass(); return; }
+    open();
+    btn.style.display = 'none';
+    say('<b>' + email + '</b> is not on the pool roster yet. Ask Allen to add you, then sign in again.', true);
+    if(!document.getElementById('gate-signout')){
+      var so = document.createElement('button');
+      so.id = 'gate-signout'; so.className = 'gate-signout'; so.textContent = 'Try a different account';
+      so.onclick = function(){ auth.signOut().then(function(){ location.reload(); }); };
+      msg.parentNode.appendChild(so);
+    }
+  });
+})();
 </script>
 </body>
 </html>
