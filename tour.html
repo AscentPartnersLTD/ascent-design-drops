@@ -209,6 +209,22 @@
     .profile{display:none}
     .st-right{grid-column:2/4;text-align:left;margin-top:2px}
   }
+  @media(max-width:520px){
+    .wrap{padding:0 13px}
+    .tabs button{padding:12px 12px;font-size:12px;letter-spacing:1px}
+    .picks th{padding:6px 5px}
+    .picks td{padding:9px 5px;font-size:12.5px}
+    .picks td .pl{white-space:normal}
+    .gc td{padding:10px 8px}
+    .results td{padding:9px 6px;font-size:12px}
+    .results th{padding:8px 6px;font-size:10px}
+    table.recon td, table.recon th{padding:5px 5px;font-size:12px}
+    .metricbox{padding:13px 13px}
+    .big{font-size:30px}
+    .note{padding:11px 12px}
+    svg{max-width:100%;height:auto}
+    table{table-layout:auto}
+  }
 </style>
 </head>
 <body>
@@ -470,9 +486,12 @@ PL4.forEach(p=>{OURS.placement[p]=0;OURS.rank[p]=0;});
 COMPLETED.forEach(n=>{
   const st=STAGES.find(s=>s.n===n);
   PL4.forEach(p=>{ if(st.days[p]!=null) OURS.placement[p]+=st.days[p]; });
-  const day=PL4.filter(p=>st.days[p]!=null).map(p=>({p,v:st.days[p]})).sort((a,b)=>a.v-b.v);
-  let seen=0,rank=0,prev=null;
-  day.forEach(x=>{ seen++; if(prev===null||x.v>prev) rank=seen; OURS.rank[x.p]+=rank; prev=x.v; });
+  // rank points: rank every pick that day (8 of them) 1..8 by finish, sum each player's two ranks
+  const allp=[];
+  PL4.forEach(p=>{ (st.picks[p]||[]).forEach(pk=>{ if(pk[1]!=null) allp.push({p, fin:pk[1]}); }); });
+  allp.sort((a,b)=>a.fin-b.fin);
+  let seen=0,rk=0,prev=null;
+  allp.forEach(x=>{ seen++; if(prev===null||x.fin>prev) rk=seen; OURS.rank[x.p]+=rk; prev=x.fin; });
 });
 let WINS_PICKED=0;
 COMPLETED.forEach(n=>{ const st=STAGES.find(s=>s.n===n);
@@ -486,7 +505,7 @@ const THRU = OURS.through;
 /* callouts */
 document.getElementById('callouts').innerHTML = `
   <div class="callout"><div class="n">${OURS.placement[placeLeader]}</div><div class="l">Placement leader</div><div class="d">${placeLeader}, lowest placement total through Stage ${THRU}. The primary standing. Lower is better.</div></div>
-  <div class="callout"><div class="n">${OURS.rank[rankLeader]}</div><div class="l">Rank leader</div><div class="d">${rankLeader}, lowest rank total, the most days finishing as the pool's best pick.</div></div>
+  <div class="callout"><div class="n">${OURS.rank[rankLeader]}</div><div class="l">Rank leader</div><div class="d">${rankLeader}, lowest rank total. Each stage all eight picks are ranked 1 to 8 by finish; this sums each day's two.</div></div>
   <div class="callout"><div class="n">${WINS_PICKED}/${COMPLETED.length}</div><div class="l">Winners picked</div><div class="d">Stages where someone in the pool drafted the actual stage winner, across the ${COMPLETED.length} scored days.</div></div>
   <div class="insight">
     <svg class="arrow" viewBox="0 0 38 26" fill="none"><path d="M2 13H30M30 13L21 4M30 13L21 22" stroke="#e8b31e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -679,7 +698,7 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
   const yf=v=>pt+ih-(v/ymax)*ih;
   let g=`<g stroke="#eadfc2" stroke-width="1">`;
   for(let t=0;t<=4;t++){const y=pt+t/4*ih;g+=`<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}"/>`;}
-  g+=`</g><g font-size="9" fill="#8a8578" font-family="Inter">`;
+  g+=`</g><g font-size="11" fill="#8a8578" font-family="Inter">`;
   for(let t=0;t<=4;t++){const v=Math.round(ymax*(4-t)/4);const y=pt+t/4*ih;g+=`<text x="${pl-5}" y="${y+3}" text-anchor="end">${v}</text>`;}
   order.forEach((n,i)=>{g+=`<text x="${xf(i)}" y="${H-8}" text-anchor="middle">${n}</text>`;});
   g+=`</g>`;
@@ -744,7 +763,7 @@ document.getElementById('statgrid').innerHTML=stats.map(s=>
 
 const arch=[
   {k:"AA",lead:true,t:"The placement leader",b:"Lowest placement total at 141. Consistent low finishes over hero picks, the Kanter and Artz value plays. Out front on the primary metric, second on rank."},
-  {k:"JJ",lead:true,t:"The winner-picker",b:"Leads rank points at 49 by drafting the actual stage winner again and again: Tadej three times, Ineos on Stage 1, Merlier on Stage 7. Five rank-1 days in seven. Second on placement at 200."},
+  {k:"JJ",lead:true,t:"The winner-picker",b:"Leads rank points by drafting the actual stage winner again and again: Tadej three times, Ineos on Stage 1, Merlier on Stage 7. A stack of rank-1 picks keeps his day-by-day placings sharp. Second on placement."},
   {k:"JB",t:"Middle of the pack",b:"Name-brand GC picks and deep-cut Uno-X flyers. Third on placement at 268, last on rank at 75. Waerenskjold's Bordeaux 2nd was one day early."},
   {k:"JP",t:"The MVDP believer",b:"Last on placement at 318, with 250 of it from three Van der Poel picks (22, 125, 128). The Stage 10 pairing was his sharpest day, but the season hole is deep."}
 ];
