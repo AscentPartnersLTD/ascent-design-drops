@@ -1,0 +1,30 @@
+{
+  "name": "Col du Fantasy",
+  "short_name": "Fantasy Tour",
+  "description": "Tour de France 2026 daily pick pool",
+  "start_url": "./tour.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f6f3ea",
+  "theme_color": "#1b1a17",
+  "icons": [
+    {
+      "src": "tour-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "tour-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "tour-icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
