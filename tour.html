@@ -128,6 +128,9 @@
   .note .readrow{margin-top:6px;line-height:1.5}
   .note .readrow:first-of-type{margin-top:2px}
   .note .readrow b{font-family:'Montserrat',sans-serif;font-weight:800;margin-right:5px}
+  .note .isum{margin-bottom:6px;line-height:1.5}
+  .note .ifacts{margin:4px 0 0;padding-left:18px;font-size:12.5px;line-height:1.5}
+  .note .ifacts li{margin-bottom:4px}
   .prov{font-size:11px;color:var(--red);font-family:'Montserrat',sans-serif;font-weight:600;margin-top:8px}
   .verify-line{font-size:12px;color:var(--ink2);background:#fff8e6;border:1px solid #f0dca0;border-radius:8px;padding:9px 12px;margin-top:12px;line-height:1.45}
   .vflag{display:inline-block;font-family:'Montserrat',sans-serif;font-weight:800;font-size:9px;letter-spacing:0.5px;background:var(--gold);color:var(--ink);padding:2px 6px;border-radius:3px;margin-right:6px;vertical-align:middle}
@@ -342,8 +345,8 @@ const RACE = [
   { n:8,  date:"Jul 11", route:"Bergerac",                 type:"Flat sprint",       win:"Tim Merlier",             extra:"Back-to-back" },
   { n:9,  date:"Jul 12", route:"Malemort > Ussel",         type:"Hilly / shortened", win:"Mathieu van der Poel",    extra:"Voided for the pool", voidPool:true },
   { n:10, date:"Jul 14", route:"Aurillac > Le Lioran",     type:"Mountain / Bastille",win:"Tadej Pogacar",          extra:"Third stage win, extends lead" },
-  { n:11, date:"Jul 15", route:"Vichy > Nevers",           type:"Flat sprint",       win:"", upcoming:true, live:true, extra:"Today. Picks in progress" },
-  { n:12, date:"Jul 16", route:"Flat stage",               type:"Flat sprint",       win:"", upcoming:true, extra:"Another sprint chance" },
+  { n:11, date:"Jul 15", route:"Vichy > Nevers",           type:"Flat sprint",       win:"S. Waerenskjold", extra:"Uno-X sprint win" },
+  { n:12, date:"Jul 16", route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", win:"", upcoming:true, extra:"Another sprint chance" },
   { n:13, date:"Jul 17", route:"Ballon d'Alsace finale",   type:"Hilly",             win:"", upcoming:true, extra:"Longest stage, 205.8 km" },
   { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"", upcoming:true, extra:"Seven climbs, 155.3 km" },
   { n:15, date:"Jul 19", route:"Plateau de Solaison",      type:"Summit finish",     win:"", upcoming:true, extra:"New summit finish" },
@@ -449,12 +452,31 @@ const STAGES = [
       JP:"Evenepoel 2nd and Lipowitz 4th out of one chase group make the tightest pair, a 6; the downside is no win and little dent in the deficit.",
       JB:"Vingegaard held the top ten; Yates lost contact and came in 17th, widening the day.",
       JJ:"Seixas on the podium; Jegat well down at 23rd is the leg that stretched the total." },
-    note:"JP's Evenepoel 2nd and Lipowitz 4th out of the same chase group made a 6, the tightest pair. AA had the stage winner in Pogacar but Del Toro cracked to 8th. Yates came in 17th, Jegat 23rd. Not yet in the official cumulative." }
+    note:"JP's Evenepoel 2nd and Lipowitz 4th out of the same chase group made a 6, the tightest pair. AA had the stage winner in Pogacar but Del Toro cracked to 8th. Yates came in 17th, Jegat 23rd. Not yet in the official cumulative." },
+  { n:11, route:"Vichy > Nevers", type:"Flat sprint", km:161.3, win:"S. Waerenskjold",
+    days:{ AA:18, JB:18, JJ:29, JP:121 }, best:"AA",
+    picks:{ AA:[["M. Kanter",17],["S. Waerenskjold",1]], JB:[["T. Merlier",14],["H. Artz",4]],
+            JJ:[["B. Girmay",6],["P. Bauhaus",23]], JP:[["O. Kooij",2],["J. Philipsen",119]] },
+    reads:{
+      AA:"Waerenskjold won the stage, still the best single pick anywhere; Kanter in 17th kept it an 18, which the Philipsen relegation quietly turned into a share of the day's best.",
+      JP:"Kooij 2nd looked like half of the day's best pair; then Philipsen was relegated from 3rd for contact in the sprint, placed 119th in the official result, turning a would-be 5 into a 121.",
+      JB:"Artz up to 4th and Merlier 14th after the reshuffle; a steady 18 that the relegation nudged into a tie for the day's best.",
+      JJ:"Girmay 6th kept JJ in the mix; Bauhaus 23rd was adrift, leaving the pair at 29." },
+    note:"Vichy to Nevers, the fastest road stage in Tour history at 50.9 kph. Waerenskjold won from distance. Philipsen crossed the line 3rd but was relegated for an irregular sprint, contact with Bittner's lead-out, and placed 119th in the official result, which bumped everyone behind him up a place. That flipped the day: JP fell from a would-be best of 5 to a 121, while AA and JB share the day's best at 18." }
 ];
 
 const UPCOMING = {
-  n:11, route:"Vichy > Nevers", type:"Flat sprint", km:161.3,
-  picks:{ AA:["M. Kanter","S. Waerenskjold"], JB:["T. Merlier","H. Artz"], JJ:["B. Girmay","P. Bauhaus"], JP:["O. Kooij","J. Philipsen"] }
+  n:12, route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", km:179.1,
+  intel:{
+    summary:"Another bunch sprint on paper, and likely the fast men's last clear chance before the road turns up. A big day for the green jersey.",
+    facts:[
+      "179.1 km, flat, roughly 1,800 m of climbing spread across three small ramps",
+      "Only real obstacle is the Cote de Montagny-les-Buxy (Cat 4), about 20 km from the line",
+      "A dropped sprinter has nearly 20 flat km to chase back on, so expect a full bunch finish",
+      "Starts at the Magny-Cours motor-racing circuit; last Tour winner in Chalon-sur-Saone was Groenewegen in 2019"
+    ]
+  },
+  picks:{ AA:[], JB:[], JJ:[], JP:[] }
 };
 
 /* JJ's posted placement totals through Stage 7, for lining up against the results. */
@@ -715,22 +737,30 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
 })();
 
 const up=UPCOMING;
-const upRows=Object.entries(up.picks).map(([k,v])=>{
+const upHasPicks=Object.values(up.picks).some(v=>(Array.isArray(v)?v:[v]).length>0);
+const upRows=upHasPicks?Object.entries(up.picks).map(([k,v])=>{
   const arr=Array.isArray(v)?v:[v];
   return `<tr><td class="plr">${k}</td><td>${arr.map(x=>`<span class="rid">${x}</span>`).join(' &nbsp;/&nbsp; ')}${arr.length<2?' <span class="pl">(+1 pending)</span>':''}</td><td class="r sum">-</td></tr>`;
-}).join('');
+}).join(''):`<tr><td colspan="3" class="pl" style="font-style:italic;padding:12px 8px">Picks not called yet.</td></tr>`;
+const upIntel=up.intel
+  ?`<div class="note"><span class="lab">Course intel</span>${up.intel.summary?`<div class="isum">${up.intel.summary}</div>`:''}${up.intel.facts?`<ul class="ifacts">${up.intel.facts.map(f=>`<li>${f}</li>`).join('')}</ul>`:''}</div>`
+  :'';
+const upRead=up.reads
+  ?`<div class="note"><span class="lab">The read</span>${['AA','JP','JB','JJ'].filter(k=>up.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${up.reads[k]}</div>`).join('')}</div>`
+  :`<div class="note"><span class="lab">The read</span><span class="pl" style="font-style:italic">Posts once the day's picks are called.</span></div>`;
 document.getElementById('stages').insertAdjacentHTML('afterbegin',
   `<div class="stage live open">
     <div class="stage-head" onclick="this.parentElement.classList.toggle('open')">
       <div class="stnum g">ST ${up.n}<small>${up.km} KM</small></div>
       <div class="stinfo"><div class="route">${up.route}</div>
-        <div class="sub"><span class="type">${up.type}</span><span>&middot;</span><span style="color:var(--gold-d);font-weight:700">Picks in progress</span></div></div>
+        <div class="sub"><span class="type">${up.type}</span><span>&middot;</span><span style="color:var(--gold-d);font-weight:700">${upHasPicks?'Picks in progress':'Next up'}</span></div></div>
       ${profileSVG(up.type)}
       <div class="st-right">Status<br><b style="color:var(--gold-d)">Live</b></div>
     </div>
     <div class="stage-body">
+      ${upIntel}
       <table class="picks"><thead><tr><th>Rider</th><th>Picks</th><th class="r">Placement</th></tr></thead><tbody>${upRows}</tbody></table>
-      <div class="note"><span class="lab">The read</span><div class="readrow"><b>AA</b> Kanter and Waerenskjold are two different sprint styles with uncorrelated failure modes; Kanter needs a clean box-free run, Waerenskjold wins the long drag if the finish strings out early, though neither is the outright favorite.</div><div class="readrow"><b>JP</b> Kooij and Philipsen are two of the fastest men in the pool, a high-ceiling pairing; the risk is they cancel each other out and a third team slips through.</div><div class="readrow"><b>JB</b> Merlier is a genuine win threat and Artz a reliable top-ten sprinter; the flip side is Merlier can get swamped in a hectic finish and Artz rarely wins outright.</div><div class="readrow"><b>JJ</b> Girmay and Bauhaus are two proven bunch-sprint finishers, so points are likely from at least one; the downside is neither is the outright favorite over Kooij or Merlier on a pure flat day.</div></div>
+      ${upRead}
     </div></div>`);
 
 /* full results table */
