@@ -256,12 +256,12 @@
       <div class="charts">
         <div class="chart"><div class="ct">Placement points <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
         <div class="chart"><div class="ct">Rank points <small>rank among drafted riders &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
-        <div class="hl-tile"><div class="big">16/21</div><div><div class="t">Collective podium hit rate</div><div class="b">The four of you have drafted 16 of 21 podium spots through 7 stages, at least 2 every day and all 3 twice. Plus 37 of 70 top-10 slots.</div></div></div>
-        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 250 placement points, no payoff.</div></div></div>
+        <div class="hl-tile"><div class="big">24/30</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 24 of 30 podium spots across the 10 scored stages, at least 2 every day and all 3 four times. Plus 52 of 100 top-10 slots.</div></div></div>
+        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 placement points, no payoff.</div></div></div>
       </div>
     </div>
 
-    <h2 class="eyebrow mt">Standings through Stage 7 (official)</h2>
+    <h2 class="eyebrow mt">Standings</h2>
     <div class="scoring">
       <b>How it scores</b>
       <p>Two cumulative totals run the whole tour, both lower-is-better. <b style="text-transform:none;font-size:13px;letter-spacing:0">Placement points</b> add up each pick's actual stage finish. <b style="text-transform:none;font-size:13px;letter-spacing:0">Rank points</b> rank the drafted riders against each other on the day (winner-of-the-pool gets 1) and add those. Placement rewards consistent low finishes; rank rewards drafting the actual stage winner.</p>
@@ -276,9 +276,8 @@
         <table class="gc" id="gcRank"></table>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--mute);margin-top:8px">Standings are tallied straight from the race results across every completed stage (1-8 and 10), using each player's picks and real finishes. Stage 9 was voided for the whole pool, and today's stage is held off until it finishes. JJ's posted totals stop at Stage 7; the panel below lines the results up against his tally at that mark.</p>
+    <p style="font-size:12px;color:var(--mute);margin-top:8px">Standings are tallied straight from the race results across every completed stage, using each player's picks and real finishes. Stage 9 was voided for the whole pool, and a live stage is held off until it finishes.</p>
     <div class="verify-panel" id="verifyPanel"></div>
-    <div class="recon-panel" id="reconPanel"></div>
   </section>
 
   <section class="tab" id="tab-ledger">
@@ -310,8 +309,8 @@
   </section>
 
   <footer class="foot">
-    <b>Keep it current:</b> after each stage, add the finish order and every player's two picks to the data block at the top of the code, or send them over for a refreshed file. The official cumulative totals live in one object and are easy to update.<br><br>
-    <b>Scoring source:</b> standings are tallied from the official stage results (lower is better). JJ's posted totals, shown only in the reconciliation panel, run through Stage 7. Race results and stage winners verified against the sources below.<br><br>
+    <b>Keep it current:</b> after each stage, add the finish order and every player's two picks to the data block at the top of the code, or send them over for a refreshed file.<br><br>
+    <b>Scoring source:</b> standings are tallied from the official stage results (lower is better). Race results and stage winners verified against the sources below.<br><br>
     <b>Race sources:</b> <span class="src">procyclingstats.com &middot; en.wikipedia.org/wiki/2026_Tour_de_France &middot; cyclingnews.com &middot; cyclinguptodate.com &middot; cyclingstage.com &middot; vavel.com</span>
   </footer>
 </div>
@@ -319,8 +318,10 @@
 <script>
 /* =========================================================================
    EDIT ZONE
-   OFFICIAL cumulative points are the league's posted numbers (lower is better).
-   Update `OFFICIAL.through` and the totals as new official tallies arrive.
+   All standings compute from STAGES. OFFICIAL / JJ_POSTED / ASK_JJ are JJ's
+   posted tally and the clarity list, kept for history; they no longer render
+   on the page. Hand-written stats live in the hl-tiles, the stats array, and
+   the arch array below the edit zone - refresh ALL of them every update.
    ========================================================================= */
 const PLAYERS = {
   AA:{name:"Allen Abbott"}, JP:{name:"Jason Pfetcher"},
@@ -479,10 +480,10 @@ const UPCOMING = {
   picks:{ AA:[], JB:[], JJ:[], JP:[] }
 };
 
-/* JJ's posted placement totals through Stage 7, for lining up against the results. */
+/* JJ's posted placement totals through Stage 7. Kept for history; not rendered. */
 const JJ_POSTED = { AA:141, JJ:200, JB:268, JP:318 };
 
-/* Things to get clarity on from JJ. Numbers are what the picks + real finishes give against his tally. */
+/* Clarity items for JJ. Kept for history; not rendered - run these by him in chat. */
 const ASK_JJ = [
   { who:"AA", tag:"Stage 1", res:16, theirs:25,
     q:"Missed second pick, penalty rule now set: one slot below the worst actual pick. Pinarello was 12th, so the empty slot takes 13th, and UAE 3rd plus 13 makes a 16, the worst day of the four. Your tally shows 25; please align to 16." },
@@ -636,42 +637,6 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
   el.innerHTML = html;
 })();
 
-/* our-count vs JJ, and the list to run by him */
-(function(){
-  const el=document.getElementById('reconPanel');
-  const players=['AA','JJ','JB','JP'];
-  const incomplete={};
-  const ours={};
-  players.forEach(p=>{
-    let sum=0, inc=[];
-    for(let n=1;n<=7;n++){
-      const st=STAGES.find(s=>s.n===n); if(!st) continue;
-      if(st.days && st.days[p]!=null) sum+=st.days[p];
-      else if(n!==9) inc.push(n);
-    }
-    ours[p]=sum; incomplete[p]=inc;
-  });
-  const rows=players.map(p=>{
-    const d=ours[p]-JJ_POSTED[p];
-    const diffTxt=d===0?'<span class="ok">match</span>':`<span class="off">${d>0?'+':''}${d}</span>`;
-    const inc=incomplete[p].length?` <span class="incn">(S${incomplete[p].join(', S')} still to add)</span>`:'';
-    return `<tr><td class="plr">${p}</td><td class="r">${ours[p]}${inc}</td><td class="r">${JJ_POSTED[p]}</td><td class="r">${diffTxt}</td></tr>`;
-  }).join('');
-  const asks=ASK_JJ.map(a=>{
-    const nums = a.res!=null ? `results <b>${a.res}</b>, JJ <b>${a.theirs}</b>. ` : '';
-    return `<li><b>${a.who}, ${a.tag}</b> - ${nums}${a.q}</li>`;
-  }).join('');
-  const needsBlock = NEED_PICK.length
-    ? `<div class="rh">Still need from the group</div><ul class="asklist">${needs}</ul>`
-    : `<div class="rh">Still need from the group</div><p class="recfoot" style="border-top:none;margin-top:0;padding-top:0">Nothing. Every pick on the board is now confirmed from a draft screenshot.</p>`;
-  el.innerHTML = `
-    <div class="vh">Race results vs JJ's tally (through Stage 7)</div>
-    <table class="recon"><thead><tr><th>Rider</th><th class="r">Results</th><th class="r">JJ</th><th class="r">Diff</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="rh">To get clarity on from JJ</div><ul class="asklist">${asks}</ul>
-    ${needsBlock}
-    <p class="recfoot">Every pick here is confirmed from a screenshot or confirmed missing, so the board scores it straight from the race results and flags where the tally differs. Just lining the numbers up for the group.</p>`;
-})();
-
 /* ===== The Numbers: four metrics ===== */
 (function(){
   const players=['AA','JJ','JB','JP'];
@@ -783,19 +748,20 @@ const stats=[
   {k:"Rank leader",v:OURS.rank[rankLeader],ink:true,d:`${rankLeader}, lowest rank total. ${rankOrder.slice(1).map(k=>k+' '+OURS.rank[k]).join(', ')} behind.`},
   {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`},
   {k:"The MVDP tax",v:"275 PTS",ink:true,d:"Picked 3 times (2 by JP): 22nd, 125th, 128th. Then he won the voided Stage 9, of course."},
+  {k:"The relegation",v:"3RD > 119TH",small:true,d:"Philipsen crossed 3rd in Nevers, relegated for contact in the sprint. JP's would-be 5 became a 121."},
   {k:"Collective worst day",v:"ST 4",small:true,d:"Foix breakaway. Only 2 in the top 10, but they were the 1-2 finishers."},
   {k:"Biggest single burial",v:"128th",small:true,d:"JP's MVDP on the Stage 5 sprint. Did he fall asleep in the peloton?"},
-  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked several times (mostly by AA): 3, 8, 57, 4. The 57 was the Foix breakaway day."},
+  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked five times (three by AA, two by JP): 3, 8, 57, 4, 2. The 57 was the Foix breakaway day."},
   {k:"Stage lost to hydration",v:"ST 9",small:true,ink:true,d:"Heat-shortened, then DNS for the whole pool after the World Cup watch party."}
 ];
 document.getElementById('statgrid').innerHTML=stats.map(s=>
   `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
 
 const arch=[
-  {k:"AA",lead:true,t:"The placement leader",b:"Lowest placement total at 141. Consistent low finishes over hero picks, the Kanter and Artz value plays. Out front on the primary metric, second on rank."},
-  {k:"JJ",lead:true,t:"The winner-picker",b:"Leads rank points by drafting the actual stage winner again and again: Tadej three times, Ineos on Stage 1, Merlier on Stage 7. A stack of rank-1 picks keeps his day-by-day placings sharp. Second on placement."},
-  {k:"JB",t:"Middle of the pack",b:"Name-brand GC picks and deep-cut Uno-X flyers. Third on placement at 268, last on rank at 75. Waerenskjold's Bordeaux 2nd was one day early."},
-  {k:"JP",t:"The MVDP believer",b:"Last on placement at 318, with 250 of it from three Van der Poel picks (22, 125, 128). The Stage 10 pairing was his sharpest day, but the season hole is deep."}
+  {k:"AA",lead:true,t:"The placement leader",b:"Lowest placement total at 221, and now the most stage winners drafted at four: Pedersen, Merlier, Pogacar, Waerenskjold. Consistent low finishes over hero picks, with Kanter and Artz as the value plays. Second on rank, two points off the lead."},
+  {k:"JJ",lead:true,t:"The rank leader",b:"Leads rank points at 79 by keeping both picks near the front of the pool day after day: Pogacar three times, Ineos on the opening TTT, Merlier in Bordeaux. Second on placement at 266, the closest chaser on both boards."},
+  {k:"JB",t:"Middle of the pack",b:"Name-brand GC picks and deep-cut Uno-X flyers. Third on placement at 318, last on rank at 103. Artz at 4th in Nevers and Waerenskjold's Bordeaux 2nd show the flyers do land, sometimes a day early."},
+  {k:"JP",t:"The MVDP believer",b:"Last on placement at 584. Three Van der Poel picks cost 275, and the Stage 11 Philipsen relegation turned a would-be 5 into a 121. The Stage 10 Evenepoel and Lipowitz pairing, a 6, is still his sharpest day and third place on rank shows the picks are closer than the placement total reads."}
 ];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
   `<div class="arch ${a.lead?'lead':''}"><div class="who">${a.k}</div><div><div class="t">${a.t}</div><div class="b">${a.b}</div></div></div>`).join('');
