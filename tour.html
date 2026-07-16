@@ -225,18 +225,18 @@
   .palmares{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:34px}
   .pcard{border:1px solid var(--line2);border-radius:16px;padding:16px 16px 15px;background:#fff;display:flex;flex-direction:column;gap:13px}
   .pcard.lead{border-color:#e8cf8a;box-shadow:0 4px 16px rgba(232,179,30,.16);background:linear-gradient(180deg,#fffdf6,#fff)}
-  .pc-top{display:flex;align-items:center;gap:13px}
+  .pc-top{display:flex;align-items:center;gap:13px;min-height:104px}
   .pc-av{width:66px;height:66px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:2px solid var(--line2)}
   .pcard.lead .pc-av{border-color:#e0b83c}
   .pc-av.empty{display:flex;align-items:center;justify-content:center;background:#f3f1ea;color:#b9b3a4}
   .pc-av.art{overflow:hidden}
   .pc-av.art svg{width:100%;height:100%;display:block}
   .pc-av .pc-jersey{width:36px;height:36px}
-  .pc-id{min-width:0}
-  .pc-code{font-family:'Montserrat',sans-serif;font-weight:900;font-size:21px;color:var(--ink);line-height:1;display:flex;align-items:center;gap:7px}
+  .pc-id{min-width:0;flex:1;text-align:center}
+  .pc-code{font-family:'Montserrat',sans-serif;font-weight:900;font-size:21px;color:var(--ink);line-height:1;display:flex;align-items:center;justify-content:center;gap:7px}
   .pc-crown{display:inline-flex;color:#d8a41a}.pc-crown svg{width:17px;height:17px}
   .pc-name{font-size:13px;color:var(--ink2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pc-persona{font-family:'Montserrat',sans-serif;font-style:italic;font-size:12.5px;color:var(--gold-d,#b5850f);margin-top:4px;font-weight:700;line-height:1.25;min-height:48px}
+  .pc-persona{font-family:'Montserrat',sans-serif;font-style:italic;font-size:12.5px;color:var(--gold-d,#b5850f);margin-top:4px;font-weight:700;line-height:1.25}
   .pc-persona .pc-rider{display:block;font-style:normal;font-weight:600;font-size:10.5px;letter-spacing:.02em;color:var(--mute);margin-top:2px}
   .pc-persona.ph{color:var(--mute);font-weight:500;opacity:.7}
   .pc-standings{display:flex;gap:9px}
