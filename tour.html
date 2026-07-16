@@ -228,6 +228,8 @@
   .pc-av{width:66px;height:66px;border-radius:50%;flex:0 0 auto;background-size:cover;background-position:center;border:2px solid var(--line2)}
   .pcard.lead .pc-av{border-color:#e0b83c}
   .pc-av.empty{display:flex;align-items:center;justify-content:center;background:#f3f1ea;color:#b9b3a4}
+  .pc-av.art{overflow:hidden}
+  .pc-av.art svg{width:100%;height:100%;display:block}
   .pc-av .pc-jersey{width:36px;height:36px}
   .pc-id{min-width:0}
   .pc-code{font-family:'Montserrat',sans-serif;font-weight:900;font-size:21px;color:var(--ink);line-height:1;display:flex;align-items:center;gap:7px}
@@ -775,6 +777,65 @@ document.getElementById('callouts').innerHTML = `
   </div>
   <div class="flag-row"><div class="flag"><i class="b"></i><i class="w"></i><i class="r"></i></div><div class="c">113th Tour de France<br>Barcelona to Paris</div></div>`;
 
+/* Comical nickname-driven cartoon emblems in each rider's team colours. Inline SVG
+   so the page stays self-contained; a real image URL in RIDER_PROFILE.avatar wins. */
+const AVATAR_ART = {
+  /* AA - Eddy Merckx "The Cannibal", Molteni orange: a hungry, toothy grin with fork and knife */
+  AA:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#ee6a1b"/>
+    <g fill="#fff7ec"><rect x="12" y="31" width="4.5" height="30" rx="2.2"/><rect x="8" y="24" width="3" height="13" rx="1.5"/><rect x="12.7" y="24" width="3" height="13" rx="1.5"/><rect x="17.4" y="24" width="3" height="13" rx="1.5"/></g>
+    <g fill="#fff7ec"><rect x="83.5" y="31" width="4.5" height="30" rx="2.2"/><path d="M82 22 q7 3 7 15 h-7z"/></g>
+    <path d="M30 35 l16 5" stroke="#8a3a08" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M70 35 l-16 5" stroke="#8a3a08" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="40" cy="44" r="8.5" fill="#fff7ec"/><circle cx="60" cy="44" r="8.5" fill="#fff7ec"/>
+    <circle cx="43" cy="46" r="3.6" fill="#2a1400"/><circle cx="63" cy="46" r="3.6" fill="#2a1400"/>
+    <path d="M31 61 q19 20 38 0 q-19 7 -38 0z" fill="#6e1806"/>
+    <g fill="#fff7ec"><path d="M33 61 l4.5 8 4.5 -8z"/><path d="M42 62 l4.5 8 4.5 -8z"/><path d="M51 62 l4.5 8 4.5 -8z"/><path d="M60 61 l4.5 8 4.5 -8z"/></g>
+    <ellipse cx="50" cy="75" rx="7.5" ry="5" fill="#e2402c"/>
+  </svg>`,
+  /* JJ - Bernard Hinault "The Badger", La Vie Claire colours: a fierce little badger */
+  JJ:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#ecebe4"/>
+    <rect x="0" y="84" width="34" height="16" fill="#e2231a"/><rect x="33" y="84" width="34" height="16" fill="#ffd400"/><rect x="66" y="84" width="34" height="16" fill="#1f56b0"/>
+    <circle cx="31" cy="27" r="10" fill="#2a2a2a"/><circle cx="69" cy="27" r="10" fill="#2a2a2a"/>
+    <circle cx="31" cy="28" r="4.4" fill="#caa488"/><circle cx="69" cy="28" r="4.4" fill="#caa488"/>
+    <ellipse cx="50" cy="53" rx="31" ry="30" fill="#f0ede7"/>
+    <path d="M43 27 q-9 26 -4 46 h-9 q-6 -24 4 -46z" fill="#2a2a2a"/>
+    <path d="M57 27 q9 26 4 46 h9 q6 -24 -4 -46z" fill="#2a2a2a"/>
+    <circle cx="37" cy="52" r="4" fill="#fff"/><circle cx="63" cy="52" r="4" fill="#fff"/>
+    <circle cx="37.6" cy="53" r="1.9" fill="#111"/><circle cx="62.4" cy="53" r="1.9" fill="#111"/>
+    <path d="M31 45 l9 3.6" stroke="#111" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M69 45 l-9 3.6" stroke="#111" stroke-width="2.6" stroke-linecap="round"/>
+    <ellipse cx="50" cy="67" rx="9.5" ry="7.5" fill="#f0ede7"/>
+    <path d="M44.5 65 h11 l-5.5 6.5z" fill="#2a2a2a"/>
+  </svg>`,
+  /* JB - Miguel Induráin "Big Mig", Banesto navy and yellow: a huge flexing arm */
+  JB:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#e9ecf2"/>
+    <rect x="0" y="78" width="100" height="22" fill="#0b1f5e"/>
+    <g fill="#e7b98f">
+      <rect x="20" y="58" width="48" height="23" rx="11.5"/>
+      <rect x="40" y="16" width="23" height="52" rx="11.5"/>
+      <circle cx="45" cy="54" r="18"/>
+      <circle cx="51.5" cy="18" r="13"/>
+    </g>
+    <path d="M42 13 q9.5 -5 19 0 M43 20 q9 -4 17 0" stroke="#c0895a" stroke-width="1.6" fill="none"/>
+    <path d="M6 84 q2 -28 30 -25 l3 32z" fill="#0b1f5e"/>
+    <rect x="11" y="57" width="28" height="7.5" rx="1.5" fill="#ffd400"/>
+    <path d="M85 18 l2.6 5.4 5.6 -1.1 -3.3 5.4 2.9 5.4 -5.5 -1.8 -3.3 4.4 -1.1 -6.1 -5.5 -1.8 5.5 -2.6z" fill="#ffd400"/>
+  </svg>`,
+  /* JP - Raymond Poulidor "The Eternal Second", Mercier purple: a giant silver 2 medal */
+  JP:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#5b3f96"/>
+    <path d="M50 22 L33 3 L25 9 L43 35z" fill="#ffd400"/>
+    <path d="M50 22 L67 3 L75 9 L57 35z" fill="#e3bf00"/>
+    <circle cx="50" cy="59" r="24" fill="#ccced3"/>
+    <circle cx="50" cy="59" r="24" fill="none" stroke="#9a9ea6" stroke-width="3"/>
+    <circle cx="50" cy="59" r="18" fill="none" stroke="#eef0f2" stroke-width="1.6"/>
+    <text x="50" y="71" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="900" font-size="31" fill="#5b5f66">2</text>
+  </svg>`
+};
+
 /* Palmarès cards: one per rider, ordered by the placement standing, each carrying a
    profile-pic slot and the running medal count (awards add up across the season). */
 (function(){
@@ -786,9 +847,12 @@ document.getElementById('callouts').innerHTML = `
   const rp=(typeof RIDER_PROFILE!=='undefined')?RIDER_PROFILE:{};
   el.innerHTML = placeOrder.map((k,i)=>{
     const prof=rp[k]||{};
+    const artMap=(typeof AVATAR_ART!=='undefined')?AVATAR_ART:{};
     const av = prof.avatar
       ? `<div class="pc-av" style="background-image:url('${prof.avatar}')"></div>`
-      : `<div class="pc-av empty" title="cartoon portrait goes here">${jerseySVG}</div>`;
+      : (artMap[k]
+          ? `<div class="pc-av art">${artMap[k]}</div>`
+          : `<div class="pc-av empty" title="cartoon portrait goes here">${jerseySVG}</div>`);
     const persona = prof.epithet
       ? `<div class="pc-persona">&ldquo;${prof.epithet}&rdquo;${prof.rider?`<span class="pc-rider">${prof.rider}</span>`:''}</div>`
       : `<div class="pc-persona ph">persona to come</div>`;
@@ -1128,7 +1192,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     "jjohnsatlaw@gmail.com",        // JJ / Jeff Johns
     "tara.bisel@gmail.com",         // Tara (reviewer)
     "afarver7@gmail.com",           // Adam (reviewer)
-    "clintontrautmann@hotmail.com"  // Clint "CRT" (reviewer) - non-Gmail, see note
+    "clintontrautmann@gmail.com"    // Clint "CRT" (reviewer)
     // add JP, JB Google account emails here (lowercase), comma-separated
   ];
 
