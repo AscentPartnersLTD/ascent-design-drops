@@ -986,6 +986,18 @@ const ART = {
     <path d="M34 40 L44 52 L50 46 L40 33 Z" fill="#ffffff" opacity="0.85"/>
     <path d="M66 32 L74 45 L60 45 Z" fill="#ffffff" opacity="0.85"/>
     <path d="M50 8 l2.6 5.3 5.8 .8 -4.2 4.1 1 5.8 -5.2 -2.7 -5.2 2.7 1 -5.8 -4.2 -4.1 5.8 -.8z" fill="#e63946"/>
+  </svg>`,
+  /* Fabian Cancellara "Spartacus": a Roman gladiator helmet on Swiss red */
+  cancellara:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#d52b1e"/>
+    <g fill="#ffffff" opacity="0.13"><rect x="80" y="10" width="7" height="20"/><rect x="73.5" y="16.5" width="20" height="7"/></g>
+    <path d="M50 10 q-11 2 -13 15 l26 0 q-2 -13 -13 -15z" fill="#7c1616"/>
+    <path d="M37 26 q13 -4 26 0 l0 5 q-13 -4 -26 0z" fill="#5c1010"/>
+    <path d="M30 44 q0 -18 20 -18 q20 0 20 18 l0 5 q-20 -6 -40 0z" fill="#cbced3"/>
+    <path d="M31 48 q19 -6 38 0 l-2 20 q-4 9 -17 9 q-13 0 -17 -9z" fill="#c0c4ca"/>
+    <path d="M43 52 q7 -2.5 14 0 l-1 12 q-3 5 -6 5 q-3 0 -6 -5z" fill="#39281f"/>
+    <rect x="48" y="50" width="4" height="21" rx="2" fill="#aeb2b8"/>
+    <path d="M30 44 q20 -6 40 0" fill="none" stroke="#9a9ea6" stroke-width="1.6"/>
   </svg>`
 };
 
@@ -1088,7 +1100,11 @@ const PERSONA_BANK = [
   { id:"quintana", tier:"style", rider:"Nairo Quintana", epithet:"Nairoman",
     fit:S=> (S.rankPos<=2?80:0) + S.nonSprintWins*50 + 10,
     blurb:"Quintana, 'Nairoman', was the pure climber from Boyaca who won the Giro and the Vuelta and lit up the Tour's biggest mountains.",
-    why:S=> `${S.k} fits it now: a climber's card, strongest where the road tips up.` }
+    why:S=> `${S.k} fits it now: a climber's card, strongest where the road tips up.` },
+  { id:"cancellara", tier:"style", rider:"Fabian Cancellara", epithet:"Spartacus",
+    fit:S=> S.aggro*80 + S.wins*35 + 15,
+    blurb:"Cancellara, 'Spartacus', was the great engine of the classics and the time trial - four world time-trial titles, Paris-Roubaix and Flanders, and days on end in yellow.",
+    why:S=> `${S.k} fits it now: raw power on the front, a rouleur's strength that grinds the day down.` }
 ];
 
 /* Assignment: the placement leader takes the best-fitting WINNER; everyone else takes
