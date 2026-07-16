@@ -593,6 +593,21 @@ const RIDER_PROFILE = {
   JB:{ pin:"", avatar:"" }, JP:{ pin:"", avatar:"" }
 };
 
+/* Persona ledger - the LAST SETTLED board (the standings order and the persona each
+   player held) plus every persona each player has ever worn. The engine below diffs
+   the current standings against `order`: a player who holds their spot keeps their
+   persona; a player who moved earns a NEW one (the new leader a winner, everyone else
+   a style that fits how they are riding now), never a persona already on the board and
+   never one they have worn before. Personas stay in the bank forever.
+   UPKEEP (only when the standings order changes): before rebuilding, set `order` and
+   `by` to the board that is CURRENTLY displayed and push each player's current persona
+   id onto `seen`. Then add the new stage. The engine reassigns whoever moved. */
+const PERSONA_LEDGER = {
+  order: ["JJ","AA","JB","JP"],
+  by:    { JJ:"wiggins", AA:"sagan", JB:"professor", JP:"eternalsecond" },
+  seen:  { AA:["cannibal","sagan"], JJ:["godofthunder","wiggins"], JB:["professor"], JP:["eternalsecond"] }
+};
+
 const OFFICIAL = {
   through: 7,
   placement: { AA:141, JJ:200, JB:268, JP:318 },   // primary, lower is better
@@ -1302,18 +1317,41 @@ const PERSONA_BANK = [
    the best-fitting STYLE persona, greedily and uniquely. A pin in RIDER_PROFILE wins. */
 const PERSONA_BY = (function(){
   const rp=(typeof RIDER_PROFILE!=='undefined')?RIDER_PROFILE:{};
-  const assigned={}, usedC={}, leader=placeOrder[0];
-  PL4.forEach(p=>{ const pin=(rp[p]||{}).pin; if(pin){ const c=PERSONA_BANK.find(x=>x.id===pin);
-    if(c && !usedC[c.id]){ assigned[p]=c; usedC[c.id]=1; } } });
-  if(!assigned[leader]){
-    const w=PERSONA_BANK.filter(c=>c.tier==='winner' && !usedC[c.id]).sort((a,b)=>b.fit(PSTATS[leader])-a.fit(PSTATS[leader]));
-    if(w[0]){ assigned[leader]=w[0]; usedC[w[0].id]=1; }
-  }
-  const pairs=[], doneP={};
-  PL4.forEach(p=>{ if(assigned[p]) return; PERSONA_BANK.filter(c=>c.tier==='style').forEach(c=>{ pairs.push({p,c,score:c.fit(PSTATS[p])}); }); });
-  pairs.sort((a,b)=>b.score-a.score);
-  pairs.forEach(({p,c})=>{ if(!assigned[p] && !doneP[p] && !usedC[c.id]){ assigned[p]=c; doneP[p]=1; usedC[c.id]=1; } });
-  PL4.forEach(p=>{ if(!assigned[p]){ const c=PERSONA_BANK.find(x=>!usedC[x.id]); if(c){ assigned[p]=c; usedC[c.id]=1; } } });
+  const L=(typeof PERSONA_LEDGER!=='undefined')?PERSONA_LEDGER:{order:PL4.slice(),by:{},seen:{}};
+  const byId=id=>PERSONA_BANK.find(x=>x.id===id)||null;
+  const prevPos={}; (L.order||[]).forEach((p,i)=>prevPos[p]=i);
+  const curPos={}; placeOrder.forEach((p,i)=>curPos[p]=i);
+  const leader=placeOrder[0];
+  const assigned={}, used={};
+  /* 1) explicit pin in RIDER_PROFILE always wins */
+  PL4.forEach(p=>{ const pin=(rp[p]||{}).pin; if(pin){ const c=byId(pin); if(c && !used[pin]){ assigned[p]=c; used[pin]=1; } } });
+  /* 2) a player who held their placement spot keeps the persona they were wearing */
+  const movers=[];
+  PL4.forEach(p=>{
+    if(assigned[p]) return;
+    const held = (prevPos[p]!==undefined) && (prevPos[p]===curPos[p]);
+    const prevId=(L.by||{})[p];
+    if(held && prevId && byId(prevId)){ assigned[p]=byId(prevId); used[prevId]=1; }
+    else movers.push(p);
+  });
+  /* everything that was on the previous board is off-limits for a mover (no swaps, no hand-me-downs) */
+  const prevBoard=new Set(Object.values(L.by||{}));
+  /* 3) each mover earns a NEW persona: leader from winners, everyone else from styles;
+        best fit for how they are riding now, excluding the previous board and their own history */
+  movers.sort((a,b)=>curPos[a]-curPos[b]);
+  movers.forEach(p=>{
+    const tier=(p===leader)?'winner':'style';
+    const seen=new Set((L.seen&&L.seen[p])||[]);
+    const rank=list=>list.slice().sort((a,b)=>b.fit(PSTATS[p])-a.fit(PSTATS[p]));
+    let pool=rank(PERSONA_BANK.filter(c=>c.tier===tier && !used[c.id] && !prevBoard.has(c.id) && !seen.has(c.id)));
+    if(!pool.length) pool=rank(PERSONA_BANK.filter(c=>c.tier===tier && !used[c.id] && !seen.has(c.id)));
+    if(!pool.length) pool=rank(PERSONA_BANK.filter(c=>c.tier===tier && !used[c.id]));
+    const pick=pool[0]; if(pick){ assigned[p]=pick; used[pick.id]=1; }
+  });
+  /* 4) safety net: anyone still unassigned takes the best remaining of the right tier */
+  PL4.forEach(p=>{ if(assigned[p]) return; const tier=(p===leader)?'winner':'style';
+    const pool=PERSONA_BANK.filter(c=>c.tier===tier && !used[c.id]).sort((a,b)=>b.fit(PSTATS[p])-a.fit(PSTATS[p]));
+    const pick=pool[0]||PERSONA_BANK.find(x=>!used[x.id]); if(pick){ assigned[p]=pick; used[pick.id]=1; } });
   return assigned;
 })();
 
