@@ -462,7 +462,7 @@
       <div class="charts">
         <div class="chart"><div class="ct">Placement points <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
         <div class="chart"><div class="ct">Rank points <small>rank among drafted riders &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
-        <div class="hl-tile"><div class="big">25/30</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 25 of 30 podium spots across the 10 scored stages, at least 2 every day and all 3 five times. Plus 53 of 100 top-10 slots.</div></div></div>
+        <div class="hl-tile"><div class="big">28/33</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 28 of 33 podium spots across the 11 scored stages, at least 2 every day and all 3 on six of them. Plus 59 of 110 top-10 slots.</div></div></div>
         <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 placement points, no payoff.</div></div></div>
       </div>
     </div>
@@ -691,27 +691,32 @@ const STAGES = [
       JP:"Kooij 2nd and Philipsen 3rd, reinstated after the relegation was overturned on appeal, give JP the day's best pair at 5, a full recovery from the 121 the provisional result had shown.",
       JB:"Merlier 15th and Artz 5th once the official result settled, a steady 20 on a chaotic sprint day.",
       JJ:"Girmay 6th kept JJ in the mix; Bauhaus 24th was adrift, leaving the pair at 30." },
-    note:"Vichy to Nevers, the fastest road stage in Tour history at 50.9 kph. Waerenskjold won from distance. Philipsen crossed the line 3rd, was provisionally relegated for an irregular sprint, then reinstated to 3rd on appeal, which is the official result. That gives JP the day's best at 5 with Kooij 2nd and Philipsen 3rd. Finishes pulled from the official letour.fr classification." }
+    note:"Vichy to Nevers, the fastest road stage in Tour history at 50.9 kph. Waerenskjold won from distance. Philipsen crossed the line 3rd, was provisionally relegated for an irregular sprint, then reinstated to 3rd on appeal, which is the official result. That gives JP the day's best at 5 with Kooij 2nd and Philipsen 3rd. Finishes pulled from the official letour.fr classification." },
+  { n:12, route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", km:179.1, win:"T. Merlier",
+    combatif:"B. Veistroffer",
+    days:{ JP:8, JB:13, JJ:14, AA:109 }, best:"JP",
+    picks:{ JJ:[["J. Philipsen",3],["R. Pluimers",11]], JP:[["T. Merlier",1],["M. Kanter",7]],
+            AA:[["O. Kooij",2],["S. Waerenskjold",107]], JB:[["B. Girmay",4],["M. Pedersen",9]] },
+    reads:{
+      AA:"Kooij delivered a superb 2nd, but a crash inside the final 600 m caught Waerenskjold and dropped him to 107th, turning a podium day into the worst total on the board.",
+      JP:"Merlier won it and Kanter backed him up in 7th, comfortably the day's best pair.",
+      JB:"Girmay 4th and Pedersen 9th, a tidy, consistent 13 with no drama.",
+      JJ:"Philipsen took 3rd on the line and Pluimers held 11th, a steady 14 just off JB." },
+    note:"Magny-Cours to Chalon-sur-Saone. Merlier won the bunch sprint from Kooij and Philipsen. A crash inside the final 600 m held up part of the field and caught Waerenskjold, who was classified 107th; the safety rule gives him the bunch time but his placing stands. JP best on the day at 8 (Merlier 1, Kanter 7); AA's day ran to 109 on the Waerenskjold crash. Finishes pulled from the official letour.fr classification." }
 ];
 
 const UPCOMING = {
-  n:12, route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", km:179.1,
+  n:13, route:"Ballon d'Alsace finale", type:"Hilly", km:205.8,
   intel:{
-    summary:"Another bunch sprint on paper, and likely the fast men's last clear chance before the road turns up. A big day for the green jersey.",
+    summary:"The longest day of the Tour, a lumpy Vosges route that tips up to the Ballon d'Alsace at the finish; a stage a breakaway or a punchy rider can steal, not one for the pure sprinters.",
     facts:[
-      "179.1 km, flat, roughly 1,800 m of climbing spread across three small ramps",
-      "Only real obstacle is the Cote de Montagny-les-Buxy (Cat 4), about 20 km from the line",
-      "A dropped sprinter has nearly 20 flat km to chase back on, so expect a full bunch finish",
-      "Starts at the Magny-Cours motor-racing circuit; last Tour winner in Chalon-sur-Saone was Groenewegen in 2019"
+      "205.8 km, the longest stage of this Tour, with a hilly finale in the Vosges",
+      "Finishes over the Ballon d'Alsace, the first true mountain the Tour ever climbed, back in 1905",
+      "Enough climbing to shed the fast men, but short of a summit-finish showdown for the GC",
+      "Reads like breakaway bait: a long day, a hard closing climb, and no easy control"
     ]
   },
-  picks:{ JJ:["J. Philipsen","R. Pluimers"], JP:["T. Merlier","M. Kanter"], AA:["O. Kooij","S. Waerenskjold"], JB:["B. Girmay","M. Pedersen"] },
-  reads:{
-    AA:"Kooij and Waerenskjold are both recent winners here, Stage 5 and Stage 11; the catch is two fast men who can end up marking each other out of the same gallop.",
-    JP:"Merlier is about the quickest man in the race and a genuine win threat; Kanter is the lighter leg, more a top-ten hope than a podium lock.",
-    JB:"Girmay and Pedersen are both proven stage winners with punch; neither has the pure top-end of Merlier or Kooij, so it leans steady over explosive.",
-    JJ:"Philipsen is the marquee pick, a serial winner who can take the day outright; Pluimers is the flyer, a young fast man who is more upside bet than banker."
-  }
+  picks:{ JP:[], AA:[], JB:[], JJ:[] }
 };
 
 /* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
@@ -1600,10 +1605,10 @@ document.getElementById('statgrid').innerHTML=stats.map(s=>
   `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
 
 const arch=[
-  {k:"AA",lead:true,t:"The placement leader",b:"Lowest placement total at 222, and the most stage winners drafted at four: Pedersen, Merlier, Pogacar, Waerenskjold. Consistent low finishes over hero picks, with Kanter and Artz as the value plays. Second on rank, one point off the lead."},
-  {k:"JJ",lead:true,t:"The rank leader",b:"Leads rank points at 81 by keeping both picks near the front of the pool day after day: Pogacar three times, Ineos on the opening TTT, Merlier in Bordeaux. Second on placement at 268, the closest chaser on both boards."},
-  {k:"JB",t:"Middle of the pack",b:"Name-brand GC picks and deep-cut Uno-X flyers. Third on placement at 320, last on rank at 105. Artz at 5th in Nevers and Waerenskjold's Bordeaux 2nd show the flyers do land, sometimes a day early."},
-  {k:"JP",t:"The MVDP believer",b:"Last on placement at 468, with 275 of it from three Van der Poel picks. Once Philipsen was reinstated to 3rd in Nevers, JP's Stage 11 dropped from a provisional 121 to a 5, his equal-best day with the Stage 10 Evenepoel and Lipowitz 6. Third on rank at 92 shows the picks read closer than the placement total."}
+  {k:"JJ",lead:true,t:"The new leader",b:"Out front on both boards now, placement 282 and rank 91, by landing both picks near the front day after day: Pogacar and Merlier for wins, Philipsen 3rd in Chalon. Holds the pool's only Prix de la Combativité. The most complete card at the table."},
+  {k:"AA",t:"The Waerenskjold crash",b:"Led the pool for eleven stages until a pileup inside the final 600 m in Chalon buried Waerenskjold in 107th and knocked AA to 331, now second on both placement and rank. Still the most stage winners drafted at four: Pedersen, Merlier, Pogacar, Waerenskjold. The ceiling is intact, the luck was not."},
+  {k:"JB",t:"Middle of the pack",b:"Third on placement at 333, last on rank at 115. Name-brand GC picks and Uno-X flyers; Girmay 4th and Pedersen 9th in Chalon was his tidiest sprint day yet, the kind of steady return that keeps him in touch."},
+  {k:"JP",t:"The MVDP believer, climbing",b:"Merlier's win in Chalon handed JP the day at 8 and a second stage winner to sit beside Kooij. Still last on placement at 476, 275 of it the MVDP tax, but third on rank at 98 says the picks read a good deal closer than the placement total."}
 ];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
   `<div class="arch ${a.lead?'lead':''}"><div class="who">${a.k}</div><div><div class="t">${a.t}</div><div class="b">${a.b}</div></div></div>`).join('');
