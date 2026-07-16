@@ -250,6 +250,7 @@
   .medal.prix{background:#fdf4dd;color:#a9790a}
   .medal.win{background:#eef4ef;color:#2f7d4f}
   .medal.zero{background:#f3f1ea;color:#b7b1a3}
+  .pc-story{font-size:11.5px;line-height:1.5;color:var(--ink2);border-top:1px solid var(--line);padding-top:11px;margin-top:2px}
   @media(max-width:760px){ .palmares{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media(max-width:440px){ .palmares{grid-template-columns:1fr} }
 
@@ -511,10 +512,14 @@ const PLAYERS = {
    URL or a data: URI to fill the picture, leave "" for the placeholder). All three
    are optional. Mappings picked to each player's pool archetype (July 2026). */
 const RIDER_PROFILE = {
-  AA:{ epithet:"The Cannibal",       rider:"Eddy Merckx",      avatar:"" },  // leads overall, most winners drafted
-  JJ:{ epithet:"The Badger",         rider:"Bernard Hinault",  avatar:"" },  // rank leader, the winner-picker
-  JB:{ epithet:"Big Mig",            rider:"Miguel Induráin",  avatar:"" },  // steady, consistent, protected leaders
-  JP:{ epithet:"The Eternal Second", rider:"Raymond Poulidor", avatar:"" }   // props up the table; MVDP is Poulidor's grandson
+  AA:{ epithet:"The Cannibal", rider:"Eddy Merckx", avatar:"",
+       note:"A rival's daughter coined 'The Cannibal' because Merckx left nothing for anyone else. Fitting: AA leads the pool on placement and has drafted four stage winners, more than anyone at the table." },
+  JJ:{ epithet:"The Badger", rider:"Bernard Hinault", avatar:"",
+       note:"Hinault, the last Frenchman to win the Tour, said a badger waits in its sett then comes out and attacks. JJ leads the rank standing by drafting the actual stage winner again and again, and holds the pool's only Prix de la Combativité." },
+  JB:{ epithet:"Big Mig", rider:"Miguel Induráin", avatar:"",
+       note:"Induráin won five straight Tours with no theatrics, just steady power. JB banks quiet finishes on protected leaders like del Toro and Vingegaard instead of chasing hero days." },
+  JP:{ epithet:"The Eternal Second", rider:"Raymond Poulidor", avatar:"",
+       note:"Poulidor finished second at the Tour three times and never wore yellow, yet France adored 'Poupou'. He is also Mathieu van der Poel's grandfather, and JP is the pool's devoted MVDP loyalist, paying the MVDP tax that keeps him propping up the table." }
 };
 
 const OFFICIAL = {
@@ -807,6 +812,7 @@ document.getElementById('callouts').innerHTML = `
         <span class="medal prix${prix?'':' zero'}">${prixIC}<b>${prix}</b><span>Prix</span></span>
         <span class="medal win${WINS_BY[k]?'':' zero'}">${winIC}<b>${WINS_BY[k]}</b><span>${WINS_BY[k]===1?'Win':'Wins'}</span></span>
       </div>
+      ${prof.note?`<div class="pc-story">${prof.note}</div>`:''}
     </div>`;
   }).join('');
 })();
