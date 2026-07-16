@@ -509,19 +509,15 @@ const PLAYERS = {
   JB:{name:"Jeff Bush"},     JJ:{name:"Jeff Johns"}
 };
 
-/* Palmarès cards. epithet = the headline alter-ego (like "The God of Thunder");
-   rider = the classic cyclist it comes from; avatar = the cartoon portrait (drop a
-   URL or a data: URI to fill the picture, leave "" for the placeholder). All three
-   are optional. Mappings picked to each player's pool archetype (July 2026). */
+/* Palmarès personas are assigned DYNAMICALLY each update: every player is matched to
+   the classic-cyclist persona that best fits their current characteristics (leader,
+   aggressor, metronome, loyal underdog, attacker, showman), always a positive read,
+   so a change of places can hand someone a new alter-ego. Catalog + matching live
+   below the edit zone (PERSONA_CATALOG). Optional overrides here: pin forces a
+   persona by id (e.g. pin:"cannibal"); avatar swaps the cartoon for a real photo. */
 const RIDER_PROFILE = {
-  AA:{ epithet:"The Cannibal", rider:"Eddy Merckx", avatar:"",
-       note:"A rival's daughter coined 'The Cannibal' because Merckx left nothing for anyone else. Fitting: AA leads the pool on placement and has drafted four stage winners, more than anyone at the table." },
-  JJ:{ epithet:"The Badger", rider:"Bernard Hinault", avatar:"",
-       note:"Hinault, the last Frenchman to win the Tour, said a badger waits in its sett then comes out and attacks. JJ leads the rank standing by drafting the actual stage winner again and again, and holds the pool's only Prix de la Combativité." },
-  JB:{ epithet:"Big Mig", rider:"Miguel Induráin", avatar:"",
-       note:"Induráin won five straight Tours with no theatrics, just steady power. JB banks quiet finishes on protected leaders like del Toro and Vingegaard instead of chasing hero days." },
-  JP:{ epithet:"The Eternal Second", rider:"Raymond Poulidor", avatar:"",
-       note:"Poulidor finished second at the Tour three times and never wore yellow, yet France adored 'Poupou'. He is also Mathieu van der Poel's grandfather, and JP is the pool's devoted MVDP loyalist, paying the MVDP tax that keeps him propping up the table." }
+  AA:{ pin:"", avatar:"" }, JJ:{ pin:"", avatar:"" },
+  JB:{ pin:"", avatar:"" }, JP:{ pin:"", avatar:"" }
 };
 
 const OFFICIAL = {
@@ -777,11 +773,11 @@ document.getElementById('callouts').innerHTML = `
   </div>
   <div class="flag-row"><div class="flag"><i class="b"></i><i class="w"></i><i class="r"></i></div><div class="c">113th Tour de France<br>Barcelona to Paris</div></div>`;
 
-/* Comical nickname-driven cartoon emblems in each rider's team colours. Inline SVG
-   so the page stays self-contained; a real image URL in RIDER_PROFILE.avatar wins. */
-const AVATAR_ART = {
-  /* AA - Eddy Merckx "The Cannibal", Molteni orange: a hungry, toothy grin with fork and knife */
-  AA:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+/* Comical nickname cartoon emblems, keyed by persona id, in each rider's team colours.
+   Inline SVG so the page stays self-contained; a real photo in RIDER_PROFILE.avatar wins. */
+const ART = {
+  /* Eddy Merckx "The Cannibal", Molteni orange: a hungry, toothy grin with fork and knife */
+  cannibal:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" fill="#ee6a1b"/>
     <g fill="#fff7ec"><rect x="12" y="31" width="4.5" height="30" rx="2.2"/><rect x="8" y="24" width="3" height="13" rx="1.5"/><rect x="12.7" y="24" width="3" height="13" rx="1.5"/><rect x="17.4" y="24" width="3" height="13" rx="1.5"/></g>
     <g fill="#fff7ec"><rect x="83.5" y="31" width="4.5" height="30" rx="2.2"/><path d="M82 22 q7 3 7 15 h-7z"/></g>
@@ -793,8 +789,8 @@ const AVATAR_ART = {
     <g fill="#fff7ec"><path d="M33 61 l4.5 8 4.5 -8z"/><path d="M42 62 l4.5 8 4.5 -8z"/><path d="M51 62 l4.5 8 4.5 -8z"/><path d="M60 61 l4.5 8 4.5 -8z"/></g>
     <ellipse cx="50" cy="75" rx="7.5" ry="5" fill="#e2402c"/>
   </svg>`,
-  /* JJ - Bernard Hinault "The Badger", La Vie Claire colours: a fierce little badger */
-  JJ:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  /* Bernard Hinault "The Badger", La Vie Claire colours: a fierce little badger */
+  badger:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" fill="#ecebe4"/>
     <rect x="0" y="84" width="34" height="16" fill="#e2231a"/><rect x="33" y="84" width="34" height="16" fill="#ffd400"/><rect x="66" y="84" width="34" height="16" fill="#1f56b0"/>
     <circle cx="31" cy="27" r="10" fill="#2a2a2a"/><circle cx="69" cy="27" r="10" fill="#2a2a2a"/>
@@ -809,8 +805,8 @@ const AVATAR_ART = {
     <ellipse cx="50" cy="67" rx="9.5" ry="7.5" fill="#f0ede7"/>
     <path d="M44.5 65 h11 l-5.5 6.5z" fill="#2a2a2a"/>
   </svg>`,
-  /* JB - Miguel Induráin "Big Mig", Banesto navy and yellow: a huge flexing arm */
-  JB:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  /* Miguel Induráin "Big Mig", Banesto navy and yellow: a double-bicep strongman */
+  bigmig:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" fill="#e9ecf2"/>
     <path d="M33 63 q17 -11 34 0 l5 39 h-44z" fill="#f7f8fb"/>
     <rect x="28" y="86" width="44" height="16" fill="#0b1f5e"/>
@@ -829,8 +825,8 @@ const AVATAR_ART = {
     <path d="M44 43 q6 4 12 0" stroke="#5a3b22" stroke-width="2.6" fill="none" stroke-linecap="round"/>
     <path d="M46 45.5 q4 2.5 8 0" stroke="#8a5a34" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   </svg>`,
-  /* JP - Raymond Poulidor "The Eternal Second", Mercier purple: a giant silver 2 medal */
-  JP:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  /* Raymond Poulidor "The Eternal Second", Mercier purple: a giant silver 2 medal */
+  eternalsecond:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" fill="#5b3f96"/>
     <path d="M50 22 L33 3 L25 9 L43 35z" fill="#ffd400"/>
     <path d="M50 22 L67 3 L75 9 L57 35z" fill="#e3bf00"/>
@@ -838,8 +834,101 @@ const AVATAR_ART = {
     <circle cx="50" cy="59" r="24" fill="none" stroke="#9a9ea6" stroke-width="3"/>
     <circle cx="50" cy="59" r="18" fill="none" stroke="#eef0f2" stroke-width="1.6"/>
     <text x="50" y="71" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="900" font-size="31" fill="#5b5f66">2</text>
+  </svg>`,
+  /* Marco Pantani "The Pirate", bandana and hoop earring on a teal sea */
+  pirate:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#0f7a7d"/>
+    <circle cx="50" cy="55" r="26" fill="#e7b98f"/>
+    <path d="M22 45 q28 -20 56 0 q-5 -13 -28 -13 q-23 0 -28 13z" fill="#e23b2e"/>
+    <rect x="21" y="41" width="58" height="8" rx="4" fill="#e23b2e"/>
+    <g fill="#fff"><circle cx="34" cy="43" r="2"/><circle cx="50" cy="40" r="2"/><circle cx="66" cy="43" r="2"/></g>
+    <path d="M76 45 l15 5 -3 10 -14 -7z" fill="#c62f24"/>
+    <circle cx="42" cy="55" r="2.5" fill="#222"/><circle cx="58" cy="55" r="2.5" fill="#222"/>
+    <path d="M40 65 q10 9 20 0" stroke="#7a4a22" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M45 71 q5 7 10 0 q-5 3 -10 0z" fill="#3a2a18"/>
+    <circle cx="76" cy="64" r="4" fill="none" stroke="#ffd400" stroke-width="2.5"/>
+  </svg>`,
+  /* Mario Cipollini "The Lion King", golden mane on Saeco red */
+  lionking:`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#c8102e"/>
+    <g fill="#e2960e"><circle cx="74" cy="52" r="9"/><circle cx="70.8" cy="64" r="9"/><circle cx="62" cy="72.8" r="9"/><circle cx="50" cy="76" r="9"/><circle cx="38" cy="72.8" r="9"/><circle cx="29.2" cy="64" r="9"/><circle cx="26" cy="52" r="9"/><circle cx="29.2" cy="40" r="9"/><circle cx="38" cy="31.2" r="9"/><circle cx="50" cy="28" r="9"/><circle cx="62" cy="31.2" r="9"/><circle cx="70.8" cy="40" r="9"/><circle cx="50" cy="52" r="25"/></g>
+    <circle cx="34" cy="42" r="6" fill="#f4cd7d"/><circle cx="66" cy="42" r="6" fill="#f4cd7d"/>
+    <circle cx="50" cy="53" r="21" fill="#f4cd7d"/>
+    <circle cx="43" cy="49" r="2.6" fill="#3a2410"/><circle cx="57" cy="49" r="2.6" fill="#3a2410"/>
+    <ellipse cx="50" cy="63" rx="11" ry="8.5" fill="#fbe6bd"/>
+    <path d="M50 57 l-4.5 5 h9z" fill="#7a3b22"/>
+    <path d="M50 62 v5 M50 67 q-5 3 -9 1 M50 67 q5 3 9 1" stroke="#7a3b22" stroke-width="1.7" fill="none"/>
   </svg>`
 };
+
+/* ---- Dynamic persona engine ----
+   Each player is scored against every persona from their current pool profile, then
+   matched greedily (highest fit first, one persona each). Every persona is a positive
+   read, so a change of places can hand someone a new alter-ego. */
+const PSTATS = (function(){
+  const S={}, maxWins=Math.max(...PL4.map(p=>WINS_BY[p]));
+  PL4.forEach(p=>{
+    let sum=0,cnt=0,burial=0; const freq={};
+    COMPLETED.forEach(n=>{ if(n===1) return; const st=STAGES.find(s=>s.n===n);
+      (st.picks[p]||[]).forEach(([r,f])=>{ if(typeof f==='number'){ sum+=f; cnt++; if(f>burial)burial=f; }
+        const key=r.toUpperCase().replace(/[^A-Z]/g,''); freq[key]=(freq[key]||0)+1; }); });
+    let loyC=0; for(const key in freq){ if(freq[key]>loyC) loyC=freq[key]; }
+    let sigName=''; if(loyC>=2){ done: for(const n of COMPLETED){ const st=STAGES.find(s=>s.n===n);
+      for(const pk of (st.picks[p]||[])){ if(freq[pk[0].toUpperCase().replace(/[^A-Z]/g,'')]===loyC){ sigName=pk[0]; break done; } } } }
+    let sprintWins=0; COMPLETED.forEach(n=>{ const st=STAGES.find(s=>s.n===n);
+      if(/sprint|flat/i.test(st.type) && (st.picks[p]||[]).some(([r,f])=>f===1)) sprintWins++; });
+    const mvdp=(freq['MVANDERPOEL']||0);
+    S[p]={ k:p, mvdp, placePos:placeOrder.indexOf(p)+1, rankPos:rankOrder.indexOf(p)+1,
+      wins:WINS_BY[p], mostWins:(WINS_BY[p]===maxWins && maxWins>0),
+      sel:AWARDS.selection[p], prix:AWARDS.prix[p], aggro:AWARDS.selection[p]+AWARDS.prix[p],
+      loyC, sigName, burial, avg:(cnt?sum/cnt:99), sprintWins };
+  });
+  const byAvg=PL4.slice().sort((a,b)=>S[a].avg-S[b].avg);
+  PL4.forEach(p=>{ S[p].consPos=byAvg.indexOf(p)+1; });
+  return S;
+})();
+
+const PERSONA_CATALOG = [
+  { id:"cannibal", rider:"Eddy Merckx", epithet:"The Cannibal",
+    fit:S=> (S.placePos===1?1000:0) + (5-S.placePos)*8 + S.wins*3,
+    blurb:"A rival's daughter coined 'The Cannibal' because Merckx left nothing for anyone else - he tried to win everything, everywhere.",
+    why:S=> `${S.k} wears it now as the placement leader, with ${S.wins} stage ${S.wins===1?'winner':'winners'} drafted${S.mostWins?', more than anyone at the table':''}.` },
+  { id:"badger", rider:"Bernard Hinault", epithet:"The Badger",
+    fit:S=> S.aggro*300 + S.wins*45 + (S.rankPos===1?140:0),
+    blurb:"Hinault, the last Frenchman to win the Tour, said a badger waits in its sett, then comes out and attacks - and he raced exactly that way.",
+    why:S=> `${S.k} fits it now: ${S.rankPos===1?'top of the rank standing':'a fighter on the board'}${S.prix?`, holding ${S.prix} Prix de la Combativité`:''}${S.wins?`, with ${S.wins} stage ${S.wins===1?'winner':'winners'} drafted`:''}.` },
+  { id:"bigmig", rider:"Miguel Induráin", epithet:"Big Mig",
+    fit:S=> (5-S.consPos)*90 + (S.burial<=60?70:0) + (S.placePos<=2?40:0),
+    blurb:"Induráin won five straight Tours with no theatrics, just a steady, unbreakable engine - the calmest dominance the sport has seen.",
+    why:S=> `${S.k} fits it now: one of the steadier finishers on the board${S.burial<=60?', no blow-up days':''}, banking quiet points over hero rides.` },
+  { id:"eternalsecond", rider:"Raymond Poulidor", epithet:"The Eternal Second",
+    fit:S=> S.loyC*120 + (S.placePos>=3?150:0) + (S.placePos===4?110:0),
+    blurb:"Poulidor was second at the Tour three times and never wore yellow, yet France adored 'Poupou' more than the winners - and he is Mathieu van der Poel's grandfather.",
+    why:S=> S.mvdp
+      ? `${S.k} fits it now: still backing Mathieu van der Poel, Poulidor's own grandson, and hanging tough at the foot of the standings, loved for it.`
+      : `${S.k} fits it now: ${S.sigName?`the loyal ${S.sigName} backer`:"the table's loyal romantic"}, hanging tough near the foot of the standings and loved for it.` },
+  { id:"pirate", rider:"Marco Pantani", epithet:"The Pirate",
+    fit:S=> S.sel*260 + S.aggro*70 + (S.placePos>=2?30:0),
+    blurb:"Pantani raced in a bandana and a hoop earring and knew one gear: attack. 'Il Pirata' lit up the mountains by going from far out.",
+    why:S=> `${S.k} fits it now: ${S.sel?"took the Sélection la plus Combative out of the day's break":'the boldest picks on the board'}, all in on the aggressive move.` },
+  { id:"lionking", rider:"Mario Cipollini", epithet:"The Lion King",
+    fit:S=> S.sprintWins*150 + S.wins*20 + 10,
+    blurb:"Cipollini was the fastest, flashiest sprinter of his era - 'Super Mario', the Lion King, who turned bunch finishes into a show.",
+    why:S=> `${S.k} fits it now: ${S.sprintWins?`${S.sprintWins} sprint-day ${S.sprintWins===1?'winner':'winners'} drafted`:'a nose for the fast finishes'}, and cashes the bunch gallops.` }
+];
+
+const PERSONA_BY = (function(){
+  const rp=(typeof RIDER_PROFILE!=='undefined')?RIDER_PROFILE:{};
+  const assigned={}, usedP={}, usedC={};
+  PL4.forEach(p=>{ const pin=(rp[p]||{}).pin; if(pin){ const c=PERSONA_CATALOG.find(x=>x.id===pin);
+    if(c && !usedC[c.id]){ assigned[p]=c; usedP[p]=1; usedC[c.id]=1; } } });
+  const pairs=[];
+  PL4.forEach(p=>{ if(usedP[p]) return; PERSONA_CATALOG.forEach(c=>{ pairs.push({p,c,score:c.fit(PSTATS[p])}); }); });
+  pairs.sort((a,b)=>b.score-a.score);
+  pairs.forEach(({p,c})=>{ if(!usedP[p] && !usedC[c.id]){ assigned[p]=c; usedP[p]=1; usedC[c.id]=1; } });
+  PL4.forEach(p=>{ if(!assigned[p]){ const c=PERSONA_CATALOG.find(x=>!usedC[x.id]); if(c){ assigned[p]=c; usedC[c.id]=1; } } });
+  return assigned;
+})();
 
 /* Palmarès cards: one per rider, ordered by the placement standing, each carrying a
    profile-pic slot and the running medal count (awards add up across the season). */
@@ -852,15 +941,17 @@ const AVATAR_ART = {
   const rp=(typeof RIDER_PROFILE!=='undefined')?RIDER_PROFILE:{};
   el.innerHTML = placeOrder.map((k,i)=>{
     const prof=rp[k]||{};
-    const artMap=(typeof AVATAR_ART!=='undefined')?AVATAR_ART:{};
+    const persona=PERSONA_BY[k];
+    const art=persona?ART[persona.id]:null;
     const av = prof.avatar
       ? `<div class="pc-av" style="background-image:url('${prof.avatar}')"></div>`
-      : (artMap[k]
-          ? `<div class="pc-av art">${artMap[k]}</div>`
+      : (art
+          ? `<div class="pc-av art">${art}</div>`
           : `<div class="pc-av empty" title="cartoon portrait goes here">${jerseySVG}</div>`);
-    const persona = prof.epithet
-      ? `<div class="pc-persona">&ldquo;${prof.epithet}&rdquo;${prof.rider?`<span class="pc-rider">${prof.rider}</span>`:''}</div>`
+    const personaHtml = persona
+      ? `<div class="pc-persona">&ldquo;${persona.epithet}&rdquo;<span class="pc-rider">${persona.rider}</span></div>`
       : `<div class="pc-persona ph">persona to come</div>`;
+    const story = persona ? `${persona.blurb} ${persona.why(PSTATS[k])}` : '';
     const placePos=placeOrder.indexOf(k)+1, rankPos=rankOrder.indexOf(k)+1;
     const sel=AWARDS.selection[k], prix=AWARDS.prix[k];
     return `<div class="pcard${i===0?' lead':''}">
@@ -869,7 +960,7 @@ const AVATAR_ART = {
         <div class="pc-id">
           <div class="pc-code">${k}${i===0?'<span class="pc-crown">'+winIC+'</span>':''}</div>
           <div class="pc-name">${PLAYERS[k].name}</div>
-          ${persona}
+          ${personaHtml}
         </div>
       </div>
       <div class="pc-standings">
@@ -881,7 +972,7 @@ const AVATAR_ART = {
         <span class="medal prix${prix?'':' zero'}">${prixIC}<b>${prix}</b><span>Prix</span></span>
         <span class="medal win${WINS_BY[k]?'':' zero'}">${winIC}<b>${WINS_BY[k]}</b><span>${WINS_BY[k]===1?'Win':'Wins'}</span></span>
       </div>
-      ${prof.note?`<div class="pc-story">${prof.note}</div>`:''}
+      ${story?`<div class="pc-story">${story}</div>`:''}
     </div>`;
   }).join('');
 })();
