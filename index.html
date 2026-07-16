@@ -233,7 +233,8 @@
   .pc-code{font-family:'Montserrat',sans-serif;font-weight:900;font-size:21px;color:var(--ink);line-height:1;display:flex;align-items:center;gap:7px}
   .pc-crown{display:inline-flex;color:#d8a41a}.pc-crown svg{width:17px;height:17px}
   .pc-name{font-size:13px;color:var(--ink2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pc-persona{font-family:'Montserrat',sans-serif;font-style:italic;font-size:11.5px;color:var(--gold-d,#b5850f);margin-top:3px;font-weight:600}
+  .pc-persona{font-family:'Montserrat',sans-serif;font-style:italic;font-size:12.5px;color:var(--gold-d,#b5850f);margin-top:4px;font-weight:700;line-height:1.25}
+  .pc-persona .pc-rider{display:block;font-style:normal;font-weight:600;font-size:10.5px;letter-spacing:.02em;color:var(--mute);margin-top:1px}
   .pc-persona.ph{color:var(--mute);font-weight:500;opacity:.7}
   .pc-standings{display:flex;gap:9px}
   .pc-stat{flex:1;background:#f7f5ef;border-radius:10px;padding:8px 6px;text-align:center;line-height:1.15}
@@ -505,14 +506,15 @@ const PLAYERS = {
   JB:{name:"Jeff Bush"},     JJ:{name:"Jeff Johns"}
 };
 
-/* Palmarès cards. persona = the rider alter-ego (like "The God of Thunder"); avatar
-   = the cartoon classic-cyclist portrait. Drop a URL or a data: URI into avatar to
-   fill the picture; leave "" for the placeholder. Both are optional. */
+/* Palmarès cards. epithet = the headline alter-ego (like "The God of Thunder");
+   rider = the classic cyclist it comes from; avatar = the cartoon portrait (drop a
+   URL or a data: URI to fill the picture, leave "" for the placeholder). All three
+   are optional. Mappings picked to each player's pool archetype (July 2026). */
 const RIDER_PROFILE = {
-  AA:{ persona:"", avatar:"" },
-  JP:{ persona:"", avatar:"" },
-  JB:{ persona:"", avatar:"" },
-  JJ:{ persona:"", avatar:"" }
+  AA:{ epithet:"The Cannibal",       rider:"Eddy Merckx",      avatar:"" },  // leads overall, most winners drafted
+  JJ:{ epithet:"The Badger",         rider:"Bernard Hinault",  avatar:"" },  // rank leader, the winner-picker
+  JB:{ epithet:"Big Mig",            rider:"Miguel Induráin",  avatar:"" },  // steady, consistent, protected leaders
+  JP:{ epithet:"The Eternal Second", rider:"Raymond Poulidor", avatar:"" }   // props up the table; MVDP is Poulidor's grandson
 };
 
 const OFFICIAL = {
@@ -782,7 +784,9 @@ document.getElementById('callouts').innerHTML = `
     const av = prof.avatar
       ? `<div class="pc-av" style="background-image:url('${prof.avatar}')"></div>`
       : `<div class="pc-av empty" title="cartoon portrait goes here">${jerseySVG}</div>`;
-    const persona = prof.persona ? `<div class="pc-persona">${prof.persona}</div>` : `<div class="pc-persona ph">persona to come</div>`;
+    const persona = prof.epithet
+      ? `<div class="pc-persona">&ldquo;${prof.epithet}&rdquo;${prof.rider?`<span class="pc-rider">${prof.rider}</span>`:''}</div>`
+      : `<div class="pc-persona ph">persona to come</div>`;
     const placePos=placeOrder.indexOf(k)+1, rankPos=rankOrder.indexOf(k)+1;
     const sel=AWARDS.selection[k], prix=AWARDS.prix[k];
     return `<div class="pcard${i===0?' lead':''}">
