@@ -220,6 +220,19 @@
   .award.info{background:#f3f1ea;color:#6b6656;font-weight:600;border:1px solid var(--line2);font-size:12px;padding:9px 15px}
   .award.info b{color:inherit}
 
+  /* Today's Order strip */
+  .today-order{margin:0 0 22px}
+  .to-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(100deg,#fffdf6,#f7f5ec);border:1px solid #e8cf8a;border-radius:14px;padding:12px 18px}
+  .to-lab{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .to-lab svg{width:16px;height:16px;color:var(--gold-d,#b5850f)}
+  .to-seq{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .to-chip{display:inline-flex;align-items:center;gap:7px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line2);border-radius:999px;padding:5px 13px 5px 6px}
+  .to-chip i{font-style:normal;width:20px;height:20px;border-radius:50%;background:#3a3a3a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  .to-chip.first{background:#fff2cf;border-color:#e0b83c}
+  .to-chip.first i{background:var(--gold-d,#c8930b)}
+  .to-stage{margin-left:auto;font-size:11px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto}
+  @media(max-width:560px){ .to-stage{margin-left:0;flex-basis:100%} }
+
   /* Palmarès participant cards (Overview) */
   /* in-app refresh button (only shown when launched as the installed app, where there is no URL bar) */
   .refresh-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:50px;height:50px;border-radius:50%;border:none;background:#1c1c1c;color:#f4d160;box-shadow:0 6px 20px rgba(0,0,0,.32);display:none;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:900}
@@ -439,6 +452,7 @@
   </nav>
 
   <section class="tab on" id="tab-overview">
+    <div class="today-order" id="todayOrder"></div>
     <h2 class="eyebrow">Palmarès &middot; the riders and their honours</h2>
     <p class="palmares-note">Personas shift with the standings: the leader takes a champion's name, the rest earn theirs by how they are riding now.</p>
     <div class="palmares" id="palmares"></div>
@@ -691,9 +705,19 @@ const UPCOMING = {
       "Starts at the Magny-Cours motor-racing circuit; last Tour winner in Chalon-sur-Saone was Groenewegen in 2019"
     ]
   },
-  /* Draft order for tomorrow: JJ, JP, AA, JB (listed in that order). Names only until the slate fills in. */
   picks:{ JJ:["J. Philipsen"], JP:[], AA:[], JB:[] }
 };
+
+/* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
+   this base, so whoever leads off today drops to last tomorrow. To set a one-off order
+   for a single stage (someone out, a manual call), add order:["..",".."] to UPCOMING. */
+const ORDER_BASE = ["JJ","JP","AA","JB"];
+const ORDER_ANCHOR_STAGE = 12;
+function todaysOrder(){
+  if(UPCOMING.order && UPCOMING.order.length) return UPCOMING.order.slice();
+  const b=ORDER_BASE, m=b.length, off=((((UPCOMING.n||ORDER_ANCHOR_STAGE)-ORDER_ANCHOR_STAGE)%m)+m)%m;
+  return b.slice(off).concat(b.slice(0,off));
+}
 
 /* JJ's posted placement totals through Stage 7. Kept for history; not rendered. */
 const JJ_POSTED = { AA:141, JJ:200, JB:268, JP:318 };
@@ -1298,6 +1322,19 @@ document.getElementById('stages').insertAdjacentHTML('afterbegin',
       <table class="picks"><thead><tr><th>Rider</th><th>Picks</th><th class="r">Placement</th></tr></thead><tbody>${upRows}</tbody></table>
       ${upRead}
     </div></div>`);
+
+/* Today's Order strip (Overview) - the day's pick order, rotates each stage */
+(function(){
+  const el=document.getElementById('todayOrder'); if(!el || typeof UPCOMING==='undefined') return;
+  const order=todaysOrder();
+  const rot='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>';
+  const chips=order.map((k,i)=>`<span class="to-chip${i===0?' first':''}"><i>${i+1}</i>${k}</span>`).join('');
+  el.innerHTML=`<div class="to-inner">
+    <span class="to-lab">${rot} Today's Order</span>
+    <span class="to-seq">${chips}</span>
+    <span class="to-stage">Stage ${UPCOMING.n} &middot; ${UPCOMING.route}</span>
+  </div>`;
+})();
 
 /* full results table */
 document.getElementById('resultsTable').innerHTML =
