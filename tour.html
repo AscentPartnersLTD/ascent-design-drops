@@ -221,6 +221,7 @@
   .award.info b{color:inherit}
 
   /* Palmarès participant cards (Overview) */
+  .palmares-note{font-size:12px;color:var(--mute);font-style:italic;margin:-6px 0 16px;max-width:680px;line-height:1.5}
   .palmares{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:34px}
   .pcard{border:1px solid var(--line2);border-radius:16px;padding:16px 16px 15px;background:#fff;display:flex;flex-direction:column;gap:13px}
   .pcard.lead{border-color:#e8cf8a;box-shadow:0 4px 16px rgba(232,179,30,.16);background:linear-gradient(180deg,#fffdf6,#fff)}
@@ -428,6 +429,7 @@
 
   <section class="tab on" id="tab-overview">
     <h2 class="eyebrow">Palmarès &middot; the riders and their honours</h2>
+    <p class="palmares-note">Personas shift with the standings: the leader takes a champion's name, the rest earn theirs by how they are riding now.</p>
     <div class="palmares" id="palmares"></div>
 
     <div class="info">
