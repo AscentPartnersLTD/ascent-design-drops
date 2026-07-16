@@ -207,6 +207,41 @@
   .trendleg i{width:14px;height:3px;border-radius:2px;display:inline-block}
   .pending-line{font-size:11.5px;color:var(--mute);margin-top:12px;font-style:italic;line-height:1.4}
 
+  /* aggressive-selection award badges */
+  .awards{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:13px}
+  .award{display:inline-flex;align-items:center;gap:8px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:.02em;padding:7px 13px 7px 10px;border-radius:999px;line-height:1.15}
+  .award .aw-ic{width:15px;height:15px;flex:0 0 auto}
+  .award b{font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .award .aw-win{font-weight:600;opacity:.92;letter-spacing:.01em;text-transform:none;font-size:11.5px}
+  .award.sel{background:linear-gradient(100deg,#b21f2b,#e0402c);color:#fff;box-shadow:0 3px 10px rgba(178,31,43,.24)}
+  .award.sel .aw-win{border-left:1px solid rgba(255,255,255,.4);padding-left:8px}
+  .award.prix{background:linear-gradient(100deg,#e8b31e,#f4d160);color:#4a3705;box-shadow:0 3px 10px rgba(232,179,30,.28)}
+  .award.prix .aw-win{border-left:1px solid rgba(74,55,5,.28);padding-left:8px}
+  .award.info{background:#f3f1ea;color:#6b6656;font-weight:600;border:1px solid var(--line2)}
+  .award.info b{color:inherit}
+
+  /* combativity awards panel (Stats tab) */
+  .combat-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .combat-card{border:1px solid var(--line2);border-radius:14px;padding:18px 20px;background:#fff}
+  .combat-card.sel{border-top:3px solid #d4342b}
+  .combat-card.prix{border-top:3px solid #e8b31e}
+  .combat-card .ch{display:flex;align-items:center;gap:9px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;letter-spacing:.02em;color:var(--ink)}
+  .combat-card .ch svg{width:18px;height:18px;flex:0 0 auto}
+  .combat-card.sel .ch svg{color:#d4342b}
+  .combat-card.prix .ch svg{color:#c8930b}
+  .combat-card .cd{font-size:12px;color:var(--ink2);line-height:1.5;margin:9px 0 13px}
+  .combat-card .clist{list-style:none;margin:0;padding:0}
+  .combat-card .clist li{font-size:12.5px;color:var(--ink);padding:8px 0;border-top:1px solid var(--line);line-height:1.4}
+  .combat-card .clist li b{font-family:'Montserrat',sans-serif;font-weight:800}
+  .combat-card .clist .cst{display:inline-block;min-width:44px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.05em;color:var(--mute)}
+  .combat-card .clist .cnone{color:var(--mute);font-style:italic;border-top:1px solid var(--line)}
+  .combat-tally{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+  .combat-tally .ctl{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+  .combat-tally .ctag{font-size:12px;color:var(--ink2);background:#f3f1ea;border:1px solid var(--line2);border-radius:999px;padding:6px 12px}
+  .combat-tally .ctag b{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--ink);margin-right:5px}
+  .combat-tally .ctag.muted{color:var(--mute)}
+  @media(max-width:640px){ .combat-wrap{grid-template-columns:1fr} }
+
   .statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:32px}
   .stat{background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:18px}
   .stat .k{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:10px;color:var(--mute);font-weight:700}
@@ -407,6 +442,8 @@
       <div class="mh">Placement race, stage by stage</div><div class="msub">Cumulative total, lower line is ahead. Stage 9 was void</div>
       <div id="mTrend"></div>
     </div>
+    <h2 class="eyebrow" style="margin-top:26px">Combativity awards</h2>
+    <div id="combativity"></div>
     <h2 class="eyebrow" style="margin-top:26px">Datapoints</h2>
     <div class="statgrid" id="statgrid"></div>
     <h2 class="eyebrow">Rider Archetypes</h2>
@@ -477,6 +514,7 @@ const STAGES = [
       JJ:"Ineos 2nd and Decathlon 6th is two top-six squads and very safe; the trade-off is no winner and little upside beyond solid." },
     note:"Team time trial. Visma won it. AA named only one team, UAE (3rd), and missed the second pick. Rule applied: a missed pick scores one slot below the worst actual pick. Pinarello was the worst at 12th, so the empty slot takes 13th, giving UAE 3rd plus 13 for a 16, the worst day of the four and no edge gained from the gap. JJ's tally shows a 25, flagged for him to align. JB took Visma 1st and Pinarello Q36.5 12th for a 13. JJ paired Ineos 2nd and Decathlon 6th for an 8. JP took Lidl-Trek 4th and Red Bull 5th for a 9." },
   { n:2, route:"Tarragona > Barcelona", type:"Hilly / Montjuic", km:178, win:"I. del Toro",
+    combatif:"F. Engelhardt",
     days:{ JJ:9, JP:13, AA:13, JB:60 }, best:"JJ",
     picks:{ AA:[["J. Vingegaard",4],["P. Seixas",9]], JP:[["R. Evenepoel",3],["T. Pidcock",10]],
             JJ:[["T. Pogacar",2],["R. Gregoire",7]], JB:[["M. van der Poel",22],["M. Vacek",38]] },
@@ -487,6 +525,7 @@ const STAGES = [
       JJ:"Pogacar 2nd is elite value on a punchy finish; Gregoire 7th is the lighter half of an otherwise strong day." },
     note:"Montjuic. AA's Vingegaard 4th and Seixas 9th made 13, matched by JP's Evenepoel 3rd and Pidcock 10th. JJ's Pogacar 2nd and Gregoire 7th make 9; the group recap logged an 8, a one-point slip that stays in the official tally. JB ran long on MVDP 22nd and Vacek 38th." },
   { n:3, route:"Granollers > Les Angles", type:"Mountain", km:191, win:"T. Pogacar",
+    combatif:"A. Baudin",
     days:{ JJ:6, AA:17, JB:51, JP:127 }, best:"JJ",
     picks:{ AA:[["I. del Toro",9],["R. Evenepoel",8]], JJ:[["T. Pogacar",1],["T. Johannessen",5]],
             JP:[["J. Vingegaard",2],["M. van der Poel",125]], JB:[["J. Ayuso",10],["Q. Simmons",41]] },
@@ -497,6 +536,7 @@ const STAGES = [
       JJ:"Pogacar for the win plus Johannessen 5th was the model card; no real downside beyond it being hard to repeat." },
     note:"Les Angles. JJ best with Pogacar 1st and Johannessen 5th for 6. AA at 17 with Evenepoel 8th and Del Toro 9th. JB's Ayuso 10th and Simmons 41st made 51. JP paired Vingegaard 2nd with Van der Poel 125th for a 127, the first of two MVDP mountain burials." },
   { n:4, route:"Carcassonne > Foix", type:"Hilly / breakaway", km:184, win:"M. Pedersen",
+    combatif:"P. Castrillo", breakaway:true, breakThru:10,
     days:{ JJ:24, JB:77, AA:58, JP:94 }, best:"JJ",
     picks:{ AA:[["M. Pedersen",1],["R. Evenepoel",57]], JJ:[["Q. Simmons",2],["R. Gregoire",22]],
             JP:[["T. Pogacar",33],["B. Healy",61]], JB:[["I. del Toro",34],["J. Vingegaard",43]] },
@@ -507,6 +547,7 @@ const STAGES = [
       JJ:"Simmons made the move for 2nd, strong upside; Gregoire missed it and finished deep, splitting the day." },
     note:"Foix breakaway. AA (Pedersen 1st) and JJ (Simmons 2nd) held the 1-2, JJ best at 24. The GC group came in about 8 minutes down: Pogacar 33rd, Del Toro 34th, Vingegaard 43rd, Evenepoel 57th, Healy 61st." },
   { n:5, route:"Lannemezan > Pau", type:"Flat sprint", km:158.3, win:"O. Kooij",
+    combatif:"B. Veistroffer",
     days:{ AA:12, JB:13, JJ:88, JP:129 }, best:"AA",
     picks:{ AA:[["J. Philipsen",5],["M. Pedersen",7]], JB:[["T. Merlier",3],["S. Waerenskjold",10]],
             JP:[["O. Kooij",1],["M. van der Poel",128]], JJ:[["B. Girmay",6],["J. Abrahamsen",82]] },
@@ -517,6 +558,7 @@ const STAGES = [
       JJ:"Girmay in the sprint mix at 6th; Abrahamsen is a breakaway rider, never a sprint fit, and 82nd shows it." },
     note:"Pau. AA best at 12, JB right behind at 13. JJ's Girmay 6th and Abrahamsen 82nd made 88. JP had the winner in Kooij but MVDP came home 128th for a 129, his 'did he fall asleep in the peloton' day." },
   { n:6, route:"Pau > Gavarnie-Gedre", type:"Summit / Tourmalet", km:186.2, win:"T. Pogacar",
+    combatif:"T. Pogacar",
     days:{ AA:9, JB:34, JP:39, JJ:52 }, best:"AA",
     picks:{ AA:[["R. Evenepoel",4],["P. Seixas",5]], JJ:[["T. Pogacar",1],["T. Traaen",51]],
             JP:[["J. Vingegaard",2],["B. O'Connor",37]], JB:[["I. del Toro",3],["S. Quinn",31]] },
@@ -527,6 +569,7 @@ const STAGES = [
       JJ:"Pogacar for the stage is the anchor; Traeen, the day's early yellow, cracked to 51st." },
     note:"Tourmalet. AA's Evenepoel 4th and Seixas 5th made a 9, the best pair. The others each held a top-3 pick but their second riders cracked on the climbs: JB's Quinn 31st for 34, JP's O'Connor 37th for 39, JJ's Traeen 51st for 52." },
   { n:7, route:"Hagetmau > Bordeaux", type:"Flat sprint", km:175.1, win:"T. Merlier",
+    combatif:"B. Veistroffer",
     days:{ AA:7, JB:14, JJ:14, JP:30 }, best:"AA",
     picks:{ AA:[["B. Girmay",3],["M. Kanter",4]], JB:[["J. Philipsen",5],["M. Pedersen",9]],
             JJ:[["T. Merlier",1],["M. Fretin",13]], JP:[["O. Kooij",23],["H. Artz",7]] },
@@ -537,6 +580,7 @@ const STAGES = [
       JJ:"Merlier took the stage; Fretin outside the top ten kept it from being a dominant day." },
     note:"Bordeaux. AA best at 7 with Girmay 3rd and Kanter 4th. JJ's Merlier won the stage, and Fretin 13th made a 14, level with JB. JP's Artz 7th and Kooij 23rd made 30." },
   { n:8, route:"Bergerac", type:"Flat sprint", km:171, win:"T. Merlier",
+    combatif:"L. Slock",
     days:{ AA:62, JJ:11, JB:14, JP:16 }, best:"JJ",
     picks:{ AA:[["T. Merlier",1],["H. Artz",61]], JJ:[["B. Girmay",2],["M. Kanter",9]],
             JB:[["O. Kooij",3],["S. Waerenskjold",11]], JP:[["J. Philipsen",4],["M. Pedersen",12]] },
@@ -550,6 +594,7 @@ const STAGES = [
     picks:{}, voidStage:true,
     note:"Heat-shortened, then wiped for the whole pool after the World Cup watch party left most of the table without picks. Van der Poel won the actual stage, the one day nobody scored. The stage the group chat lost to hydration." },
   { n:10, route:"Aurillac > Le Lioran", type:"Mountain / Bastille", km:166.6, win:"T. Pogacar",
+    combatif:"R. Carapaz",
     days:{ JP:6, AA:9, JB:24, JJ:26 }, best:"JP",
     picks:{ JP:[["R. Evenepoel",2],["F. Lipowitz",4]], AA:[["T. Pogacar",1],["I. del Toro",8]],
             JB:[["J. Vingegaard",7],["A. Yates",17]], JJ:[["P. Seixas",3],["J. Jegat",23]] },
@@ -560,6 +605,7 @@ const STAGES = [
       JJ:"Seixas on the podium; Jegat well down at 23rd is the leg that stretched the total." },
     note:"JP's Evenepoel 2nd and Lipowitz 4th out of the same chase group made a 6, the tightest pair. AA had the stage winner in Pogacar but Del Toro cracked to 8th. Yates came in 17th, Jegat 23rd. Not yet in the official cumulative." },
   { n:11, route:"Vichy > Nevers", type:"Flat sprint", km:161.3, win:"S. Waerenskjold",
+    combatif:"A. Charmig",
     days:{ AA:19, JB:20, JJ:30, JP:5 }, best:"JP",
     picks:{ AA:[["M. Kanter",18],["S. Waerenskjold",1]], JB:[["T. Merlier",15],["H. Artz",5]],
             JJ:[["B. Girmay",6],["P. Bauhaus",24]], JP:[["O. Kooij",2],["J. Philipsen",3]] },
@@ -625,6 +671,34 @@ let WINS_PICKED=0;
 COMPLETED.forEach(n=>{ const st=STAGES.find(s=>s.n===n);
   if(PL4.some(p=>(st.picks[p]||[]).some(([r,f])=>f===1))) WINS_PICKED++; });
 
+/* ---- Aggressive-selection awards, computed from stage facts + picks ----
+   La Selection la plus Combative: on a genuine breakaway stage, to the best-placed
+   drafted rider who was in the break (finish <= breakThru).
+   Prix de la Combativite: to any player who drafted the stage's official most-combative
+   rider (letour.fr combatif classification), breakaway or not. */
+const AWARDS = { selection:{}, prix:{} };
+PL4.forEach(p=>{ AWARDS.selection[p]=0; AWARDS.prix[p]=0; });
+const STAGE_AWARDS = {};
+function normName(s){ return (s||'').toUpperCase().replace(/^[A-ZÀ-Ÿ]\.\s*/,'').replace(/[^A-Z]/g,''); }
+COMPLETED.forEach(n=>{
+  const st=STAGES.find(s=>s.n===n);
+  const rec={ combatif: st.combatif||null, breakaway: !!st.breakaway, selection:null, prix:[] };
+  if(st.combatif){
+    const cn=normName(st.combatif);
+    PL4.forEach(p=>{ (st.picks[p]||[]).forEach(([r,f])=>{
+      if(normName(r)===cn){ rec.prix.push({player:p,rider:r,fin:f}); AWARDS.prix[p]++; }
+    }); });
+  }
+  if(st.breakaway && st.breakThru){
+    let best=null;
+    PL4.forEach(p=>{ (st.picks[p]||[]).forEach(([r,f])=>{
+      if(typeof f==='number' && f<=st.breakThru && (!best||f<best.fin)) best={player:p,rider:r,fin:f};
+    }); });
+    if(best){ rec.selection=best; AWARDS.selection[best.player]++; }
+  }
+  STAGE_AWARDS[n]=rec;
+});
+
 const placeOrder = orderBy(OURS.placement);
 const rankOrder  = orderBy(OURS.rank);
 const placeLeader = placeOrder[0], rankLeader = rankOrder[0];
@@ -683,6 +757,26 @@ function profileSVG(type){
 }
 function placeSum(picks){ if(!picks||!picks.length) return null; const v=picks.map(p=>p[1]).filter(x=>typeof x==="number"); return v.length===picks.length?v.reduce((a,b)=>a+b,0):null; }
 
+function ordinal(n){ const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function awardsRow(st){
+  const rec = STAGE_AWARDS[st.n];
+  if(!rec) return '';
+  const parts=[];
+  if(rec.selection){
+    const s=rec.selection;
+    parts.push(`<span class="award sel"><svg viewBox="0 0 24 24" class="aw-ic" aria-hidden="true"><path d="M4 12h11M11 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><b>La Sélection la plus Combative</b><span class="aw-win">${s.player} &middot; ${s.rider}, ${ordinal(s.fin)} out of the break</span></span>`);
+  }
+  rec.prix.forEach(pr=>{
+    parts.push(`<span class="award prix"><svg viewBox="0 0 24 24" class="aw-ic" aria-hidden="true"><path d="M12 2.6l2.6 5.3 5.8.85-4.2 4.1 1 5.75L12 16l-5.2 2.75 1-5.75-4.2-4.1 5.8-.85z" fill="currentColor"/></svg><b>Prix de la Combativité</b><span class="aw-win">${pr.player} &middot; ${pr.rider}</span></span>`);
+  });
+  let info='';
+  if(rec.combatif && rec.prix.length===0){
+    info = `<span class="award info"><svg viewBox="0 0 24 24" class="aw-ic" aria-hidden="true"><path d="M12 2.6l2.6 5.3 5.8.85-4.2 4.1 1 5.75L12 16l-5.2 2.75 1-5.75-4.2-4.1 5.8-.85z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Combatif du jour: ${rec.combatif}</span>`;
+  }
+  if(!parts.length && !info) return '';
+  return `<div class="awards">${parts.join('')}${info}</div>`;
+}
+
 function stageCard(st){
   let body;
   if(st.voidStage){
@@ -715,6 +809,7 @@ function stageCard(st){
        ${st.verify?(st.critical
           ?`<div class="verify-line"><span class="vflag">NEEDS VERIFY</span> ${st.verify}</div>`
           :`<div class="pending-line">Finishes pending: ${st.verify}</div>`):''}
+       ${awardsRow(st)}
        <div class="note"><span class="lab">The read</span>${st.reads?codes.filter(k=>st.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${st.reads[k]}</div>`).join(''):st.note}</div>`;
   }
   const right = st.voidStage ? `<div class="dns-stamp">DNS</div>`
@@ -810,6 +905,37 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
     `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:8px">${g}</svg>`+
     `<div class="trendleg">${players.map(p=>`<span><i style="background:${colors[p]}"></i>${p} ${series[p][series[p].length-1]}</span>`).join('')}</div>`+
     `<div class="msub" style="margin-top:6px">X axis is stage number. Lower line is further ahead.</div>`;
+})();
+
+/* Combativity awards panel */
+(function(){
+  const el=document.getElementById('combativity');
+  if(!el) return;
+  const selRows=[], prixRows=[];
+  COMPLETED.forEach(n=>{ const r=STAGE_AWARDS[n];
+    if(r.selection) selRows.push(`<li><span class="cst">ST ${n}</span><b>${r.selection.player}</b> &middot; ${r.selection.rider}, ${ordinal(r.selection.fin)} out of the break</li>`);
+    r.prix.forEach(pr=> prixRows.push(`<li><span class="cst">ST ${n}</span><b>${pr.player}</b> &middot; ${pr.rider}, the day's official combatif</li>`));
+  });
+  const none='<li class="cnone">None yet this Tour.</li>';
+  const tally = PL4.map(p=>({p,sel:AWARDS.selection[p],prix:AWARDS.prix[p],tot:AWARDS.selection[p]+AWARDS.prix[p]}))
+                   .filter(x=>x.tot>0).sort((a,b)=>b.tot-a.tot);
+  const tallyHtml = tally.length
+    ? tally.map(x=>`<span class="ctag"><b>${x.p}</b> ${[x.sel?x.sel+' Sélection':'',x.prix?x.prix+' Prix':''].filter(Boolean).join(', ')}</span>`).join('')
+    : '<span class="ctag muted">No awards yet</span>';
+  el.innerHTML=`
+    <div class="combat-wrap">
+      <div class="combat-card sel">
+        <div class="ch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h11M11 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>La Sélection la plus Combative</div>
+        <div class="cd">Awarded on a genuine breakaway stage to the best-placed pick who was in the day's move. A solo dig off the front by a race favorite is a GC attack, not a breakaway, and earns nothing here.</div>
+        <ul class="clist">${selRows.length?selRows.join(''):none}</ul>
+      </div>
+      <div class="combat-card prix">
+        <div class="ch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.6 5.3 5.8.85-4.2 4.1 1 5.75L12 16l-5.2 2.75 1-5.75-4.2-4.1 5.8-.85z" fill="currentColor"/></svg>Prix de la Combativité</div>
+        <div class="cd">Awarded to anyone who drafted the stage's official most-combative rider from the letour.fr combativity classification, breakaway or not. Pick the real aggressor, take the prize.</div>
+        <ul class="clist">${prixRows.length?prixRows.join(''):none}</ul>
+      </div>
+    </div>
+    <div class="combat-tally"><span class="ctl">Season tally</span>${tallyHtml}</div>`;
 })();
 
 const up=UPCOMING;
