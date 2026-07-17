@@ -473,6 +473,69 @@
   </nav>
 
   <section class="tab on" id="tab-overview">
+    <style>
+      /* Live draft card, scoped to #draftMount so it never touches the rest of the board */
+      #draftMount{margin:0 0 20px}
+      #draftMount .draft{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:16px 18px}
+      #draftMount .dh{display:flex;align-items:center;justify-content:space-between;gap:12px}
+      #draftMount .dh-l{display:flex;align-items:center;gap:10px}
+      #draftMount .dh-ico{width:30px;height:30px;border-radius:8px;background:var(--dark);display:flex;align-items:center;justify-content:center;flex:none}
+      #draftMount .dh-ico svg{width:19px;height:19px}
+      #draftMount .dh-t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px}
+      #draftMount .dh-s{font-size:11.5px;color:var(--mute);margin-top:1px}
+      #draftMount .dh-badge{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border-radius:999px;white-space:nowrap}
+      #draftMount .badge-clock{background:var(--gold-d);color:#fff}
+      #draftMount .badge-pending{background:#f0eee6;color:#7a7466;border:1px solid #e0dccd}
+      #draftMount .badge-done{background:#e3f2e8;color:#256e3e}
+      #draftMount .ticker{display:flex;gap:6px;margin:16px 0 4px;align-items:flex-start}
+      #draftMount .tnode{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+      #draftMount .tgap{width:1px;align-self:stretch;background:var(--line);margin:6px 5px 16px}
+      #draftMount .tav{width:42px;height:42px;border-radius:50%;position:relative;flex:none;display:flex;align-items:center;justify-content:center}
+      #draftMount .tav .ph{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+      #draftMount .tav .fb{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px}
+      #draftMount .tav.pending{border:2px dashed var(--line2)}#draftMount .tav.pending .fb{background:transparent!important;color:var(--mute);font-size:11px}
+      #draftMount .tav.clock{box-shadow:0 0 0 3px rgba(201,151,26,.28)}
+      #draftMount .tcap{font-size:9px;color:var(--mute);font-family:'Montserrat',sans-serif;font-weight:700;text-align:center;line-height:1.35}
+      #draftMount .tcap b{display:block;font-size:11px}
+      #draftMount .tname{font-size:10px;color:var(--ink2);font-weight:600;text-align:center;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      #draftMount .action{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+      #draftMount .a-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;margin-bottom:9px}
+      #draftMount .a-h small{display:block;font-weight:600;font-size:11.5px;color:var(--mute);margin-top:2px;letter-spacing:0;text-transform:none}
+      #draftMount .searchrow{display:flex;gap:9px;position:relative}
+      #draftMount .searchrow input{flex:1;font-size:15px;padding:12px 13px;border:1px solid var(--line2);border-radius:11px;background:var(--paper);color:var(--ink)}
+      #draftMount .searchrow input:focus{outline:none;border-color:var(--gold-d);background:#fff}
+      #draftMount .lockbtn{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:#fff;background:var(--gold-d);border:none;border-radius:11px;padding:0 20px;cursor:pointer;white-space:nowrap}
+      #draftMount .lockbtn:disabled{background:var(--line2);cursor:not-allowed}
+      #draftMount .ac{position:absolute;left:0;right:96px;top:100%;background:#fff;border:1px solid var(--line2);border-radius:11px;box-shadow:0 10px 28px rgba(40,34,20,.15);z-index:20;margin-top:5px;max-height:230px;overflow:auto;display:none}
+      #draftMount .ac.open{display:block}
+      #draftMount .ac-item{padding:8px 11px;display:flex;align-items:center;gap:10px;cursor:pointer;border-top:1px solid var(--line)}
+      #draftMount .ac-item:first-child{border-top:none}#draftMount .ac-item:hover{background:var(--paper)}
+      #draftMount .ac-av{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;background:var(--line2)}
+      #draftMount .ac-rn{font-weight:600;font-size:14px}#draftMount .ac-rt{color:var(--mute);font-size:12px;margin-left:auto}
+      #draftMount .waitline{font-size:13.5px;color:var(--ink2)}#draftMount .waitline b{color:var(--ink)}
+      #draftMount .pendline{font-size:13.5px;color:var(--ink2)}#draftMount .pendline b{color:var(--ink)}
+      #draftMount .admin{background:#f4f6fb;border:1px solid #d6ddec;border-radius:12px;padding:13px 15px;margin-top:13px}
+      #draftMount .admin .ad-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#3a4a86}
+      #draftMount .admin .ad-b{font-size:12.5px;color:var(--ink2);margin:6px 0 10px}
+      #draftMount .judge{background:#fdf3dc;border:1px solid #edd489;border-radius:12px;padding:13px 15px;margin-top:13px}
+      #draftMount .judge .j-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8a6d16}
+      #draftMount .judge .j-b{font-size:13.5px;margin:7px 0 11px}#draftMount .judge .j-b b{font-weight:800}
+      #draftMount .j-skip{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:#fff;background:var(--red);border:none;border-radius:10px;padding:10px 18px;cursor:pointer}
+      #draftMount .allin{text-align:center;padding:10px}#draftMount .allin .big{font-family:'Montserrat',sans-serif;font-weight:900;font-size:20px;color:var(--green)}#draftMount .allin .sm{color:var(--ink2);font-size:14px;margin-top:6px}
+      /* collapsed thin bar when all picks are in */
+      #draftMount .draft.mini{padding:11px 15px}
+      #draftMount .minibar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+      #draftMount .minibar .mb-t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:8px}
+      #draftMount .minibar .mb-ico{width:26px;height:26px;border-radius:7px;background:var(--dark);display:flex;align-items:center;justify-content:center;flex:none}
+      #draftMount .minibar .mb-ico svg{width:16px;height:16px}
+      #draftMount .minibar .mb-avs{display:flex;margin-left:auto}
+      #draftMount .minibar .mb-av{width:26px;height:26px;border-radius:50%;margin-left:-7px;border:2px solid var(--card);position:relative;overflow:hidden;background:var(--line2);display:flex;align-items:center;justify-content:center}
+      #draftMount .minibar .mb-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+      #draftMount .minibar .mb-av .mfb{font-family:'Montserrat',sans-serif;font-weight:800;font-size:9px;color:#fff}
+      #draftMount .minibar .mb-more{font-size:11.5px;color:var(--mute);margin-left:9px;font-family:'Montserrat',sans-serif;font-weight:700}
+      #draftMount .seedbar{font-size:10.5px;color:var(--mute);text-align:center;margin-top:8px}
+    </style>
+    <div id="draftMount" style="display:none"></div>
     <div class="today-order" id="todayOrder"></div>
     <div class="break-card" id="breakWidget" style="display:none">
       <style>
@@ -2029,6 +2092,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 <script>document.documentElement.classList.add('gated');document.body.classList.add('gated');</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
 /* Login gate. Firebase project col-du-fantasy (owner allen@ascentpartnersltd.com).
    Config values are PUBLIC by design. ALLOW is the pool roster: only these
@@ -2149,6 +2213,259 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   if(standalone) b.classList.add('show');
   b.addEventListener('click', function(){ b.classList.add('spin'); setTimeout(function(){ location.reload(); }, 180); });
+})();
+</script>
+
+<script>
+/* ============================================================================
+   LIVE DRAFT ENGINE (Overview, top card)
+   Ported from the proven standalone draft-live.html. Reads the same Firebase
+   project already initialised by the login gate above (firebase.initializeApp
+   ran there), so this just grabs the singletons. Firestore-backed, realtime.
+
+   Launch gate: the draft is seeded "pending". Nobody can pick until Allen (AA,
+   leadoff) locks pick #1, which flips it "live". Snake order enforces turns;
+   taken riders come off the board; the Judge (JJ) can bump a straggler to the
+   back; the owner (AA) can enter a pick for whoever is on the clock. When all 8
+   are in it collapses to a thin bar until the next stage's draft is opened.
+
+   Fails safe: if Firestore is unavailable or the reader is not a roster member,
+   the card stays hidden and the rest of the board is untouched.
+   ============================================================================ */
+(function(){
+  if(!window.firebase || !firebase.firestore){ return; }  // board safe: no draft card
+  var mount = document.getElementById('draftMount');
+  if(!mount) return;
+
+  var db, auth, FV;
+  try{ db = firebase.firestore(); auth = firebase.auth(); FV = firebase.firestore.FieldValue; }
+  catch(e){ return; }
+
+  var OWNER_EMAIL = "allen@ascentpartnersltd.com";
+  var STAGE = "14";
+  var ROSTER = {
+    players:{ "allen@ascentpartnersltd.com":"AA", "jjohnsatlaw@gmail.com":"JJ", "jeffmbush@yahoo.com":"JB", "jason.pfetcher@gmail.com":"JP" },
+    judge:"JJ",
+    reviewers:["tara.bisel@gmail.com","afarver7@gmail.com","clintontrautmann@gmail.com"]
+  };
+  var ORDER = ["AA","JB","JJ","JP"];
+  var SNAKE = ORDER.concat(ORDER.slice().reverse());   // AA JB JJ JP JP JJ JB AA
+  var DRAFT_INIT = { n:14, route:"Mulhouse > Le Markstein", type:"Mountains / Vosges",
+    order:ORDER, snake:SNAKE, queue:SNAKE.slice(), picks:[], status:"pending", createdAt:FV.serverTimestamp() };
+  var PMETA = {AA:{n:"Allen",c:"#c9971a"},JJ:{n:"Jeff Johns",c:"#26347e"},JB:{n:"Jeff Bush",c:"#2f8f52"},JP:{n:"Jason",c:"#cf2530"}};
+  var RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/11/72252/0:0,400:400-0-0-70/38b77"},{"r":"P. Seixas","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/51/71734/0:0,400:400-0-0-70/54716"},{"r":"R. Evenepoel","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/21/71737/0:0,400:400-0-0-70/36350"},{"r":"T. Pidcock","t":"Pinarello Q36.5","c":"#009CA6","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/171/71794/0:0,400:400-0-0-70/526ee"},{"r":"T. Pogacar","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/1/71834/0:0,400:400-0-0-70/9a582"},{"r":"R. Gregoire","t":"Groupama-FDJ United","c":"#26429B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/181/71791/0:0,400:400-0-0-70/2236c"},{"r":"M. van der Poel","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/101/71756/0:0,400:400-0-0-70/bbd49"},{"r":"M. Vacek","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/37/71744/0:0,400:400-0-0-70/c5383"},{"r":"I. del Toro","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/2/71837/0:0,400:400-0-0-70/5d784"},{"r":"T. Johannessen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/125/71886/0:0,400:400-0-0-70/67518"},{"r":"J. Ayuso","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/31/71732/0:0,400:400-0-0-70/b2640"},{"r":"Q. Simmons","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/34/71864/0:0,400:400-0-0-70/267bf"},{"r":"M. Pedersen","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/33/71739/0:0,400:400-0-0-70/b9b9e"},{"r":"B. Healy","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/44/71874/0:0,400:400-0-0-70/8d88c"},{"r":"J. Philipsen","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/105/71879/0:0,400:400-0-0-70/47c2e"},{"r":"S. Waerenskjold","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"O. Kooij","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/55/71846/0:0,400:400-0-0-70/14a75"},{"r":"B. Girmay","t":"NSN Cycling Team","c":"#F7A600","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/131/71889/0:0,400:400-0-0-70/d6cec"},{"r":"J. Abrahamsen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/122/71884/0:0,400:400-0-0-70/9e49c"},{"r":"T. Traaen","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"B. O'Connor","t":"Team Jayco AlUla","c":"#00A94F","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/111/71760/0:0,400:400-0-0-70/8fc03"},{"r":"S. Quinn","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/45/71736/0:0,400:400-0-0-70/86d77"},{"r":"M. Kanter","t":"XDS Astana Team","c":"#00A9CE","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/64/71733/0:0,400:400-0-0-70/093a7"},{"r":"T. Merlier","t":"Soudal Quick-Step","c":"#0033A0","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/91/71752/0:0,400:400-0-0-70/70dcd"},{"r":"M. Fretin","t":"Cofidis","c":"#E2001A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/165/71781/0:0,400:400-0-0-70/be306"},{"r":"H. Artz","t":"Lotto-Intermarché","c":"#A6093D","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/152/71830/0:0,400:400-0-0-70/dc4b5"},{"r":"F. Lipowitz","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/25/71731/0:0,400:400-0-0-70/ce3e1"},{"r":"A. Yates","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/8/71870/0:0,400:400-0-0-70/231b7"},{"r":"J. Jegat","t":"TotalEnergies","c":"#F04E23","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/201/71812/0:0,400:400-0-0-70/334e1"},{"r":"R. Pluimers","t":"Tudor Pro Cycling","c":"#2B2B2B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/195/71811/0:0,400:400-0-0-70/b1dd4"},{"r":"P. Bauhaus","t":"Bahrain Victorious","c":"#C8102E","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/72/71860/0:0,400:400-0-0-70/da949"},{"r":"B. McNulty","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/4/71836/0:0,400:400-0-0-70/8efa9"},{"r":"A. Baudin","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/43/71742/0:0,400:400-0-0-70/f78a8"},{"r":"R. Debruyne","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/102/71878/0:0,400:400-0-0-70/ccddb"},{"r":"R. Carapaz","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/41/71725/0:0,400:400-0-0-70/7396a"}];
+
+  var init = function(r){ return r.replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); };
+  var esc = function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
+
+  var myEmail=null, myCode=null, isOwner=false, isJudge=false, isReviewer=false, draft=null, unsub=null, chosen=null;
+  var ICON = '<svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg>';
+
+  auth.onAuthStateChanged(function(user){
+    if(!user){ if(unsub){unsub();unsub=null;} hide(); return; }
+    myEmail = (user.email||'').toLowerCase();
+    isOwner = (myEmail===OWNER_EMAIL);
+    myCode = ROSTER.players[myEmail] || null;
+    isJudge = (myCode===ROSTER.judge);
+    isReviewer = ROSTER.reviewers.indexOf(myEmail) >= 0;
+    if(!(isOwner || myCode || isReviewer)){ hide(); return; }   // not a roster member: stay hidden
+    seedIfNeeded().then(subscribe).catch(function(e){ hide(); });
+  });
+
+  function hide(){ mount.style.display='none'; mount.innerHTML=''; }
+
+  function seedIfNeeded(){
+    if(!isOwner) return Promise.resolve();
+    var r = db.doc('config/roster');
+    return r.get().then(function(rs){
+      if(!rs.exists) return r.set(ROSTER);
+    }).then(function(){
+      var dref = db.doc('drafts/'+STAGE);
+      return dref.get().then(function(snap){
+        if(!snap.exists){ return dref.set(DRAFT_INIT); }
+        var d = snap.data();
+        // A leftover empty test doc (no picks, not already pending) resets to a clean launch gate.
+        if((d.picks||[]).length===0 && d.status!=='pending'){ return dref.set(DRAFT_INIT); }
+      });
+    });
+  }
+
+  function subscribe(){
+    if(unsub) unsub();
+    unsub = db.doc('drafts/'+STAGE).onSnapshot(function(snap){
+      if(!snap.exists){ hide(); return; }   // owner seeds it; others just wait
+      draft = snap.data(); render();
+    }, function(err){ hide(); });   // permission / offline: board stays clean
+  }
+
+  function head(sub, badge){
+    return '<div class="dh"><div class="dh-l"><div class="dh-ico">'+ICON+'</div>'+
+      '<div><div class="dh-t">Stage 14 draft</div><div class="dh-s">'+sub+'</div></div></div>'+(badge||'')+'</div>';
+  }
+  function riderAv(rider, pending, clock, player){
+    if(pending) return '<span class="tav pending '+(clock?'clock':'')+'"><span class="fb" style="color:'+PMETA[player].c+'">'+player+'</span></span>';
+    var fb = '<span class="fb" style="background:'+(rider.c||'#888')+'">'+init(rider.r)+'</span>';
+    var img = rider.p ? '<img class="ph" src="'+esc(rider.p)+'" onerror="this.remove()">' : '';
+    return '<span class="tav">'+fb+img+'</span>';
+  }
+
+  function render(){
+    mount.style.display='block';
+    var picks = draft.picks||[], queue = draft.queue||[];
+    var clockCode = queue[0]||null;
+    var status = draft.status||'pending';
+    var done = status==='complete' || queue.length===0;
+    var pending = status==='pending' && picks.length===0;
+
+    if(done){ renderMini(picks); return; }
+
+    // ticker: 8 nodes, filled picks then pending queue slots
+    var nodes='';
+    for(var i=0;i<8;i++){
+      if(i===4) nodes+='<div class="tgap"></div>';
+      if(i<picks.length){
+        var pk=picks[i];
+        nodes+='<div class="tnode">'+riderAv({r:pk.rider,t:pk.team,c:'#888',p:pk.photo},false)+
+          '<div class="tcap"><b style="color:'+PMETA[pk.player].c+'">#'+(i+1)+'</b>'+pk.player+'</div>'+
+          '<div class="tname">'+esc(pk.rider)+'</div></div>';
+      } else {
+        var qi=i-picks.length, player=queue[qi], clk=(qi===0 && !pending);
+        nodes+='<div class="tnode">'+riderAv(null,true,clk,player)+
+          '<div class="tcap"><b style="color:'+PMETA[player].c+'">#'+(i+1)+'</b>'+player+'</div></div>';
+      }
+    }
+
+    var badge;
+    if(pending) badge='<span class="dh-badge badge-pending">Not started</span>';
+    else badge='<span class="dh-badge badge-clock">'+PMETA[clockCode].n+' on the clock</span>';
+
+    var sub = pending ? 'Snake draft &middot; opens on Allen\'s first pick' : 'Snake draft &middot; live';
+    var action='';
+
+    if(pending){
+      // Launch gate. Only the leadoff owner (AA) can open it.
+      if(isOwner){
+        action='<div class="action"><div class="a-h">You lead off &middot; pick #1<small>Locking your first rider opens the draft for everyone. Nothing is live until you do.</small></div>'+
+          searchRow('Launch the draft')+'</div>';
+      } else {
+        action='<div class="action"><div class="pendline"><b>The draft opens when Allen makes the first pick.</b> You\'ll see your turn here the moment it\'s live.</div></div>';
+      }
+    } else if(clockCode===myCode){
+      action='<div class="action"><div class="a-h">You are on the clock &middot; pick #'+(picks.length+1)+'</div>'+searchRow('Lock pick')+'</div>';
+    } else {
+      var mine=[];
+      queue.forEach(function(c,idx){ if(c===myCode) mine.push(idx); });
+      var nextTxt = myCode ? (mine.length ? 'Your next turn is pick #'+(picks.length+mine[0]+1)+'.' : 'Both your picks are in.') : 'You are watching.';
+      action='<div class="action"><div class="waitline"><b>'+PMETA[clockCode].n+' is on the clock.</b> '+nextTxt+'</div></div>';
+    }
+
+    // Owner admin entry: when someone else is on the clock, AA can enter for them.
+    var admin='';
+    if(isOwner && !pending && clockCode && clockCode!==myCode){
+      admin='<div class="admin"><div class="ad-h">Admin &middot; enter for the player on the clock</div>'+
+        '<div class="ad-b">'+PMETA[clockCode].n+' is up (pick #'+(picks.length+1)+'). You can lock their rider for them.</div>'+
+        searchRow('Enter for '+PMETA[clockCode].n)+'</div>';
+    }
+
+    // Judge bump
+    var judge='';
+    if(isJudge && !pending && clockCode && clockCode!==myCode){
+      judge='<div class="judge"><div class="j-h">Judge control</div><div class="j-b">Waiting on <b>'+PMETA[clockCode].n+'</b> (pick #'+(picks.length+1)+'). Bump them to the back of the order?</div>'+
+        '<button class="j-skip" id="drBump" type="button">Bump '+PMETA[clockCode].n+' to the back</button></div>';
+    }
+
+    var seed = (isOwner && pending) ? '<div class="seedbar">Draft armed for Stage 14. It goes live the instant you lock pick #1.</div>' : '';
+
+    mount.innerHTML='<div class="draft">'+head(sub,badge)+'<div class="ticker">'+nodes+'</div>'+action+admin+judge+seed+'</div>';
+
+    // Wire the one active search: self-turn, launch, or admin (only one shows at a time).
+    var forCode = null;
+    if(pending && isOwner) forCode = 'AA';
+    else if(clockCode===myCode) forCode = myCode;
+    else if(isOwner && clockCode && clockCode!==myCode) forCode = clockCode;   // admin
+    if(forCode) wireSearch(forCode);
+
+    var b=document.getElementById('drBump'); if(b) b.addEventListener('click', doBump);
+  }
+
+  function renderMini(picks){
+    mount.style.display='block';
+    var avs='';
+    var show = picks.slice(0,8);
+    show.forEach(function(pk){
+      var img = pk.photo ? '<img src="'+esc(pk.photo)+'" onerror="this.remove()">' : '';
+      avs+='<span class="mb-av" title="'+esc(pk.rider)+' ('+pk.player+')">'+img+(img?'':'<span class="mfb" style="background:'+PMETA[pk.player].c+'">'+pk.player+'</span>')+'</span>';
+    });
+    mount.innerHTML='<div class="draft mini"><div class="minibar">'+
+      '<div class="mb-t"><span class="mb-ico">'+ICON+'</span>Stage 14 draft locked</div>'+
+      '<span class="dh-badge badge-done">All '+picks.length+' in</span>'+
+      '<span class="mb-avs">'+avs+'</span>'+
+      '<span class="mb-more">Picks post to the board at stage start</span>'+
+      '</div></div>';
+  }
+
+  function searchRow(lockLabel){
+    return '<div class="searchrow"><input id="drS" placeholder="Search a rider still on the board..." autocomplete="off">'+
+      '<button class="lockbtn" id="drLock" disabled>'+lockLabel+'</button><div class="ac" id="drAc"></div></div>';
+  }
+
+  function wireSearch(forCode){
+    var input=document.getElementById('drS'), ac=document.getElementById('drAc'), lock=document.getElementById('drLock');
+    if(!input||!ac||!lock) return;
+    var taken={}; (draft.picks||[]).forEach(function(p){ taken[p.rider]=1; });
+    chosen=null;
+    var lockLabel = lock.textContent;
+    input.addEventListener('input',function(){
+      chosen=null; lock.disabled=true;
+      var q=input.value.trim().toLowerCase();
+      if(!q){ ac.classList.remove('open'); return; }
+      var ms=RIDERS.filter(function(r){ return !taken[r.r] && (r.r.toLowerCase().indexOf(q)>=0 || r.t.toLowerCase().indexOf(q)>=0); }).slice(0,8);
+      ac.innerHTML = ms.length ? ms.map(function(r,i){
+        return '<div class="ac-item" data-i="'+i+'"><img class="ac-av" src="'+esc(r.p||'')+'" onerror="this.style.visibility=\'hidden\'"><span class="ac-rn">'+esc(r.r)+'</span><span class="ac-rt">'+esc(r.t)+'</span></div>';
+      }).join('') : '<div class="ac-item" style="color:var(--mute)">No match (this list carries 35 riders; full field comes next)</div>';
+      ac.classList.add('open');
+      ac.querySelectorAll('.ac-item[data-i]').forEach(function(it){
+        it.addEventListener('mousedown',function(e){ e.preventDefault(); chosen=ms[+it.dataset.i]; input.value=chosen.r+'  ('+chosen.t+')'; ac.classList.remove('open'); lock.disabled=false; });
+      });
+    });
+    input.addEventListener('blur',function(){ setTimeout(function(){ ac.classList.remove('open'); },150); });
+    lock.addEventListener('click',function(){ submitPick(forCode, lockLabel); });
+  }
+
+  function submitPick(forCode, lockLabel){
+    if(!chosen) return;
+    var code = forCode || myCode;
+    var lock=document.getElementById('drLock');
+    if(lock){ lock.disabled=true; lock.textContent='Saving...'; }
+    var ref=db.doc('drafts/'+STAGE);
+    var picked=chosen;
+    db.runTransaction(function(tx){
+      return tx.get(ref).then(function(s){
+        var d=s.data();
+        if(d.status==='complete') throw new Error('draft closed');
+        if(d.queue[0]!==code) throw new Error('not your turn');
+        if((d.picks||[]).some(function(p){return p.rider===picked.r;})) throw new Error('already taken');
+        var pick={n:(d.picks||[]).length+1, player:code, rider:picked.r, team:picked.t, photo:picked.p||'', by:myEmail, admin: code!==myCode};
+        var queue=d.queue.slice(1);
+        tx.update(ref,{picks:(d.picks||[]).concat([pick]), queue:queue, status: queue.length?'live':'complete'});
+      });
+    }).catch(function(e){
+      alert('Could not lock pick: '+(e.message||e));
+      var l=document.getElementById('drLock'); if(l){ l.disabled=false; l.textContent=lockLabel||'Lock pick'; }
+    });
+  }
+
+  function doBump(){
+    var ref=db.doc('drafts/'+STAGE);
+    db.runTransaction(function(tx){
+      return tx.get(ref).then(function(s){
+        var d=s.data();
+        if(!d.queue.length) return;
+        var q=d.queue.slice(); q.push(q.shift());
+        tx.update(ref,{queue:q, bumpedAt:FV.serverTimestamp()});
+      });
+    }).catch(function(e){ alert('Bump failed: '+(e.message||e)); });
+  }
 })();
 </script>
 
