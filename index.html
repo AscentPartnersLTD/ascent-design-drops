@@ -624,6 +624,61 @@
       </div>
       <div class="metricbox" id="sigBox"><div class="mh">Signature rider and the damage</div><div class="msub">Most-loved rider and what the loyalty cost</div><div id="mSig"></div></div>
     </div>
+    <div class="metricbox" id="tiltBox" style="margin-top:14px">
+      <style>
+        #tiltBox .tilt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+        #tiltBox .tilt-scope{display:flex;gap:6px;flex:none}
+        #tiltBox .tilt-sc{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);background:var(--paper);border:1px solid var(--line2);border-radius:999px;padding:5px 11px;cursor:pointer;transition:.15s}
+        #tiltBox .tilt-sc.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
+        #tiltBox .tilt-wrap{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px}
+        #tiltBox .tilt-sh{font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 11px}
+        #tiltBox .tilt-sh span{text-transform:none;letter-spacing:0;font-weight:600;color:var(--mute)}
+        #tiltBox .tsl-row{display:grid;grid-template-columns:96px 1fr 22px;align-items:center;gap:10px;margin:9px 0}
+        #tiltBox .tsl-lab{font-size:12.5px;color:var(--ink2)}
+        #tiltBox .tsl{width:100%;accent-color:var(--gold-d);cursor:pointer}
+        #tiltBox .tsl-val{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;text-align:right;color:var(--ink)}
+        #tiltBox .tbar-row{display:grid;grid-template-columns:30px 1fr 34px;align-items:center;gap:11px;margin:9px 0}
+        #tiltBox .tbar-who{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px}
+        #tiltBox .tbar-track{height:13px;background:var(--paper2);border-radius:7px;overflow:hidden}
+        #tiltBox .tbar-fill{display:block;height:100%;border-radius:7px;transition:width .25s ease}
+        #tiltBox .tbar-val{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;text-align:right}
+        #tiltBox .tbar-row.low .tbar-val{color:var(--red)}
+        #tiltBox .tilt-say{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:13px;padding:11px 13px;background:var(--paper);border-radius:10px;border:1px solid var(--line)}
+        #tiltBox .tilt-say b{color:var(--ink)}
+        #tiltBox .tilt-foot{font-size:10.5px;color:var(--mute);line-height:1.55;margin-top:13px}
+        #tiltBox .tilt-strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+        #tiltBox .tchip{border:1px solid var(--line);border-top-width:3px;border-radius:8px;padding:6px 10px 7px;min-width:74px;background:var(--paper)}
+        #tiltBox .tchip .tc-s{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:var(--ink)}
+        #tiltBox .tchip .tc-who{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;float:right}
+        #tiltBox .tchip .tc-type{font-size:10.5px;color:var(--mute);margin-top:3px;clear:both}
+        #tiltBox .tchip .tc-wt{font-size:9.5px;color:var(--mute);margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-family:'Montserrat',sans-serif;font-weight:700}
+        @media(max-width:640px){ #tiltBox .tilt-wrap{grid-template-columns:1fr;gap:20px} }
+      </style>
+      <div class="tilt-head">
+        <div>
+          <div class="mh">Draft-order tilt</div>
+          <div class="msub">Everyone picks first the same number of times. The edge is which stages your turn lands on.</div>
+        </div>
+        <div class="tilt-scope">
+          <button type="button" class="tilt-sc on" data-scope="rest">Rest of season</button>
+          <button type="button" class="tilt-sc" data-scope="all">Whole Tour</button>
+        </div>
+      </div>
+      <div class="tilt-wrap">
+        <div>
+          <div class="tilt-sh">How much is first pick worth, by stage type?</div>
+          <div id="tiltSliders"></div>
+          <div class="tilt-foot">First-pick order is the rotation you have run all Tour (AA led Stage 1; the void Stage 9 held the baton, so the cycle lands on today's board). This weights how much going first is worth by stage type. Drag to set your own read. It is a what-if lens, not a score.</div>
+        </div>
+        <div>
+          <div class="tilt-sh">First-pick value <span>(weighted, over the scope)</span></div>
+          <div id="tiltBars"></div>
+          <div id="tiltSay" class="tilt-say"></div>
+        </div>
+      </div>
+      <div class="tilt-sh" style="margin-top:20px">Who leads off, stage by stage</div>
+      <div id="tiltStrip" class="tilt-strip"></div>
+    </div>
     <div class="metricbox" id="nextStageBox" style="margin-top:14px">
       <style>
         #nextStageBox .ns-num{font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--gold-d)}
@@ -2609,6 +2664,103 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     setOpen(true);
     doFetch();
   });
+})();
+</script>
+
+<script>
+/* ===== Draft-order tilt: does the pick rotation advantage anyone by stage type? ===== */
+(function(){
+  const box=document.getElementById('tiltBox');
+  if(!box || typeof RACE==='undefined') return;
+  const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
+  const PLY=['AA','JJ','JB','JP'];
+
+  // Stage-type weight buckets (how concentrated the obvious best pick is). Tested in order.
+  const WEIGHTS=[
+    {key:'summit', lab:'Summit / Queen', word:'a summit finish',  def:9, test:t=>/summit|queen/i.test(t)},
+    {key:'mtn',    lab:'Mountain',       word:'a mountain stage', def:6, test:t=>/mountain/i.test(t)},
+    {key:'itt',    lab:'Time trial',     word:'the time trial',   def:5, test:t=>/time trial|individual tt/i.test(t)},
+    {key:'hilly',  lab:'Hilly / finale', word:'a hilly day',      def:4, test:t=>/hilly|finale|montmartre/i.test(t)},
+    {key:'sprint', lab:'Sprint / flat',  word:'a bunch sprint',   def:2, test:t=>/flat|sprint/i.test(t)}
+  ];
+  const wmap={}; WEIGHTS.forEach(w=>wmap[w.key]=w);
+  function bucket(type){ for(const w of WEIGHTS){ if(w.test(type)) return w.key; } return 'hilly'; }
+  const weights={}; WEIGHTS.forEach(w=>weights[w.key]=w.def);
+
+  // Void-aware draft order: AA led Stage 1, cycle AA>JB>JJ>JP, void stages take no draft (no advance).
+  function seasonOrder(){
+    let line=['AA','JB','JJ','JP']; const ord={};
+    RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
+      if(st.voidPool){ ord[st.n]=null; return; }
+      ord[st.n]=line.slice();
+      line=line.slice(1).concat(line.slice(0,1));
+    });
+    return ord;
+  }
+  const ORD=seasonOrder();
+  const firstStage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:1;
+
+  function scopeStages(scope){
+    return RACE.slice().sort((a,b)=>a.n-b.n)
+      .filter(st=>!st.voidPool && ORD[st.n] && (scope==='all' || st.n>=firstStage));
+  }
+  function compute(scope){
+    const val={}; PLY.forEach(p=>val[p]=0);
+    scopeStages(scope).forEach(st=>{ val[ORD[st.n][0]] += weights[bucket(st.type)]; });
+    return val;
+  }
+
+  let scope='rest';
+  const barsEl=document.getElementById('tiltBars');
+  const sayEl=document.getElementById('tiltSay');
+  const stripEl=document.getElementById('tiltStrip');
+
+  function render(){
+    const val=compute(scope);
+    const max=Math.max(1,...PLY.map(p=>val[p]));
+    const ord=PLY.slice().sort((a,b)=>val[b]-val[a]);
+    const low=ord[ord.length-1], high=ord[0];
+    barsEl.innerHTML=ord.map(p=>`
+      <div class="tbar-row ${p===low?'low':''}">
+        <span class="tbar-who" style="color:${COL[p]}">${p}</span>
+        <span class="tbar-track"><span class="tbar-fill" style="width:${(val[p]/max*100).toFixed(1)}%;background:${COL[p]}"></span></span>
+        <span class="tbar-val">${val[p]}</span>
+      </div>`).join('');
+    // takeaway: which stage types the low player leads off in scope
+    const lowStages=scopeStages(scope).filter(st=>ORD[st.n][0]===low);
+    const words=[...new Set(lowStages.map(st=>wmap[bucket(st.type)].word))];
+    const list=words.length<=1?words[0]:words.slice(0,-1).join(', ')+' and '+words[words.length-1];
+    const even=val[low]===val[high];
+    sayEl.innerHTML = even
+      ? `With these weights the draft order comes out even: no one's first picks land on softer stages than anyone else's.`
+      : `<b>${low}</b> keeps drawing first pick on ${list} - the ${scope==='rest'?'remaining ':''}days a first pick is worth least - while <b>${high}</b> gets first crack at the richest stages. Same number of first picks, very different value.`;
+    // schedule strip
+    stripEl.innerHTML=scopeStages(scope).map(st=>{
+      const p=ORD[st.n][0], b=bucket(st.type);
+      return `<div class="tchip" style="border-top-color:${COL[p]}">
+        <span class="tc-s">S${st.n}</span><span class="tc-who" style="color:${COL[p]}">${p}</span>
+        <div class="tc-type">${wmap[b].lab}</div>
+        <div class="tc-wt">worth ${weights[b]}</div></div>`;
+    }).join('');
+  }
+
+  // sliders
+  document.getElementById('tiltSliders').innerHTML=WEIGHTS.map(w=>`
+    <div class="tsl-row">
+      <span class="tsl-lab">${w.lab}</span>
+      <input type="range" class="tsl" min="0" max="10" step="1" value="${w.def}" data-key="${w.key}">
+      <span class="tsl-val" id="tslv-${w.key}">${w.def}</span>
+    </div>`).join('');
+  box.querySelectorAll('.tsl').forEach(sl=>sl.addEventListener('input',()=>{
+    weights[sl.dataset.key]=+sl.value;
+    document.getElementById('tslv-'+sl.dataset.key).textContent=sl.value;
+    render();
+  }));
+  box.querySelectorAll('.tilt-sc').forEach(btn=>btn.addEventListener('click',()=>{
+    box.querySelectorAll('.tilt-sc').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on'); scope=btn.dataset.scope; render();
+  }));
+  render();
 })();
 </script>
 </body>
