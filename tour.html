@@ -525,25 +525,25 @@
     <div class="info">
       <div class="callouts" id="callouts"></div>
       <div class="charts">
-        <div class="chart"><div class="ct">Placement points <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
-        <div class="chart"><div class="ct">Rank points <small>rank among drafted riders &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
+        <div class="chart"><div class="ct">Placement <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
+        <div class="chart"><div class="ct">Rank <small>the day's picks ranked 1 to 8 by finish &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
         <div class="hl-tile"><div class="big">29/36</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 29 of 36 podium spots across the 12 scored stages, at least 2 every day and all 3 on six of them. Plus 61 of 120 top-10 slots.</div></div></div>
-        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 placement points, no payoff.</div></div></div>
+        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 in the placement tally, no payoff.</div></div></div>
       </div>
     </div>
 
     <h2 class="eyebrow mt">Standings</h2>
     <div class="scoring">
       <b>How it scores</b>
-      <p>Two cumulative totals run the whole tour, both lower-is-better. <b style="text-transform:none;font-size:13px;letter-spacing:0">Placement points</b> add up each pick's actual stage finish. <b style="text-transform:none;font-size:13px;letter-spacing:0">Rank points</b> rank the drafted riders against each other on the day (winner-of-the-pool gets 1) and add those. Placement rewards consistent low finishes; rank rewards drafting the actual stage winner.</p>
+      <p>Three ways to read the same picks. <b style="text-transform:none;font-size:13px;letter-spacing:0">Placement</b> is the system of record: add up each pick's actual stage finish, lowest total leads. <b style="text-transform:none;font-size:13px;letter-spacing:0">Rank</b> is the running second board: each stage the eight picks are ranked 1 to 8 by finish (the pool's best gets 1), and you carry the sum, lowest leads. <b style="text-transform:none;font-size:13px;letter-spacing:0">Fantasy Points</b> is the optional lens: a top-15 scale worth 25 for a win down to 1 for 15th, highest total leads. Placement and Rank decide the pool all season; Fantasy Points is there to explore, on the <b style="text-transform:none;font-size:13px;letter-spacing:0">See Fantasy Points</b> toggle on any card.</p>
     </div>
     <div class="twocol">
       <div>
-        <div class="eyebrow" style="margin-bottom:10px">Placement Points &middot; primary</div>
+        <div class="eyebrow" style="margin-bottom:10px">Placement &middot; primary</div>
         <table class="gc" id="gcPlace"></table>
       </div>
       <div>
-        <div class="eyebrow" style="margin-bottom:10px">Rank Points &middot; secondary</div>
+        <div class="eyebrow" style="margin-bottom:10px">Rank &middot; secondary</div>
         <table class="gc" id="gcRank"></table>
       </div>
     </div>
@@ -587,11 +587,11 @@
     </style>
     <h2 class="eyebrow">The Numbers</h2>
     <div class="whatif" id="whatif">
-      <div class="wi-title">Two ways to score the same season</div>
-      <div class="wi-sub">Today we add up each pick's finishing place and the lowest total leads. A points model would instead give more for a better finish and nothing past a cut line, and the highest total leads. Here is the current board both ways, side by side, with each bar showing how close a manager is to the lead in that system. This is a look, not a rule change.</div>
+      <div class="wi-title">Placement vs Fantasy Points, side by side</div>
+      <div class="wi-sub"><b style="text-transform:none;letter-spacing:0">Placement</b>, the system of record, adds up each pick's finishing place and the lowest total leads. <b style="text-transform:none;letter-spacing:0">Fantasy Points</b> instead gives more for a better finish on a top-15 scale, nothing past 15th, and the highest total leads. Here is the current board both ways, with each bar showing how close a manager is to the lead in that system. This is the what-if lens, not a rule change.</div>
       <div class="wi-cols">
-        <div class="wi-col"><div class="wi-ch">Today &middot; add up places &middot; <b>lowest leads</b></div><div id="wiToday"></div></div>
-        <div class="wi-col"><div class="wi-ch">Points &middot; floor at zero &middot; <b>highest leads</b></div><div id="wiPts"></div></div>
+        <div class="wi-col"><div class="wi-ch">Placement &middot; add up finishes &middot; <b>lowest leads</b></div><div id="wiToday"></div></div>
+        <div class="wi-col"><div class="wi-ch">Fantasy Points &middot; top-15 scale &middot; <b>highest leads</b></div><div id="wiPts"></div></div>
       </div>
       <div class="wi-note" id="wiNote"></div>
     </div>
@@ -751,7 +751,7 @@
       <div><h3 class="hm-h">Stage winners drafted</h3><div id="hmFame"></div></div>
     </div>
     <h2 class="eyebrow mt">Rider Value Leaderboard</h2>
-    <p class="palmares-note">Who delivered the most for the pool. Value is points on a simple top-15 finish scale, added up across every time a rider was drafted.</p>
+    <p class="palmares-note">Who delivered the most for the pool. Value is Fantasy Points on the top-15 finish scale, added up across every time a rider was drafted.</p>
     <div class="hm-value" id="hmValue"></div>
     <h3 class="hm-h" style="margin-top:20px">Best value nobody else touched</h3>
     <div id="hmSolo"></div>
@@ -1107,7 +1107,9 @@ document.getElementById('callouts').innerHTML = `
   <div class="callout"><div class="n">${WINS_PICKED}/${COMPLETED.length}</div><div class="l">Winners picked</div><div class="d">Stages where someone in the pool drafted the actual stage winner, across the ${COMPLETED.length} scored days.</div></div>
   <div class="insight">
     <svg class="arrow" viewBox="0 0 38 26" fill="none"><path d="M2 13H30M30 13L21 4M30 13L21 22" stroke="#e8b31e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <div class="txt">Two leaders, two metrics. <b>${placeLeader}</b> is out front on <span class="hl">placement points</span> by drafting consistent low finishes; <b>${rankLeader}</b> leads rank points by repeatedly landing the actual stage winner.</div>
+    <div class="txt">${placeLeader===rankLeader
+      ? `<b>${placeLeader}</b> leads both boards: out front on <span class="hl">placement</span> by drafting consistent low finishes, and on <span class="hl">rank</span> by landing the actual stage winner more than anyone.`
+      : `Two leaders, two boards. <b>${placeLeader}</b> is out front on <span class="hl">placement</span> by drafting consistent low finishes; <b>${rankLeader}</b> leads <span class="hl">rank</span> by repeatedly landing the actual stage winner.`}</div>
   </div>
   <div class="flag-row"><div class="flag"><i class="b"></i><i class="w"></i><i class="r"></i></div><div class="c">113th Tour de France<br>Barcelona to Paris</div></div>`;
 
@@ -1652,8 +1654,8 @@ function renderGC(el, obj, label){
       <td><div class="rider">${k}${i===0?'<span class="lead-tag">LEADER</span>':''}</div><div class="full">${PLAYERS[k].name}</div></td>
       <td class="r big lead-val">${obj[k]}</td></tr>`).join('')+`</tbody>`;
 }
-renderGC(document.getElementById('gcPlace'), OURS.placement, 'Placement pts');
-renderGC(document.getElementById('gcRank'),  OURS.rank, 'Rank pts');
+renderGC(document.getElementById('gcPlace'), OURS.placement, 'Placement');
+renderGC(document.getElementById('gcRank'),  OURS.rank, 'Rank');
 
 /* profile */
 function profileSVG(type){
@@ -1726,12 +1728,12 @@ function stageCard(st){
           <td class="plr">${r.k}</td>
           <td>${r.detail}</td>
           <td class="r sum">${r.total!==null?r.total:'-'}</td></tr>`).join('');
-      const lab = mode==='points' ? 'Day points' : 'Day total';
-      const col = mode==='points' ? 'points' : 'finish';
+      const lab = mode==='points' ? 'Fantasy pts' : 'Day total';
+      const col = mode==='points' ? 'fantasy' : 'finish';
       return `<table class="picks"><thead><tr><th>Rider</th><th>Picks (${col})</th><th class="r">${lab}</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
     body = `<div class="stage-scoring" data-view="place">
-        <div class="sc-head"><button type="button" class="pt-btn sc-toggle">See points</button></div>
+        <div class="sc-head"><button type="button" class="pt-btn sc-toggle">See Fantasy Points</button></div>
         <div class="sc-view sc-place">${scoreTable('place')}</div>
         <div class="sc-view sc-points">${scoreTable('points')}</div>
       </div>
@@ -1754,13 +1756,13 @@ function stageCard(st){
     <div class="stage-body">${body}</div></div>`;
 }
 document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stageCard).join('');
-/* Per-stage-card See points / See place toggle (placement stays the system of record). */
+/* Per-stage-card See Fantasy Points / See Placement toggle (placement stays the system of record). */
 document.getElementById('stages').addEventListener('click',e=>{
   const b=e.target.closest('.sc-toggle'); if(!b) return;
   const box=b.closest('.stage-scoring'); if(!box) return;
   const toPts=box.getAttribute('data-view')!=='points';
   box.setAttribute('data-view', toPts?'points':'place');
-  b.textContent = toPts?'See place':'See points';
+  b.textContent = toPts?'See Placement':'See Fantasy Points';
   b.classList.toggle('on',toPts);
 });
 
@@ -1814,7 +1816,7 @@ document.getElementById('stages').addEventListener('click',e=>{
     let best=null; Object.keys(cnt).forEach(r=>{ if(!best||cnt[r]>cnt[best]||(cnt[r]===cnt[best]&&pts[r]>pts[best]))best=r; });
     if(!best) return '';
     const times=cnt[best]>1?`${cnt[best]} times`:'once';
-    return `<div class="sigrow"><span class="sc" style="color:${colors[p]}">${p}</span><span class="sr">${best}</span><div class="sd">Picked ${times}, ${pts[best]} placement points from that rider alone</div></div>`;
+    return `<div class="sigrow"><span class="sc" style="color:${colors[p]}">${p}</span><span class="sr">${best}</span><div class="sd">Picked ${times}, ${pts[best]} in placement from that rider alone</div></div>`;
   }).join('');
   document.getElementById('mSig').innerHTML = sigHtml;
 
@@ -2214,7 +2216,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     const list=a=>a.length===1?`<b>${a[0]}</b>`:a.slice(0,-1).map(x=>`<b>${x}</b>`).join(', ')+` and <b>${a[a.length-1]}</b>`;
     let msg='Both systems put the same order on the board this week';
     if(up.length||down.length){ const parts=[]; if(up.length) parts.push(`${list(up)} move${up.length>1?'':'s'} up`); if(down.length) parts.push(`${list(down)} slip${down.length>1?'':'s'}`);
-      msg=`Switching to points, ${parts.join(' and ')}. The reason is that points stop one deep finish from piling on the way a raw place does.`; }
+      msg=`Switching to Fantasy Points, ${parts.join(' and ')}. The reason is that a top-15 scale stops one deep finish from piling on the way a raw place does.`; }
     noteEl.innerHTML=msg;
   }
 })();
@@ -2421,20 +2423,21 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   }
 
   /* ---- generic wiring: capture the current (place) view, swap to points on click ---- */
-  function wire(host, bodyId, pointsHTML, caps){
+  function wire(host, bodyId, pointsHTML, caps, backLabel){
     const body=document.getElementById(bodyId);
     if(!host||!body) return;
+    const back = 'See ' + (backLabel || 'Placement');
     host.classList.add('pt-host');
     const placeBody=body.innerHTML;
     const capState=(caps||[]).filter(c=>c&&c.el).map(c=>({el:c.el,place:c.el.innerHTML,points:c.points}));
     const btn=document.createElement('button');
-    btn.type='button'; btn.className='pt-btn'; btn.textContent='See points';
+    btn.type='button'; btn.className='pt-btn'; btn.textContent='See Fantasy Points';
     let pts=false;
     btn.addEventListener('click',()=>{
       pts=!pts;
       body.innerHTML = pts?pointsHTML:placeBody;
       capState.forEach(c=>{ c.el.innerHTML = pts?c.points:c.place; });
-      btn.textContent = pts?'See place':'See points';
+      btn.textContent = pts?back:'See Fantasy Points';
       btn.classList.toggle('on',pts);
     });
     host.appendChild(btn);
@@ -2447,37 +2450,37 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   // --- Overview: bars ---
   const cPlace=chartOf('barsPlace');
   wire(cPlace,'barsPlace', barsHi(cumPts),
-    [{el:q(cPlace,'.ct'), points:`Fantasy points <small>top-15 scale &middot; higher wins</small>`}]);
+    [{el:q(cPlace,'.ct'), points:`Fantasy Points <small>top-15 scale, 25 down to 1 &middot; higher wins</small>`}], 'Placement');
 
   const cRank=chartOf('barsRank');
   wire(cRank,'barsRank', barsRankPts(rankPts),
-    [{el:q(cRank,'.ct'), points:`Points rank <small>ranked by fantasy points each day &middot; lower wins</small>`}]);
+    [{el:q(cRank,'.ct'), points:`Fantasy Points rank <small>the day's picks ranked by fantasy points &middot; lower wins</small>`}], 'Rank');
 
   // --- Overview: GC tables ---
   const dPlace=colOf('gcPlace');
-  wire(dPlace,'gcPlace', gcHi(cumPts,'Fantasy pts'),
-    [{el:q(dPlace,'.eyebrow'), points:`Fantasy Points &middot; primary`}]);
+  wire(dPlace,'gcPlace', gcHi(cumPts,'Fantasy Pts'),
+    [{el:q(dPlace,'.eyebrow'), points:`Fantasy Points &middot; the what-if lens`}], 'Placement');
 
   const dRank=colOf('gcRank');
-  wire(dRank,'gcRank', gcRankPts(rankPts,'Points rank'),
-    [{el:q(dRank,'.eyebrow'), points:`Points Rank &middot; secondary`}]);
+  wire(dRank,'gcRank', gcRankPts(rankPts,'Fantasy rank'),
+    [{el:q(dRank,'.eyebrow'), points:`Fantasy Points rank &middot; the what-if lens`}], 'Rank');
 
-  // --- Stats: average points per pick ---
+  // --- Stats: average fantasy points per pick ---
   const bAvg=boxOf('mAvg');
   wire(bAvg,'mAvg', avgPtsHTML(),
-    [{el:q(bAvg,'.mh'), points:`Average points per pick`},
-     {el:q(bAvg,'.msub'), points:`Rider picks only, Stage 2 on. Higher is sharper`}]);
+    [{el:q(bAvg,'.mh'), points:`Average fantasy points per pick`},
+     {el:q(bAvg,'.msub'), points:`Rider picks only, Stage 2 on. Higher is sharper`}], 'Placement');
 
   // --- Stats: signature rider, fantasy points ---
   const bSig=boxOf('mSig');
   wire(bSig,'mSig', sigPtsHTML(),
-    [{el:q(bSig,'.msub'), points:`Most-loved rider and the fantasy points earned`}]);
+    [{el:q(bSig,'.msub'), points:`Most-loved rider and the fantasy points earned`}], 'Placement');
 
-  // --- Stats: cumulative points trend ---
+  // --- Stats: cumulative fantasy points trend ---
   const bTrend=boxOf('mTrend');
   wire(bTrend,'mTrend', trendPtsHTML(),
-    [{el:q(bTrend,'.mh'), points:`Points race, stage by stage`},
-     {el:q(bTrend,'.msub'), points:`Cumulative points, higher line is ahead. Stage 9 was void`}]);
+    [{el:q(bTrend,'.mh'), points:`Fantasy Points race, stage by stage`},
+     {el:q(bTrend,'.msub'), points:`Cumulative fantasy points, higher line is ahead. Stage 9 was void`}], 'Placement');
 })();
 </script>
 
