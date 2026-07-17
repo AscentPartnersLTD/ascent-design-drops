@@ -912,7 +912,7 @@ const UPCOMING = {
       "Reads like breakaway bait: a long day, a hard closing climb, and no easy control"
     ]
   },
-  picks:{ JP:[], AA:[], JB:[], JJ:[] }
+  picks:{ JP:[], AA:["T. Pidcock"], JB:["I. del Toro","B. McNulty"], JJ:["A. Baudin","R. Debruyne"] }
 };
 
 /* Next-stage weather. The widget on the Stats tab fetches a live forecast from
@@ -1940,7 +1940,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const TEAMS23=["Alpecin-Premier Tech","Bahrain Victorious","Caja Rural-Seguros RGA","Cofidis","Decathlon CMA CGM Team","EF Education-EasyPost","Groupama-FDJ United","Lidl-Trek","Lotto-Intermarché","Movistar Team","Netcompany INEOS","NSN Cycling Team","Pinarello Q36.5","Red Bull-BORA-hansgrohe","Soudal Quick-Step","Team Jayco AlUla","Team Picnic PostNL","TotalEnergies","Tudor Pro Cycling","UAE Team Emirates XRG","Uno-X Mobility","Visma-Lease a Bike","XDS Astana Team"];
   const TEAM_ALIAS={"UAE Team Emirates":"UAE Team Emirates XRG","Ineos":"Netcompany INEOS","Decathlon":"Decathlon CMA CGM Team","Red Bull-Bora":"Red Bull-BORA-hansgrohe"};
   const RIDER_TEAM={
-    "J. Vingegaard":"Visma-Lease a Bike","P. Seixas":"Decathlon CMA CGM Team","R. Evenepoel":"Red Bull-BORA-hansgrohe","T. Pidcock":"Pinarello Q36.5","T. Pogacar":"UAE Team Emirates XRG","R. Gregoire":"Groupama-FDJ United","M. van der Poel":"Alpecin-Premier Tech","M. Vacek":"Lidl-Trek","I. del Toro":"UAE Team Emirates XRG","T. Johannessen":"Uno-X Mobility","J. Ayuso":"Lidl-Trek","Q. Simmons":"Lidl-Trek","M. Pedersen":"Lidl-Trek","B. Healy":"EF Education-EasyPost","J. Philipsen":"Alpecin-Premier Tech","S. Waerenskjold":"Uno-X Mobility","O. Kooij":"Decathlon CMA CGM Team","B. Girmay":"NSN Cycling Team","J. Abrahamsen":"Uno-X Mobility","T. Traaen":"Uno-X Mobility","B. O'Connor":"Team Jayco AlUla","S. Quinn":"EF Education-EasyPost","M. Kanter":"XDS Astana Team","T. Merlier":"Soudal Quick-Step","M. Fretin":"Cofidis","H. Artz":"Lotto-Intermarché","F. Lipowitz":"Red Bull-BORA-hansgrohe","A. Yates":"UAE Team Emirates XRG","J. Jegat":"TotalEnergies","R. Pluimers":"Tudor Pro Cycling","P. Bauhaus":"Bahrain Victorious"
+    "J. Vingegaard":"Visma-Lease a Bike","P. Seixas":"Decathlon CMA CGM Team","R. Evenepoel":"Red Bull-BORA-hansgrohe","T. Pidcock":"Pinarello Q36.5","T. Pogacar":"UAE Team Emirates XRG","R. Gregoire":"Groupama-FDJ United","M. van der Poel":"Alpecin-Premier Tech","M. Vacek":"Lidl-Trek","I. del Toro":"UAE Team Emirates XRG","T. Johannessen":"Uno-X Mobility","J. Ayuso":"Lidl-Trek","Q. Simmons":"Lidl-Trek","M. Pedersen":"Lidl-Trek","B. Healy":"EF Education-EasyPost","J. Philipsen":"Alpecin-Premier Tech","S. Waerenskjold":"Uno-X Mobility","O. Kooij":"Decathlon CMA CGM Team","B. Girmay":"NSN Cycling Team","J. Abrahamsen":"Uno-X Mobility","T. Traaen":"Uno-X Mobility","B. O'Connor":"Team Jayco AlUla","S. Quinn":"EF Education-EasyPost","M. Kanter":"XDS Astana Team","T. Merlier":"Soudal Quick-Step","M. Fretin":"Cofidis","H. Artz":"Lotto-Intermarché","F. Lipowitz":"Red Bull-BORA-hansgrohe","A. Yates":"UAE Team Emirates XRG","J. Jegat":"TotalEnergies","R. Pluimers":"Tudor Pro Cycling","P. Bauhaus":"Bahrain Victorious","B. McNulty":"UAE Team Emirates XRG","A. Baudin":"EF Education-EasyPost","R. Debruyne":"Alpecin-Premier Tech"
   };
   const TEAM_COLOR={"Alpecin-Premier Tech":"#6B0F1A","Bahrain Victorious":"#C8102E","Caja Rural-Seguros RGA":"#1E8449","Cofidis":"#E2001A","Decathlon CMA CGM Team":"#0082C3","EF Education-EasyPost":"#FF0098","Groupama-FDJ United":"#26429B","Lidl-Trek":"#001E62","Lotto-Intermarché":"#A6093D","Movistar Team":"#009DDC","Netcompany INEOS":"#A50021","NSN Cycling Team":"#F7A600","Pinarello Q36.5":"#009CA6","Red Bull-BORA-hansgrohe":"#223971","Soudal Quick-Step":"#0033A0","Team Jayco AlUla":"#00A94F","Team Picnic PostNL":"#FF6900","TotalEnergies":"#F04E23","Tudor Pro Cycling":"#2B2B2B","UAE Team Emirates XRG":"#d4111e","Uno-X Mobility":"#FF5C39","Visma-Lease a Bike":"#E3C400","XDS Astana Team":"#00A9CE"};
   const PL=['AA','JJ','JB','JP'];
@@ -2140,6 +2140,8 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     transition:background .15s,color .15s,border-color .15s;z-index:3;white-space:nowrap}
   .pt-btn:hover{border-color:var(--gold-d);background:#fff}
   .pt-btn.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
+  /* reserve space so a card title/subtitle never runs under the toggle pill (was overlapping on mobile) */
+  .pt-host > .ct, .pt-host > .mh, .pt-host > .eyebrow{padding-right:94px}
 </style>
 <script>
 /* ===== SEE POINTS / SEE PLACE: per-card toggle to a top-15 fantasy-points scale ===== */
