@@ -537,6 +537,26 @@
       <div class="metricbox"><div class="mh">Average finish per pick</div><div class="msub">Rider picks only, Stage 2 on. Lower is sharper</div><div id="mAvg"></div></div>
       <div class="metricbox"><div class="mh">Signature rider and the damage</div><div class="msub">Most-loved rider and what the loyalty cost</div><div id="mSig"></div></div>
     </div>
+    <div class="metricbox" id="weatherBox" style="margin-top:14px">
+      <style>
+        #weatherBox .wx-body{display:flex;align-items:center;gap:18px;margin-top:8px;flex-wrap:wrap}
+        #weatherBox .wx-ico{width:46px;height:46px;flex:none}
+        #weatherBox .wx-temp{font-family:'Montserrat',sans-serif;font-weight:800;font-size:26px;line-height:1;color:var(--ink)}
+        #weatherBox .wx-cond{font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;margin-top:3px}
+        #weatherBox .wx-date{font-size:11.5px;color:var(--mute);margin-top:2px}
+        #weatherBox .wx-stats{display:flex;gap:22px;flex-wrap:wrap;margin-left:auto}
+        #weatherBox .wx-stat{font-size:11px;color:var(--mute);font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.04em}
+        #weatherBox .wx-stat b{font-weight:800;color:var(--ink);font-size:16px;display:block;text-transform:none;letter-spacing:0;margin-top:2px}
+        #weatherBox .wx-link{display:inline-block;margin-top:12px;font-size:11px;font-family:'Montserrat',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-d);text-decoration:none}
+        #weatherBox .wx-link:hover{text-decoration:underline}
+        #weatherBox .wx-place{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--ink)}
+        #weatherBox .wx-muted{color:var(--mute);font-size:12.5px}
+      </style>
+      <div class="mh">Next stage weather</div>
+      <div class="msub" id="wxSub">The upcoming stage finish</div>
+      <div id="wxBody" class="wx-body"><span class="wx-muted">Loading the forecast...</span></div>
+      <a class="wx-link" href="https://www.weatheronline.co.uk/service/text/Tour-de-France.htm" target="_blank" rel="noopener noreferrer">Full Tour de France forecast</a>
+    </div>
     <div class="metricbox" style="margin-top:14px">
       <div class="mh">Placement race, stage by stage</div><div class="msub">Cumulative total, lower line is ahead. Stage 9 was void</div>
       <div id="mTrend"></div>
@@ -857,6 +877,14 @@ const UPCOMING = {
     ]
   },
   picks:{ JP:[], AA:[], JB:[], JJ:[] }
+};
+
+/* Next-stage weather. The widget on the Stats tab fetches a live forecast from
+   Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
+   each time you roll UPCOMING to the next stage. Coordinates are the finish town. */
+const WEATHER = {
+  stage: 13, place: "Belfort", finish: "Ballon d'Alsace finale",
+  lat: 47.638, lon: 6.864, date: "2026-07-18"
 };
 
 /* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
@@ -1992,6 +2020,39 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       msg=`Switching to points, ${parts.join(' and ')}. The reason is that points stop one deep finish from piling on the way a raw place does.`; }
     noteEl.innerHTML=msg;
   }
+})();
+</script>
+
+<script>
+/* Next-stage weather widget (Stats tab). Live forecast from Open-Meteo (free, no key,
+   CORS-open) for the WEATHER finish town. Falls back to a link if the fetch fails. */
+(function(){
+  const body=document.getElementById('wxBody'); if(!body) return;
+  const W=(typeof WEATHER!=='undefined')?WEATHER:null;
+  const sub=document.getElementById('wxSub');
+  if(!W){ body.innerHTML='<span class="wx-muted">No upcoming stage set.</span>'; return; }
+  if(sub) sub.innerHTML=`Stage ${W.stage} finish &middot; <span class="wx-place">${W.place}</span>`+(W.finish?` &middot; ${W.finish}`:'');
+  function code(c){ if(c===0)return['Clear','sun']; if(c<=3)return['Partly cloudy','pcloud']; if(c<=48)return['Fog','fog']; if(c<=57)return['Drizzle','rain']; if(c<=67)return['Rain','rain']; if(c<=77)return['Snow','snow']; if(c<=82)return['Rain showers','rain']; if(c<=86)return['Snow showers','snow']; return['Thunderstorms','storm']; }
+  function fmt(s){ try{const p=s.split('-');const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return m[+p[1]-1]+' '+(+p[2])+', '+p[0];}catch(e){return s;} }
+  const CLOUD='<path d="M15 33h17a6.5 6.5 0 0 0 .8-13A9 9 0 0 0 15 19a6.5 6.5 0 0 0 0 14z" fill="#aeb4bd"/>';
+  const ICON={
+    sun:'<svg viewBox="0 0 48 48" width="46" height="46"><g stroke="#e8b31e" stroke-width="2.6" stroke-linecap="round"><line x1="24" y1="5" x2="24" y2="12"/><line x1="24" y1="36" x2="24" y2="43"/><line x1="5" y1="24" x2="12" y2="24"/><line x1="36" y1="24" x2="43" y2="24"/><line x1="10.5" y1="10.5" x2="15" y2="15"/><line x1="33" y1="33" x2="37.5" y2="37.5"/><line x1="37.5" y1="10.5" x2="33" y2="15"/><line x1="15" y1="33" x2="10.5" y2="37.5"/></g><circle cx="24" cy="24" r="8.5" fill="#e8b31e"/></svg>',
+    pcloud:'<svg viewBox="0 0 48 48" width="46" height="46"><circle cx="19" cy="16" r="6.5" fill="#e8b31e"/><g stroke="#e8b31e" stroke-width="2" stroke-linecap="round"><line x1="19" y1="4" x2="19" y2="7.5"/><line x1="7" y1="16" x2="10.5" y2="16"/><line x1="10" y1="7" x2="12.5" y2="9.5"/></g>'+CLOUD+'</svg>',
+    rain:'<svg viewBox="0 0 48 48" width="46" height="46">'+CLOUD+'<g stroke="#3b7dd8" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="37" x2="16" y2="43"/><line x1="26" y1="37" x2="24" y2="43"/><line x1="34" y1="37" x2="32" y2="43"/></g></svg>',
+    storm:'<svg viewBox="0 0 48 48" width="46" height="46">'+CLOUD+'<path d="M25 35l-6 8h5l-2 5 8-9h-5l2-4z" fill="#e8b31e"/></svg>',
+    snow:'<svg viewBox="0 0 48 48" width="46" height="46">'+CLOUD+'<g fill="#9aa3ad"><circle cx="18" cy="40" r="2"/><circle cx="26" cy="41" r="2"/><circle cx="34" cy="40" r="2"/></g></svg>',
+    fog:'<svg viewBox="0 0 48 48" width="46" height="46">'+CLOUD+'<g stroke="#aeb4bd" stroke-width="2.4" stroke-linecap="round"><line x1="14" y1="39" x2="34" y2="39"/><line x1="17" y1="44" x2="31" y2="44"/></g></svg>'
+  };
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${W.lat}&longitude=${W.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=Europe%2FParis&start_date=${W.date}&end_date=${W.date}`;
+  fetch(url).then(r=>r.ok?r.json():Promise.reject()).then(j=>{
+    const d=j&&j.daily; if(!d||!d.time||!d.time.length) return Promise.reject();
+    const c=code(d.weather_code[0]);
+    const hi=Math.round(d.temperature_2m_max[0]), lo=Math.round(d.temperature_2m_min[0]);
+    const rain=d.precipitation_probability_max[0], wind=Math.round(d.wind_speed_10m_max[0]);
+    body.innerHTML=`<div class="wx-ico">${ICON[c[1]]||ICON.pcloud}</div>`
+      +`<div><div class="wx-temp">${hi}&deg; <span style="font-size:15px;color:var(--mute)">/ ${lo}&deg;</span></div><div class="wx-cond">${c[0]}</div><div class="wx-date">${fmt(W.date)}</div></div>`
+      +`<div class="wx-stats"><div class="wx-stat">Rain chance<b>${rain==null?'-':rain+'%'}</b></div><div class="wx-stat">Wind<b>${wind} mph</b></div></div>`;
+  }).catch(()=>{ body.innerHTML='<span class="wx-muted">The live forecast could not load right now. The full Tour forecast is linked below.</span>'; });
 })();
 </script>
 </body>
