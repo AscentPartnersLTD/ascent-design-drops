@@ -646,6 +646,9 @@
         #tiltBox .tilt-say{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:13px;padding:11px 13px;background:var(--paper);border-radius:10px;border:1px solid var(--line)}
         #tiltBox .tilt-say b{color:var(--ink)}
         #tiltBox .tilt-foot{font-size:10.5px;color:var(--mute);line-height:1.55;margin-top:13px}
+        #tiltBox .tilt-how{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+        #tiltBox .tilt-how p{font-size:13px;color:var(--ink2);line-height:1.65;margin:0;max-width:840px}
+        #tiltBox .tilt-how b{color:var(--ink)}
         #tiltBox .tilt-strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
         #tiltBox .tchip{border:1px solid var(--line);border-top-width:3px;border-radius:8px;padding:6px 10px 7px;min-width:74px;background:var(--paper)}
         #tiltBox .tchip .tc-s{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:var(--ink)}
@@ -668,7 +671,7 @@
         <div>
           <div class="tilt-sh">How much is first pick worth, by stage type?</div>
           <div id="tiltSliders"></div>
-          <div class="tilt-foot">First-pick order is the rotation you have run all Tour (AA led Stage 1; the void Stage 9 held the baton, so the cycle lands on today's board). This weights how much going first is worth by stage type. Drag to set your own read. It is a what-if lens, not a score.</div>
+          <div class="tilt-foot">First-pick order is the rotation the group has run all Tour: AA led Stage 1, and because the void Stage 9 took no draft, the cycle lands exactly on today's board. It is a what-if lens, not a score.</div>
         </div>
         <div>
           <div class="tilt-sh">First-pick value <span>(weighted, over the scope)</span></div>
@@ -678,6 +681,10 @@
       </div>
       <div class="tilt-sh" style="margin-top:20px">Who leads off, stage by stage</div>
       <div id="tiltStrip" class="tilt-strip"></div>
+      <div class="tilt-how">
+        <div class="tilt-sh" style="margin-bottom:9px">How this works</div>
+        <p>A first pick is worth far more on a summit finish, where one rider is the obvious grab, than on a bunch sprint, where the next pick is just as good. How much more is a judgment call, and there is no objectively correct weight for it. So rather than me picking the numbers and passing them off as fact, the sliders hand you the dial. Each slider is one stage type, and the number is how big an edge it is to pick first on that kind of day. When you drag one, the bars above recompute - they show each player's total first-pick edge across the season under your assumptions.</p>
+      </div>
     </div>
     <div class="metricbox" id="nextStageBox" style="margin-top:14px">
       <style>
