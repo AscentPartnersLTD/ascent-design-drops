@@ -188,13 +188,13 @@
   .recon-panel .asklist{margin:0;padding-left:18px;font-size:12.5px;line-height:1.5}
   .recon-panel .asklist li{margin-bottom:7px}
   .recon-panel .recfoot{font-size:11.5px;color:var(--mute);margin-top:12px;padding-top:10px;border-top:1px solid #f4f1ea;line-height:1.45}
-  .metricwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .metricwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;align-items:start}
   .metricbox{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:#fff}
   .metricbox .mh{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;letter-spacing:.01em}
   .metricbox .msub{font-size:11px;color:var(--mute);margin:2px 0 12px}
-  .mrow{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .mrow{display:flex;align-items:center;gap:9px;margin-bottom:6px}
   .mrow .mcode{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;width:26px;flex:none}
-  .mrow .mtrack{flex:1;height:16px;background:#f2efe8;border-radius:8px;overflow:hidden}
+  .mrow .mtrack{flex:1;height:11px;background:#f2efe8;border-radius:6px;overflow:hidden}
   .mrow .mfill{display:block;height:100%;border-radius:8px}
   .mrow .mval{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;width:52px;text-align:right;flex:none}
   .sigrow{padding:9px 0;border-bottom:1px solid #f4f1ea}
@@ -500,7 +500,36 @@
   </section>
 
   <section class="tab" id="tab-stats">
+    <style>
+      .whatif{border:1px solid var(--line);border-radius:14px;background:#fff;padding:15px 16px;margin-bottom:14px;box-shadow:var(--sh)}
+      .wi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+      .wi-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px}
+      .wi-sub{font-size:11px;color:var(--mute);margin-top:2px;max-width:440px}
+      .wi-seg{display:inline-flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden;flex:none}
+      .wi-btn{font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;padding:7px 13px;background:#fff;border:none;color:var(--mute);cursor:pointer;white-space:nowrap}
+      .wi-btn.on{background:var(--gold);color:#1b1a17}
+      .wi-row{display:grid;grid-template-columns:20px 40px 1fr auto auto;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+      .wi-row:first-child{border-top:none}
+      .wi-rank{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--mute);text-align:center}
+      .wi-p{font-family:'Montserrat',sans-serif;font-weight:800}
+      .wi-track{background:#f2efe8;border-radius:5px;height:9px;overflow:hidden}
+      .wi-fill{display:block;height:100%;border-radius:5px}
+      .wi-val{font-family:'Montserrat',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+      .wi-val small{font-weight:600;color:var(--mute);font-size:10px;letter-spacing:.02em}
+      .wi-move{font-size:10px;font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap;justify-self:end}
+      .wi-move.up{background:#eef5f1;color:var(--green)} .wi-move.down{background:#fbeceb;color:var(--red)} .wi-move.same{background:var(--paper2);color:var(--mute)}
+    </style>
     <h2 class="eyebrow">The Numbers</h2>
+    <div class="whatif" id="whatif">
+      <div class="wi-head">
+        <div><div class="wi-title">What if we scored it differently?</div><div class="wi-sub">The same season under today's system and under points with a floor at zero. A preview to look at, not a rule change.</div></div>
+        <div class="wi-seg">
+          <button class="wi-btn on" data-model="cur">Today, sum of placings</button>
+          <button class="wi-btn" data-model="pts">Points model</button>
+        </div>
+      </div>
+      <div class="wi-board" id="wiBoard"></div>
+    </div>
     <div class="metricwrap">
       <div class="metricbox"><div class="mh">Stage-winner picks</div><div class="msub">Times a pick crossed the line first</div><div id="mWinners"></div></div>
       <div class="metricbox"><div class="mh">Average finish per pick</div><div class="msub">Rider picks only, Stage 2 on. Lower is sharper</div><div id="mAvg"></div></div>
@@ -1614,7 +1643,7 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
   const cum={}; players.forEach(p=>cum[p]=0); const series={}; players.forEach(p=>series[p]=[]);
   order.forEach(n=>{ const st=STAGES.find(s=>s.n===n);
     players.forEach(p=>{ if(st.days&&st.days[p]!=null)cum[p]+=st.days[p]; series[p].push(cum[p]); }); });
-  const W=680,H=240,pl=38,pr=12,pt=14,pb=26, iw=W-pl-pr, ih=H-pt-pb;
+  const W=680,H=196,pl=38,pr=12,pt=12,pb=24, iw=W-pl-pr, ih=H-pt-pb;
   const ymax=Math.max(...players.flatMap(p=>series[p]))*1.05;
   const xf=i=>pl+(order.length<2?0:i/(order.length-1)*iw);
   const yf=v=>pt+ih-(v/ymax)*ih;
@@ -1626,7 +1655,7 @@ document.getElementById('stages').innerHTML = STAGES.slice().reverse().map(stage
   g+=`</g>`;
   players.forEach(p=>{
     const pts=series[p].map((v,i)=>`${xf(i)},${yf(v)}`).join(' ');
-    g+=`<polyline points="${pts}" fill="none" stroke="${colors[p]}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    g+=`<polyline points="${pts}" fill="none" stroke="${colors[p]}" stroke-width="2" stroke-linejoin="round"/>`;
     const li=series[p].length-1;
     g+=`<circle cx="${xf(li)}" cy="${yf(series[p][li])}" r="3" fill="${colors[p]}"/>`;
   });
@@ -1919,6 +1948,53 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   if(document.getElementById('hmSolo')) document.getElementById('hmSolo').innerHTML=solo.map(r=>{ const p=[...r.by][0];
     return `<div class="hm-row"><span class="hm-dot" style="background:${COL[p]}"></span><b>${p}</b>&nbsp;alone had&nbsp;<b>${r.rider}</b><span class="hm-badge">best ${ord(r.best)}</span><span class="hm-badge alt">${r.value} pts</span></div>`;
   }).join('');
+})();
+</script>
+
+<script>
+/* What-if scoring toggle on the Stats page: today's sum of placings vs a points-with-floor model. */
+(function(){
+  const board=document.getElementById('wiBoard'); if(board===null) return;
+  const PL=['AA','JJ','JB','JP'];
+  const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
+  const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
+  const val=f=>(typeof f==='number'?(TABLE[f]||0):0);
+  const S=(typeof STAGES!=='undefined')?STAGES:[];
+  const cur={}, pts={}; PL.forEach(p=>{cur[p]=0;pts[p]=0;});
+  S.forEach(st=>{ if(st.voidStage) return;
+    if(st.days) PL.forEach(p=>{ if(typeof st.days[p]==='number') cur[p]+=st.days[p]; });
+    if(st.picks) PL.forEach(p=>{ (st.picks[p]||[]).forEach(pk=>{ if(!/missed/i.test(pk[0])) pts[p]+=val(pk[1]); }); });
+  });
+  function crank(vals,lowerBetter){
+    const sorted=PL.slice().sort((a,b)=> lowerBetter? vals[a]-vals[b] : vals[b]-vals[a]);
+    const r={}; let pv=null, pr=0;
+    sorted.forEach((p,i)=>{ const v=vals[p]; if(pv!==null && v===pv){ r[p]=pr; } else { r[p]=i+1; pr=i+1; pv=v; } });
+    return r;
+  }
+  const rCur=crank(cur,true), rPts=crank(pts,false);
+  function render(model){
+    const lower = model==='cur';
+    const vals = lower?cur:pts;
+    const order=PL.slice().sort((a,b)=> lower? vals[a]-vals[b] : vals[b]-vals[a]);
+    const rank = lower?rCur:rPts;
+    const maxv=Math.max(...PL.map(p=>pts[p]))||1;               // bar scaled off points for a stable width
+    const minc=Math.min(...PL.map(p=>cur[p])), maxc=Math.max(...PL.map(p=>cur[p]));
+    board.innerHTML=order.map(p=>{
+      const delta = rCur[p]-rPts[p];                            // + means points ranks them better
+      const move = delta>0?`<span class="wi-move up">points +${delta}</span>`
+                 : delta<0?`<span class="wi-move down">points ${delta}</span>`
+                 : `<span class="wi-move same">points level</span>`;
+      const w = lower ? (maxc===minc?100:(maxc-cur[p])/(maxc-minc)*100) : pts[p]/maxv*100;
+      const unit = lower?'<small>low wins</small>':'<small>pts</small>';
+      return `<div class="wi-row"><span class="wi-rank">${rank[p]}</span><span class="wi-p" style="color:${COL[p]}">${p}</span>`
+        +`<span class="wi-track"><span class="wi-fill" style="width:${Math.max(w,4).toFixed(0)}%;background:${COL[p]}"></span></span>`
+        +`<span class="wi-val">${vals[p]} ${unit}</span>${move}</div>`;
+    }).join('');
+  }
+  render('cur');
+  document.querySelectorAll('#whatif .wi-btn').forEach(b=>{
+    b.addEventListener('click',()=>{ document.querySelectorAll('#whatif .wi-btn').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.model); });
+  });
 })();
 </script>
 </body>
