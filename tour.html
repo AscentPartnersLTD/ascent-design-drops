@@ -189,6 +189,15 @@
   .recon-panel .asklist li{margin-bottom:7px}
   .recon-panel .recfoot{font-size:11.5px;color:var(--mute);margin-top:12px;padding-top:10px;border-top:1px solid #f4f1ea;line-height:1.45}
   .metricwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;align-items:start}
+  /* Mobile: flatten the two metric columns so the weather card sits directly above the stage profiles */
+  @media(max-width:560px){
+    .metricwrap > div:not(.metricbox){display:contents}
+    #winnersBox{order:1}
+    #avgBox{order:2}
+    #weatherBox{order:3;margin-top:0}
+    #nextStageBox{order:4;margin-top:0}
+    #sigBox{order:5}
+  }
   .metricbox{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:#fff}
   .metricbox .mh{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;letter-spacing:.01em}
   .metricbox .msub{font-size:11px;color:var(--mute);margin:2px 0 12px}
@@ -534,7 +543,7 @@
     </div>
     <div class="metricwrap">
       <div>
-      <div class="metricbox"><div class="mh">Stage-winner picks</div><div class="msub">Times a pick crossed the line first</div><div id="mWinners"></div></div>
+      <div class="metricbox" id="winnersBox"><div class="mh">Stage-winner picks</div><div class="msub">Times a pick crossed the line first</div><div id="mWinners"></div></div>
         <div class="metricbox" id="weatherBox" style="margin-top:14px">
           <style>
             #weatherBox .wx-body{display:flex;align-items:center;gap:18px;margin-top:8px;flex-wrap:wrap}
@@ -557,7 +566,7 @@
         </div>
       </div>
       <div>
-        <div class="metricbox"><div class="mh">Average finish per pick</div><div class="msub">Rider picks only, Stage 2 on. Lower is sharper</div><div id="mAvg"></div></div>
+        <div class="metricbox" id="avgBox"><div class="mh">Average finish per pick</div><div class="msub">Rider picks only, Stage 2 on. Lower is sharper</div><div id="mAvg"></div></div>
         <div class="metricbox" id="nextStageBox" style="margin-top:14px">
           <style>
             #nextStageBox .ns-block{padding-top:12px;margin-top:12px;border-top:1px solid var(--line)}
@@ -582,7 +591,7 @@
           <div id="nsBody"></div>
         </div>
       </div>
-      <div class="metricbox"><div class="mh">Signature rider and the damage</div><div class="msub">Most-loved rider and what the loyalty cost</div><div id="mSig"></div></div>
+      <div class="metricbox" id="sigBox"><div class="mh">Signature rider and the damage</div><div class="msub">Most-loved rider and what the loyalty cost</div><div id="mSig"></div></div>
     </div>
     <div class="metricbox" style="margin-top:14px">
       <div class="mh">Placement race, stage by stage</div><div class="msub">Cumulative total, lower line is ahead. Stage 9 was void</div>
