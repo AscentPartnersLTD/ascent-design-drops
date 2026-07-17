@@ -566,6 +566,11 @@
             #nextStageBox .ns-route{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;margin-top:2px;color:var(--ink)}
             #nextStageBox .ns-chips{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
             #nextStageBox .ns-chip{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.03em;background:var(--paper2);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;color:var(--ink)}
+            #nextStageBox .ns-profile{margin-top:10px}
+            #nextStageBox .ns-profile img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
+            #nextStageBox .ns-proflink{display:inline-block;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-d);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+            #nextStageBox .ns-proflink:hover{border-color:var(--gold-d)}
+            #nextStageBox .ns-profcap{font-size:10px;color:var(--mute);margin-top:5px;font-family:'Montserrat',sans-serif;letter-spacing:.02em}
             #nextStageBox .ns-line{font-size:12px;color:var(--mute);margin-top:9px;line-height:1.5}
             #nextStageBox .ns-order{font-size:12px;color:var(--ink2);margin-top:9px}
             #nextStageBox .ns-order .ns-lab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--mute);margin-right:7px}
@@ -2106,6 +2111,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     return `<div class="ns-block"><div class="ns-num">Stage ${s.n}${tag?` &middot; ${tag}`:''}</div>`
       +`<div class="ns-route">${s.route}</div>`
       +`<div class="ns-chips">${s.type?`<span class="ns-chip">${s.type}</span>`:''}${s.km?`<span class="ns-chip">${s.km} km</span>`:''}</div>`
+      +`<div class="ns-profile"><img loading="lazy" alt="Stage ${s.n} elevation profile" src="https://cdn.cyclingstage.com/images/tour-de-france/2026/stage-${s.n}-profile.jpg" onerror="var w=this.closest('.ns-profile');var c=w.querySelector('.ns-profcap');if(c)c.remove();this.remove();var a=w.querySelector('.ns-proflink');if(a)a.style.display='inline-block'"><div class="ns-profcap">Official ASO stage profile</div><a class="ns-proflink" style="display:none" target="_blank" rel="noopener" href="https://www.letour.fr/en/stage-${s.n}">View the official profile</a></div>`
       +(line?`<div class="ns-line">${line}</div>`:'')
       +(order.length?`<div class="ns-order"><span class="ns-lab">Pick</span>${order.map(p=>`<b>${p}</b>`).join(' &gt; ')}</div>`:'')
       +`</div>`;
@@ -2114,6 +2120,192 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   let html=block(U,'up next',uLine);
   if(N2) html+=block(N2,'',N2.line||'');
   el.innerHTML=html;
+})();
+</script>
+
+<style>
+  .pt-host{position:relative}
+  .pt-btn{position:absolute;top:9px;right:9px;font-family:'Montserrat',sans-serif;font-weight:800;
+    font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);
+    border:1px solid var(--line2);border-radius:999px;padding:3px 9px 2px;cursor:pointer;line-height:1;
+    transition:background .15s,color .15s,border-color .15s;z-index:3;white-space:nowrap}
+  .pt-btn:hover{border-color:var(--gold-d);background:#fff}
+  .pt-btn.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
+</style>
+<script>
+/* ===== SEE POINTS / SEE PLACE: per-card toggle to a top-15 fantasy-points scale ===== */
+(function(){
+  const PTABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
+  const P=f=>(typeof f==='number'?(PTABLE[f]||0):0);
+  const PL=['AA','JJ','JB','JP'];
+  const COL={AA:'#e8b31e',JJ:'#2d6cdf',JB:'#1a8a3a',JP:'#c0392b'};
+
+  /* ---- points aggregates, computed straight from STAGES over the same completed set ---- */
+  // cumulative fantasy points (every scored pick, all completed stages), higher is better
+  const cumPts={}; PL.forEach(p=>cumPts[p]=0);
+  // per-stage points-rank sum (rank the day's picks by points, most points = 1), lower is better
+  const rankPts={}; PL.forEach(p=>rankPts[p]=0);
+  COMPLETED.forEach(n=>{
+    const st=STAGES.find(s=>s.n===n);
+    const arr=[];
+    PL.forEach(p=>{ (st.picks[p]||[]).forEach(([r,f])=>{ if(f!=null){ cumPts[p]+=P(f); arr.push({p,pts:P(f)}); } }); });
+    arr.sort((a,b)=>b.pts-a.pts);
+    let seen=0,rk=0,prev=null;
+    arr.forEach(x=>{ seen++; if(prev===null||x.pts<prev) rk=seen; rankPts[x.p]+=rk; prev=x.pts; });
+  });
+
+  // rider picks, Stage 2 on, real finishes (matches the Stats cards' population)
+  const rp={}; PL.forEach(p=>rp[p]=[]);
+  STAGES.forEach(st=>{ if(st.n<2||!st.picks) return;
+    PL.forEach(p=>{ (st.picks[p]||[]).forEach(([r,f])=>{ if(f!=null) rp[p].push({rider:r,fin:f}); }); }); });
+
+  /* ---- points renderers that mirror the existing markup exactly ---- */
+  function barsHi(obj){
+    const ord=Object.keys(obj).sort((a,b)=>obj[b]-obj[a]);
+    const max=Math.max(1,...Object.values(obj));
+    return ord.map((k,i)=>`
+      <div class="bar-row ${i===0?'lead':''}">
+        <div class="who">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(obj[k]/max*100).toFixed(1)}%"></div></div>
+        <div class="bar-val">${obj[k]}</div>
+      </div>`).join('');
+  }
+  function gcHi(obj,label){
+    const ord=Object.keys(obj).sort((a,b)=>obj[b]-obj[a]);
+    return `<thead><tr><th class="pos"></th><th>Rider</th><th class="r">${label}</th></tr></thead><tbody>`+
+      ord.map((k,i)=>`<tr class="${i===0?'lead':''}">
+        <td class="pos">${i+1}</td>
+        <td><div class="rider">${k}${i===0?'<span class="lead-tag">LEADER</span>':''}</div><div class="full">${PLAYERS[k].name}</div></td>
+        <td class="r big lead-val">${obj[k]}</td></tr>`).join('')+`</tbody>`;
+  }
+  // rank points sorts ascending (low wins) but marks the winner gold, so render like renderBars
+  function barsRankPts(obj){
+    const ord=Object.keys(obj).sort((a,b)=>obj[a]-obj[b]);
+    const max=Math.max(1,...Object.values(obj));
+    return ord.map((k,i)=>`
+      <div class="bar-row ${i===0?'lead':''}">
+        <div class="who">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(obj[k]/max*100).toFixed(1)}%"></div></div>
+        <div class="bar-val">${obj[k]}</div>
+      </div>`).join('');
+  }
+  function gcRankPts(obj,label){
+    const ord=Object.keys(obj).sort((a,b)=>obj[a]-obj[b]);
+    return `<thead><tr><th class="pos"></th><th>Rider</th><th class="r">${label}</th></tr></thead><tbody>`+
+      ord.map((k,i)=>`<tr class="${i===0?'lead':''}">
+        <td class="pos">${i+1}</td>
+        <td><div class="rider">${k}${i===0?'<span class="lead-tag">LEADER</span>':''}</div><div class="full">${PLAYERS[k].name}</div></td>
+        <td class="r big lead-val">${obj[k]}</td></tr>`).join('')+`</tbody>`;
+  }
+
+  // Stats: average points per pick (mirrors mAvg bar markup)
+  const avgPts={};
+  PL.forEach(p=>{ avgPts[p]=rp[p].length?rp[p].reduce((a,b)=>a+P(b.fin),0)/rp[p].length:null; });
+  const apMax=Math.max(0.001,...PL.map(p=>avgPts[p]||0));
+  function avgPtsHTML(){
+    return [...PL].sort((a,b)=>(avgPts[b]??-1)-(avgPts[a]??-1)).map(p=>{
+      const v=avgPts[p]; const frac=(v||0)/apMax;
+      return `<div class="mrow"><span class="mcode" style="color:${COL[p]}">${p}</span><span class="mtrack"><span class="mfill" style="width:${Math.max(4,frac*100).toFixed(1)}%;background:${COL[p]}"></span></span><span class="mval">${v!=null?v.toFixed(1):'-'}</span></div>`;
+    }).join('');
+  }
+
+  // Stats: signature rider, fantasy points earned (same rider the place view names)
+  function sigPtsHTML(){
+    return PL.map(p=>{
+      const cnt={},fpts={},ppts={};
+      rp[p].forEach(x=>{cnt[x.rider]=(cnt[x.rider]||0)+1;fpts[x.rider]=(fpts[x.rider]||0)+P(x.fin);ppts[x.rider]=(ppts[x.rider]||0)+x.fin;});
+      let best=null; Object.keys(cnt).forEach(r=>{ if(!best||cnt[r]>cnt[best]||(cnt[r]===cnt[best]&&ppts[r]>ppts[best]))best=r; });
+      if(!best) return '';
+      const times=cnt[best]>1?`${cnt[best]} times`:'once';
+      return `<div class="sigrow"><span class="sc" style="color:${COL[p]}">${p}</span><span class="sr">${best}</span><div class="sd">Picked ${times}, ${fpts[best]} fantasy points from that rider</div></div>`;
+    }).join('');
+  }
+
+  // Stats: cumulative points trend SVG (mirrors mTrend, higher line is ahead)
+  function trendPtsHTML(){
+    const order=STAGES.filter(s=>!s.voidStage).map(s=>s.n).sort((a,b)=>a-b);
+    const cum={}; PL.forEach(p=>cum[p]=0); const series={}; PL.forEach(p=>series[p]=[]);
+    order.forEach(n=>{ const st=STAGES.find(s=>s.n===n);
+      PL.forEach(p=>{ let add=0; (st.picks&&st.picks[p]||[]).forEach(([r,f])=>{ add+=P(f); }); cum[p]+=add; series[p].push(cum[p]); }); });
+    const W=680,H=196,pl=38,pr=12,pt=12,pb=24, iw=W-pl-pr, ih=H-pt-pb;
+    const ymax=Math.max(1,...PL.flatMap(p=>series[p]))*1.05;
+    const xf=i=>pl+(order.length<2?0:i/(order.length-1)*iw);
+    const yf=v=>pt+ih-(v/ymax)*ih;
+    let g=`<g stroke="#eadfc2" stroke-width="1">`;
+    for(let t=0;t<=4;t++){const y=pt+t/4*ih;g+=`<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}"/>`;}
+    g+=`</g><g font-size="11" fill="#8a8578" font-family="Inter">`;
+    for(let t=0;t<=4;t++){const v=Math.round(ymax*(4-t)/4);const y=pt+t/4*ih;g+=`<text x="${pl-5}" y="${y+3}" text-anchor="end">${v}</text>`;}
+    order.forEach((n,i)=>{g+=`<text x="${xf(i)}" y="${H-8}" text-anchor="middle">${n}</text>`;});
+    g+=`</g>`;
+    PL.forEach(p=>{
+      const pts=series[p].map((v,i)=>`${xf(i)},${yf(v)}`).join(' ');
+      g+=`<polyline points="${pts}" fill="none" stroke="${COL[p]}" stroke-width="2" stroke-linejoin="round"/>`;
+      const li=series[p].length-1;
+      g+=`<circle cx="${xf(li)}" cy="${yf(series[p][li])}" r="3" fill="${COL[p]}"/>`;
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:8px">${g}</svg>`+
+      `<div class="trendleg">${PL.map(p=>`<span><i style="background:${COL[p]}"></i>${p} ${series[p][series[p].length-1]}</span>`).join('')}</div>`+
+      `<div class="msub" style="margin-top:6px">X axis is stage number. Higher line is further ahead.</div>`;
+  }
+
+  /* ---- generic wiring: capture the current (place) view, swap to points on click ---- */
+  function wire(host, bodyId, pointsHTML, caps){
+    const body=document.getElementById(bodyId);
+    if(!host||!body) return;
+    host.classList.add('pt-host');
+    const placeBody=body.innerHTML;
+    const capState=(caps||[]).filter(c=>c&&c.el).map(c=>({el:c.el,place:c.el.innerHTML,points:c.points}));
+    const btn=document.createElement('button');
+    btn.type='button'; btn.className='pt-btn'; btn.textContent='See points';
+    let pts=false;
+    btn.addEventListener('click',()=>{
+      pts=!pts;
+      body.innerHTML = pts?pointsHTML:placeBody;
+      capState.forEach(c=>{ c.el.innerHTML = pts?c.points:c.place; });
+      btn.textContent = pts?'See place':'See points';
+      btn.classList.toggle('on',pts);
+    });
+    host.appendChild(btn);
+  }
+  const q=(el,sel)=>el?el.querySelector(sel):null;
+  const chartOf=id=>{ const b=document.getElementById(id); return b?b.closest('.chart'):null; };
+  const boxOf=id=>{ const b=document.getElementById(id); return b?b.closest('.metricbox'):null; };
+  const colOf=id=>{ const t=document.getElementById(id); return t?t.closest('.twocol')&&t.parentElement:null; };
+
+  // --- Overview: bars ---
+  const cPlace=chartOf('barsPlace');
+  wire(cPlace,'barsPlace', barsHi(cumPts),
+    [{el:q(cPlace,'.ct'), points:`Fantasy points <small>top-15 scale &middot; higher wins</small>`}]);
+
+  const cRank=chartOf('barsRank');
+  wire(cRank,'barsRank', barsRankPts(rankPts),
+    [{el:q(cRank,'.ct'), points:`Points rank <small>ranked by fantasy points each day &middot; lower wins</small>`}]);
+
+  // --- Overview: GC tables ---
+  const dPlace=colOf('gcPlace');
+  wire(dPlace,'gcPlace', gcHi(cumPts,'Fantasy pts'),
+    [{el:q(dPlace,'.eyebrow'), points:`Fantasy Points &middot; primary`}]);
+
+  const dRank=colOf('gcRank');
+  wire(dRank,'gcRank', gcRankPts(rankPts,'Points rank'),
+    [{el:q(dRank,'.eyebrow'), points:`Points Rank &middot; secondary`}]);
+
+  // --- Stats: average points per pick ---
+  const bAvg=boxOf('mAvg');
+  wire(bAvg,'mAvg', avgPtsHTML(),
+    [{el:q(bAvg,'.mh'), points:`Average points per pick`},
+     {el:q(bAvg,'.msub'), points:`Rider picks only, Stage 2 on. Higher is sharper`}]);
+
+  // --- Stats: signature rider, fantasy points ---
+  const bSig=boxOf('mSig');
+  wire(bSig,'mSig', sigPtsHTML(),
+    [{el:q(bSig,'.msub'), points:`Most-loved rider and the fantasy points earned`}]);
+
+  // --- Stats: cumulative points trend ---
+  const bTrend=boxOf('mTrend');
+  wire(bTrend,'mTrend', trendPtsHTML(),
+    [{el:q(bTrend,'.mh'), points:`Points race, stage by stage`},
+     {el:q(bTrend,'.msub'), points:`Cumulative points, higher line is ahead. Stage 9 was void`}]);
 })();
 </script>
 </body>
