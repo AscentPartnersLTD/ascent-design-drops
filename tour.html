@@ -403,6 +403,14 @@
   .gate-btn:hover{transform:translateY(-2px)}
   .gate-btn:disabled{opacity:.6;cursor:default;transform:none}
   .gate-btn svg{width:19px;height:19px;flex:none}
+  .gate-or{display:flex;align-items:center;gap:12px;color:#7d786d;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:20px auto 16px;max-width:300px}
+  .gate-or::before,.gate-or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.14)}
+  .gate-email{display:block;width:100%;max-width:300px;margin:0 auto 11px;box-sizing:border-box;background:rgba(255,255,255,.08);border:0;border-radius:11px;padding:13px 15px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#fff;text-align:center}
+  .gate-email::placeholder{color:#8f8a7f}
+  .gate-email:focus{background:rgba(255,255,255,.15);outline:none}
+  .gate-link-btn{display:block;width:100%;max-width:300px;margin:0 auto;box-sizing:border-box;background:rgba(255,255,255,.10);color:#fff;border:0;border-radius:12px;padding:13px 22px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:background .15s}
+  .gate-link-btn:hover{background:rgba(255,255,255,.17)}
+  .gate-link-btn:disabled{opacity:.6;cursor:default}
   .gate-msg{margin-top:18px;font-size:13px;min-height:18px;line-height:1.5;color:#cfcabd}
   .gate-msg.err{color:#f2b0a8}
   .gate-msg b{color:#fff}
@@ -427,8 +435,11 @@
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16z"/><path fill="#FBBC05" d="M10.4 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.1-5.5c-2 1.3-4.5 2.1-8.5 2.1-6.3 0-11.7-3.7-13.6-9.1l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>
       Sign in with Google
     </button>
+    <div class="gate-or">or</div>
+    <input id="gate-email" class="gate-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@email.com" aria-label="Your email">
+    <button id="gate-emaillink" class="gate-link-btn" type="button">Email me a sign-in link</button>
     <div id="gate-msg" class="gate-msg" aria-live="polite"></div>
-    <div class="gate-foot">Sign in with the Google account you were approved with. Access by invitation only.</div>
+    <div class="gate-foot">Sign in with your approved Google account, or get a one-time link sent to your approved email. Access by invitation only.</div>
   </div>
 </div>
 
@@ -1961,6 +1972,52 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   });
 
   auth.getRedirectResult().catch(function(e){ if(e){ say('Sign-in did not complete: ' + e.message, true); } });
+
+  /* ---- Passwordless email-link sign-in (for approved non-Google emails) ----
+     Requires the "Email link (passwordless sign-in)" provider to be enabled in the
+     Firebase console (Authentication > Sign-in method). The ALLOW roster still gates
+     who gets in - the link only proves the person controls that inbox. */
+  var emailInput = document.getElementById('gate-email');
+  var linkBtn = document.getElementById('gate-emaillink');
+  var LINK_KEY = 'cdf_emailForSignIn';
+  var acs = { url: location.origin + location.pathname, handleCodeInApp: true };
+  function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+  if(linkBtn && emailInput){
+    function sendLink(){
+      var email = (emailInput.value || '').trim().toLowerCase();
+      if(!validEmail(email)){ say('Enter a valid email to get a sign-in link.', true); emailInput.focus(); return; }
+      linkBtn.disabled = true; say('Sending your sign-in link...');
+      auth.sendSignInLinkToEmail(email, acs).then(function(){
+        try{ window.localStorage.setItem(LINK_KEY, email); }catch(e){}
+        linkBtn.disabled = false;
+        say('Link sent. Check <b>' + email + '</b> for a sign-in link from Col du Fantasy and open it on this device. If the address is not on the roster you will be told after you click it.');
+      }).catch(function(e){
+        linkBtn.disabled = false;
+        var c = e && e.code;
+        if(c === 'auth/operation-not-allowed'){ say('Email link sign-in is not switched on yet. Tell Allen to enable it in Firebase.', true); }
+        else { say('Could not send the link: ' + (e ? e.message : 'unknown error'), true); }
+      });
+    }
+    linkBtn.addEventListener('click', sendLink);
+    emailInput.addEventListener('keydown', function(ev){ if(ev.key === 'Enter'){ ev.preventDefault(); sendLink(); } });
+  }
+
+  // If this page was opened from an email sign-in link, finish the sign-in.
+  if(auth.isSignInWithEmailLink(location.href)){
+    var em = '';
+    try{ em = window.localStorage.getItem(LINK_KEY) || ''; }catch(e){}
+    if(!em){ em = (window.prompt('Confirm the email you requested the link for') || '').trim().toLowerCase(); }
+    if(em){
+      say('Finishing sign-in...');
+      auth.signInWithEmailLink(em, location.href).then(function(){
+        try{ window.localStorage.removeItem(LINK_KEY); }catch(e){}
+        if(window.history && history.replaceState){ history.replaceState(null, '', location.origin + location.pathname); }
+      }).catch(function(e){
+        say('That sign-in link did not work (' + (e ? e.message : 'expired or already used') + '). Request a fresh one.', true);
+      });
+    }
+  }
 
   auth.onAuthStateChanged(function(user){
     if(!user){ open(); btn.disabled = false; return; }
