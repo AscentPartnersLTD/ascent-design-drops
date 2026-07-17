@@ -534,6 +534,20 @@
       #draftMount .minibar .mb-av .mfb{font-family:'Montserrat',sans-serif;font-weight:800;font-size:9px;color:#fff}
       #draftMount .minibar .mb-more{font-size:11.5px;color:var(--mute);margin-left:9px;font-family:'Montserrat',sans-serif;font-weight:700}
       #draftMount .seedbar{font-size:10.5px;color:var(--mute);text-align:center;margin-top:8px}
+      /* Mobile: stack the search field and its button so a long label never overruns the card,
+         and tighten the 8-node ticker so the avatars do not crowd on a phone. */
+      @media (max-width:560px){
+        #draftMount .searchrow{flex-wrap:wrap}
+        #draftMount .searchrow input{flex:1 1 100%}
+        #draftMount .lockbtn{flex:1 1 100%;padding:12px 20px;margin-top:8px}
+        #draftMount .ac{left:0;right:0}
+        #draftMount .ticker{gap:3px}
+        #draftMount .tav{width:36px;height:36px}
+        #draftMount .tgap{margin:6px 3px 16px}
+        #draftMount .tname{max-width:46px;font-size:9px}
+        #draftMount .tcap{font-size:8.5px}
+        #draftMount .tcap b{font-size:10px}
+      }
     </style>
     <div id="draftMount" style="display:none"></div>
     <div class="today-order" id="todayOrder"></div>
