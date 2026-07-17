@@ -478,7 +478,8 @@
       <style>
         .break-card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:15px 17px;margin:0 0 20px}
         .break-card .bw-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-        .break-card .bw-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:var(--ink)}
+        .break-card .bw-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:9px}
+        .break-card .bw-icon{width:30px;height:18px;flex:none}
         .break-card .bw-sub{font-size:12px;color:var(--mute);margin-top:2px}
         .break-card .bw-btn{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;letter-spacing:.03em;color:#fff;background:var(--gold-d);border:1px solid var(--gold-d);border-radius:999px;padding:9px 16px;cursor:pointer;line-height:1;transition:filter .15s,transform .05s;white-space:nowrap}
         .break-card .bw-btn:hover{filter:brightness(1.06)}
@@ -512,7 +513,7 @@
         .break-card .bw-refresh:disabled{opacity:.5;cursor:default}
       </style>
       <div class="bw-head">
-        <div class="bw-h-txt"><div class="bw-title">Live break check</div><div class="bw-sub">Who is up the road right now, straight from the official feed</div></div>
+        <div class="bw-h-txt"><div class="bw-title"><svg class="bw-icon" viewBox="0 0 34 20" fill="none" aria-hidden="true"><g style="fill:var(--mute)"><circle cx="3.5" cy="10" r="1.7"/><circle cx="6.5" cy="6.6" r="1.7"/><circle cx="6.6" cy="13.4" r="1.7"/><circle cx="9.6" cy="9.9" r="1.7"/><circle cx="9.7" cy="3.7" r="1.7"/><circle cx="9.8" cy="16.1" r="1.7"/><circle cx="12.7" cy="6.7" r="1.7"/><circle cx="12.8" cy="13.2" r="1.7"/></g><g style="fill:var(--gold-d)"><circle cx="24.5" cy="10" r="1.9"/><circle cx="28" cy="7.4" r="1.9"/><circle cx="28.1" cy="12.6" r="1.9"/></g></svg>Live Break Check</div><div class="bw-sub">Who is up the road right now, straight from the official feed</div></div>
         <button class="bw-btn" id="bwBtn" type="button">Who's in the break?</button>
       </div>
       <div class="bw-body" id="bwBody"></div>
