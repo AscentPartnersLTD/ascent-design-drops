@@ -505,6 +505,11 @@
         .break-card .bw-name.ours{font-weight:800;color:var(--ink);border-color:var(--gold-d);background:#fffaf0}
         .break-card .bw-foot{font-size:11px;color:var(--mute);margin-top:12px}
         .break-card .bw-muted{color:var(--mute);font-size:13px}
+        .break-card .bw-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+        .break-card .bw-stamp{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+        .break-card .bw-refresh{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);border:1px solid var(--line2);border-radius:999px;padding:5px 13px;cursor:pointer;transition:border-color .15s;white-space:nowrap}
+        .break-card .bw-refresh:hover{border-color:var(--gold-d)}
+        .break-card .bw-refresh:disabled{opacity:.5;cursor:default}
       </style>
       <div class="bw-head">
         <div class="bw-h-txt"><div class="bw-title">Live break check</div><div class="bw-sub">Who is up the road right now, straight from the official feed</div></div>
@@ -2453,9 +2458,16 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     return out;
   }
 
+  function controlsRow(ts){
+    return '<div class="bw-controls"><span class="bw-stamp">'+(ts?('Snapshot &middot; '+ts):'')+'</span>'
+      +'<button type="button" class="bw-refresh" id="bwRefresh">Refresh</button></div>';
+  }
+  function stampNow(data){ try{ if(data&&data.updatedAt) return new Date(data.updatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }catch(e){} return 'just now'; }
+  function wireRefresh(){ var rf=document.getElementById('bwRefresh'); if(rf) rf.addEventListener('click', doFetch); }
+
   function render(data){
-    if(!data || data.error){ BODY.className='bw-body has'; BODY.innerHTML='<div class="bw-muted">Could not reach the live feed right now. Try again in a moment.</div>'; return; }
-    if(!data.live || !data.groups || !data.groups.length){ BODY.className='bw-body has'; BODY.innerHTML='<div class="bw-muted">No live race on the road right now. This lights up once the stage rolls out.</div>'; return; }
+    if(!data || data.error){ BODY.className='bw-body has'; BODY.innerHTML=controlsRow('')+'<div class="bw-muted">Could not reach the live feed right now. Hit Refresh in a moment.</div>'; wireRefresh(); return; }
+    if(!data.live || !data.groups || !data.groups.length){ BODY.className='bw-body has'; BODY.innerHTML=controlsRow('')+'<div class="bw-muted">No live race on the road right now. This lights up once the stage rolls out.</div>'; wireRefresh(); return; }
     var groups=data.groups.slice();
     var front=groups[0]; // Worker sorts by order, so [0] is the front of the race
     var peloton=null;
@@ -2502,25 +2514,36 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     }
 
     BODY.className='bw-body has';
-    BODY.innerHTML='<div class="bw-headline">'+head+'</div>'
+    BODY.innerHTML=controlsRow(stampNow(data))
+      +'<div class="bw-headline">'+head+'</div>'
       +(meta?'<div class="bw-meta">'+meta+'</div>':'')
       +(rows.length?'<div class="bw-ours">'+rowsHtml+'</div>':'')
       +rosterHtml
-      +'<div class="bw-foot">Snapshot just now from the official race feed &middot; tap the button again to refresh</div>';
+      +'<div class="bw-foot">Live from the official race feed. Hit Refresh for a new snapshot.</div>';
 
     var tg=document.getElementById('bwToggle');
     if(tg){ tg.addEventListener('click',function(){ var L=document.getElementById('bwList'); var open=L.style.display!=='none'; L.style.display=open?'none':''; tg.innerHTML=open?('Show the full break ('+front.count+') &gt;'):'Hide the full break'; }); }
+    wireRefresh();
   }
 
-  BTN.addEventListener('click',function(){
-    BTN.disabled=true; var orig=BTN.textContent; BTN.textContent='Checking...';
+  function doFetch(){
+    var rf=document.getElementById('bwRefresh'); if(rf) rf.disabled=true;
     BODY.className='bw-body has'; BODY.innerHTML='<div class="bw-muted">Reading the race...</div>';
     var stage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:'';
     fetch(BREAK_WORKER.replace(/\/$/,'')+'/?stage='+encodeURIComponent(stage),{cache:'no-store'})
       .then(function(r){return r.json();})
       .then(function(d){ render(d); })
-      .catch(function(){ render({error:true}); })
-      .then(function(){ BTN.disabled=false; BTN.textContent=orig; });
+      .catch(function(){ render({error:true}); });
+  }
+
+  var bwOpen=false;
+  function setOpen(o){ bwOpen=o; BODY.style.display=o?'':'none'; BTN.textContent=o?'Hide':"Who's in the break?"; }
+  setOpen(false);
+
+  BTN.addEventListener('click',function(){
+    if(bwOpen){ setOpen(false); return; }
+    setOpen(true);
+    doFetch();
   });
 })();
 </script>
