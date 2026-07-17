@@ -449,6 +449,7 @@
     <button data-tab="ledger">Stage Ledger</button>
     <button data-tab="stats">Stats &amp; Notes</button>
     <button data-tab="teams">Allegiances</button>
+    <button data-tab="hits">Hits &amp; Misses</button>
     <button data-tab="results">Full Results</button>
   </nav>
 
@@ -560,6 +561,53 @@
     <div id="teamTableWrap" class="team-table-wrap" hidden></div>
     <h2 class="eyebrow mt">Most backed in the pool</h2>
     <div class="poolbars" id="poolBars"></div>
+  </section>
+
+  <section class="tab" id="tab-hits">
+    <style>
+      .hm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+      @media(max-width:760px){.hm-grid{grid-template-columns:1fr 1fr}}
+      @media(max-width:440px){.hm-grid{grid-template-columns:1fr}}
+      .hm-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--sh)}
+      .hm-who{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;margin-bottom:6px}
+      .hm-lab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:10px;color:var(--mute);margin:9px 0 4px}
+      .hm-line{display:flex;align-items:center;gap:8px;font-size:13px}
+      .hm-fin{font-family:'Montserrat',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;min-width:36px}
+      .hm-line.good .hm-fin{color:var(--green)} .hm-line.bad .hm-fin{color:var(--red)}
+      .hm-rd{color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .hm-st{color:var(--mute);font-size:11px;font-family:'Montserrat',sans-serif}
+      .hm-two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+      @media(max-width:640px){.hm-two{grid-template-columns:1fr}}
+      .hm-h{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:12px;color:var(--ink);margin:0 0 8px}
+      .hm-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);color:var(--ink2)}
+      .hm-row:last-child{border-bottom:none}
+      .hm-row b{color:var(--ink)}
+      .hm-dot{width:9px;height:9px;border-radius:2px;flex:none}
+      .hm-sm{color:var(--mute);font-size:11px}
+      .hm-badge{margin-left:auto;font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;background:var(--paper2);border:1px solid var(--line2);border-radius:999px;padding:2px 9px;color:var(--ink);white-space:nowrap}
+      .hm-badge.alt{margin-left:6px;background:#eef5f1;border-color:#cfe6da;color:var(--green)}
+      .hm-value{display:flex;flex-direction:column;gap:7px}
+      .hm-vrow{display:grid;grid-template-columns:150px 1fr 34px auto;align-items:center;gap:10px;font-size:13px}
+      @media(max-width:640px){.hm-vrow{grid-template-columns:100px 1fr 26px auto;gap:7px;font-size:12px}}
+      .hm-vn{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .hm-vtrack{background:var(--paper);border:1px solid var(--line);border-radius:6px;height:16px;overflow:hidden}
+      .hm-vfill{display:block;height:100%;background:var(--gold);border-radius:5px 0 0 5px}
+      .hm-vpts{font-family:'Montserrat',sans-serif;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+      .hm-vby{display:flex;gap:3px}
+      .hm-chip{font-family:'Montserrat',sans-serif;font-style:normal;font-weight:700;font-size:9px;color:#fff;min-width:20px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+    </style>
+    <h2 class="eyebrow">Best &amp; Worst Calls &middot; the sharpest and most painful picks</h2>
+    <p class="palmares-note">Every rider pick since Stage 2, ranked. Each manager's best call and worst beat, then the burials worth screenshotting.</p>
+    <div class="hm-grid" id="hmCards"></div>
+    <div class="hm-two">
+      <div><h3 class="hm-h">Hall of shame &middot; deepest burials</h3><div id="hmShame"></div></div>
+      <div><h3 class="hm-h">Stage winners drafted</h3><div id="hmFame"></div></div>
+    </div>
+    <h2 class="eyebrow mt">Rider Value Leaderboard</h2>
+    <p class="palmares-note">Who delivered the most for the pool. Value is points on a simple top-15 finish scale, added up across every time a rider was drafted.</p>
+    <div class="hm-value" id="hmValue"></div>
+    <h3 class="hm-h" style="margin-top:20px">Best value nobody else touched</h3>
+    <div id="hmSolo"></div>
   </section>
 
   <footer class="foot">
@@ -1824,6 +1872,53 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const wrap=document.getElementById('teamTableWrap'); if(wrap) wrap.innerHTML=html;
   const btn=document.getElementById('seeTableBtn');
   if(btn&&wrap){ btn.addEventListener('click',()=>{ if(wrap.hasAttribute('hidden')){wrap.removeAttribute('hidden');btn.textContent='Hide data table';} else {wrap.setAttribute('hidden','');btn.textContent='See data table';} }); }
+})();
+</script>
+<script>
+/* Hits & Misses: best/worst picks and rider value, computed from STAGES (rider picks, Stage 2 on). */
+(function(){
+  const PL=['AA','JJ','JB','JP'];
+  const COL={AA:'#c0392b',JJ:'#2c6e8f',JB:'#8a929c',JP:'#b8862f'};
+  const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
+  const val=f=>TABLE[f]||0;
+  function ord(n){ const s=['th','st','nd','rd'],v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+  const S=(typeof STAGES!=='undefined')?STAGES:[];
+  const picks=[];
+  S.forEach(st=>{ if(!st.picks || st.voidStage || st.n===1) return;
+    PL.forEach(p=>{ (st.picks[p]||[]).forEach(pk=>{ const rider=pk[0], fin=pk[1];
+      if(typeof fin!=='number' || /missed/i.test(rider)) return;
+      picks.push({player:p,rider,finish:fin,stage:st.n}); }); }); });
+
+  const cardEl=document.getElementById('hmCards');
+  if(cardEl) cardEl.innerHTML=PL.map(p=>{
+    const mine=picks.filter(x=>x.player===p);
+    const sharp=mine.slice().sort((a,b)=>a.finish-b.finish||a.stage-b.stage)[0];
+    const rough=mine.slice().sort((a,b)=>b.finish-a.finish||b.stage-a.stage)[0];
+    const line=(x,cls)=> x?`<div class="hm-line ${cls}"><span class="hm-fin">${ord(x.finish)}</span><span class="hm-rd">${x.rider}</span><span class="hm-st">S${x.stage}</span></div>`:'';
+    return `<div class="hm-card"><div class="hm-who" style="color:${COL[p]}">${p}</div><div class="hm-lab">Sharpest call</div>${line(sharp,'good')}<div class="hm-lab">Roughest call</div>${line(rough,'bad')}</div>`;
+  }).join('');
+
+  const rowHtml=x=>`<div class="hm-row"><span class="hm-dot" style="background:${COL[x.player]}"></span><b>${x.player}</b>&nbsp;drafted&nbsp;<b>${x.rider}</b> <span class="hm-sm">Stage ${x.stage}</span><span class="hm-badge">${ord(x.finish)}</span></div>`;
+  const shame=picks.slice().sort((a,b)=>b.finish-a.finish).slice(0,6);
+  const fame=picks.filter(x=>x.finish===1).sort((a,b)=>a.stage-b.stage);
+  if(document.getElementById('hmShame')) document.getElementById('hmShame').innerHTML=shame.map(rowHtml).join('');
+  if(document.getElementById('hmFame')) document.getElementById('hmFame').innerHTML=fame.map(rowHtml).join('');
+
+  const R={};
+  picks.forEach(x=>{ const r=R[x.rider]||(R[x.rider]={rider:x.rider,drafts:0,value:0,best:99,by:new Set()});
+    r.drafts++; r.value+=val(x.finish); r.best=Math.min(r.best,x.finish); r.by.add(x.player); });
+  const riders=Object.values(R);
+  const top=riders.slice().sort((a,b)=>b.value-a.value||a.best-b.best).slice(0,12);
+  const maxv=top.length?top[0].value:1;
+  if(document.getElementById('hmValue')) document.getElementById('hmValue').innerHTML=top.map(r=>{
+    const chips=PL.filter(p=>r.by.has(p)).map(p=>`<i class="hm-chip" style="background:${COL[p]}" title="${p}">${p}</i>`).join('');
+    return `<div class="hm-vrow"><span class="hm-vn">${r.rider}</span><span class="hm-vtrack"><span class="hm-vfill" style="width:${Math.max(r.value/maxv*100,3).toFixed(1)}%"></span></span><span class="hm-vpts">${r.value}</span><span class="hm-vby">${chips}</span></div>`;
+  }).join('');
+
+  const solo=riders.filter(r=>r.by.size===1 && r.value>0).sort((a,b)=>b.value-a.value||a.best-b.best).slice(0,3);
+  if(document.getElementById('hmSolo')) document.getElementById('hmSolo').innerHTML=solo.map(r=>{ const p=[...r.by][0];
+    return `<div class="hm-row"><span class="hm-dot" style="background:${COL[p]}"></span><b>${p}</b>&nbsp;alone had&nbsp;<b>${r.rider}</b><span class="hm-badge">best ${ord(r.best)}</span><span class="hm-badge alt">${r.value} pts</span></div>`;
+  }).join('');
 })();
 </script>
 </body>
