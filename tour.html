@@ -624,6 +624,41 @@
       </div>
       <div class="metricbox" id="sigBox"><div class="mh">Signature rider and the damage</div><div class="msub">Most-loved rider and what the loyalty cost</div><div id="mSig"></div></div>
     </div>
+    <div class="metricbox" id="nextStageBox" style="margin-top:14px">
+      <style>
+        #nextStageBox .ns-num{font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--gold-d)}
+        #nextStageBox .ns-route{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;margin-top:2px;color:var(--ink)}
+        #nextStageBox .ns-chips{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
+        #nextStageBox .ns-chip{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.03em;background:var(--paper2);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;color:var(--ink)}
+        #nextStageBox .ns-profile{margin-top:10px}
+        #nextStageBox .ns-profile img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
+        #nextStageBox .ns-proflink{display:inline-block;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-d);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+        #nextStageBox .ns-proflink:hover{border-color:var(--gold-d)}
+        #nextStageBox .ns-profcap{font-size:10px;color:var(--mute);margin-top:5px;font-family:'Montserrat',sans-serif;letter-spacing:.02em}
+        #nextStageBox .ns-line{font-size:12px;color:var(--mute);margin-top:9px;line-height:1.5}
+        #nextStageBox .ns-order{font-size:12px;color:var(--ink2);margin-top:9px}
+        #nextStageBox .ns-order .ns-lab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--mute);margin-right:7px}
+        #nextStageBox .ns-order b{font-family:'Montserrat',sans-serif}
+        #nextStageBox .ns-muted{color:var(--mute);font-size:12.5px}
+        /* Desktop: the two stages sit side by side across the full width. Mobile: they stack (kept vertical). */
+        #nextStageBox #nsBody{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+        #nextStageBox .ns-block{padding-top:0;margin-top:8px;border-top:none}
+        #nextStageBox .ns-block:nth-child(2){border-left:1px solid var(--line);padding-left:32px}
+        @media(max-width:640px){
+          #nextStageBox #nsBody{grid-template-columns:1fr;gap:0}
+          #nextStageBox .ns-block:nth-child(2){border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+        }
+      </style>
+      <div class="mh">Next two stages</div>
+      <div class="msub">The road ahead, and who leads off</div>
+      <div id="nsBody"></div>
+    </div>
+    <div class="metricbox" style="margin-top:14px">
+      <div class="mh">Placement race, stage by stage</div><div class="msub">Cumulative total, lower line is ahead. Stage 9 was void</div>
+      <div id="mTrend"></div>
+    </div>
+    <h2 class="eyebrow" style="margin-top:26px">Combativity awards</h2>
+    <div id="combativity"></div>
     <div class="metricbox" id="tiltBox" style="margin-top:14px">
       <style>
         #tiltBox .tilt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
@@ -686,41 +721,6 @@
         <p>A first pick is worth far more on a summit finish, where one rider is the obvious grab, than on a bunch sprint, where the next pick is just as good. How much more is a judgment call, and there is no objectively correct weight for it. So rather than me picking the numbers and passing them off as fact, the sliders hand you the dial. Each slider is one stage type, and the number is how big an edge it is to pick first on that kind of day. When you drag one, the bars above recompute - they show each player's total first-pick edge across the season under your assumptions.</p>
       </div>
     </div>
-    <div class="metricbox" id="nextStageBox" style="margin-top:14px">
-      <style>
-        #nextStageBox .ns-num{font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--gold-d)}
-        #nextStageBox .ns-route{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;margin-top:2px;color:var(--ink)}
-        #nextStageBox .ns-chips{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
-        #nextStageBox .ns-chip{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.03em;background:var(--paper2);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;color:var(--ink)}
-        #nextStageBox .ns-profile{margin-top:10px}
-        #nextStageBox .ns-profile img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
-        #nextStageBox .ns-proflink{display:inline-block;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-d);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
-        #nextStageBox .ns-proflink:hover{border-color:var(--gold-d)}
-        #nextStageBox .ns-profcap{font-size:10px;color:var(--mute);margin-top:5px;font-family:'Montserrat',sans-serif;letter-spacing:.02em}
-        #nextStageBox .ns-line{font-size:12px;color:var(--mute);margin-top:9px;line-height:1.5}
-        #nextStageBox .ns-order{font-size:12px;color:var(--ink2);margin-top:9px}
-        #nextStageBox .ns-order .ns-lab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--mute);margin-right:7px}
-        #nextStageBox .ns-order b{font-family:'Montserrat',sans-serif}
-        #nextStageBox .ns-muted{color:var(--mute);font-size:12.5px}
-        /* Desktop: the two stages sit side by side across the full width. Mobile: they stack (kept vertical). */
-        #nextStageBox #nsBody{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
-        #nextStageBox .ns-block{padding-top:0;margin-top:8px;border-top:none}
-        #nextStageBox .ns-block:nth-child(2){border-left:1px solid var(--line);padding-left:32px}
-        @media(max-width:640px){
-          #nextStageBox #nsBody{grid-template-columns:1fr;gap:0}
-          #nextStageBox .ns-block:nth-child(2){border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
-        }
-      </style>
-      <div class="mh">Next two stages</div>
-      <div class="msub">The road ahead, and who leads off</div>
-      <div id="nsBody"></div>
-    </div>
-    <div class="metricbox" style="margin-top:14px">
-      <div class="mh">Placement race, stage by stage</div><div class="msub">Cumulative total, lower line is ahead. Stage 9 was void</div>
-      <div id="mTrend"></div>
-    </div>
-    <h2 class="eyebrow" style="margin-top:26px">Combativity awards</h2>
-    <div id="combativity"></div>
     <h2 class="eyebrow" style="margin-top:26px">Datapoints</h2>
     <div class="statgrid" id="statgrid"></div>
     <h2 class="eyebrow">Rider Archetypes</h2>
