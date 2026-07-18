@@ -38,15 +38,15 @@
     background:var(--paper2);border:none;border-radius:10px;padding:11px 13px;box-shadow:inset 0 1px 2px rgba(40,34,20,.05)}
   input:focus,select:focus{outline:none;background:#fff;box-shadow:inset 0 1px 2px rgba(40,34,20,.05)}
   input::placeholder{color:#b3ab9c}
-  .row2{display:grid;grid-template-columns:1fr 96px;gap:9px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .memrow{display:grid;grid-template-columns:1fr 90px 40px;gap:9px;align-items:center;margin-top:8px}
   .memrow .x{font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;color:var(--mute);background:var(--paper2);border:none;border-radius:10px;height:42px;cursor:pointer}
   .memrow .x:hover{color:var(--red)}
   .addmem{margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:4px 0}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .primary{margin-top:18px;width:100%;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;color:#fff;background:var(--gold-d);border:none;border-radius:11px;padding:13px;cursor:pointer}
   .primary:disabled{background:var(--line2);cursor:not-allowed}
   .pool{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:11px;background:var(--paper)}
+  .pool.editing{background:#fffdf7;border-color:var(--gold-d)}
   .pool .pt{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .pool .pid{font-family:'Montserrat',monospace;font-size:11px;color:var(--mute);background:var(--paper2);border-radius:5px;padding:1px 6px}
   .pool .pmeta{font-size:12.5px;color:var(--ink2);margin-top:6px}
@@ -54,9 +54,17 @@
   .chip{font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;color:var(--ink2);background:var(--paper2);border-radius:6px;padding:3px 8px}
   .chip.judge{color:#8a6d16;background:#fdf3dc}
   .prow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:11px}
-  .del{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:var(--mute);background:none;border:none;cursor:pointer}
+  .rowbtns{display:flex;gap:14px;align-items:center}
+  .lnk{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:0}
+  .lnk.mute{color:var(--mute)}
+  .del{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:var(--mute);background:none;border:none;cursor:pointer;padding:0}
   .del:hover{color:var(--red)}
   .del.armed{color:#fff;background:var(--red);border-radius:8px;padding:6px 12px}
+  .editact{display:flex;gap:9px;margin-top:16px}
+  .ghost{flex:none;font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--ink2);background:var(--paper2);border:none;border-radius:11px;padding:12px 18px;cursor:pointer}
+  .save{flex:1;font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:#fff;background:var(--gold-d);border:none;border-radius:11px;padding:12px;cursor:pointer}
+  .emsg{font-size:12.5px;margin-top:9px;min-height:16px;color:var(--red)}
+  .emsg.ok{color:var(--green)}
   .empty{font-size:13px;color:var(--mute);text-align:center;padding:16px}
   .note{font-size:11px;color:var(--mute);margin:14px 22px 0;line-height:1.55;text-align:center}
   .boot{font-size:13px;color:var(--mute);text-align:center;padding:20px}
@@ -104,14 +112,14 @@
 
       <div class="card">
         <div class="h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#e8b31e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><rect x="3" y="12" width="18" height="5" rx="1.5"/></svg></span>Pools</div>
-        <div class="sub">Every instance you are running.</div>
+        <div class="sub">Every instance you are running. Edit a roster any time before its draft starts.</div>
         <div id="poolList"><div class="empty">Loading...</div></div>
       </div>
     </div>
 
     <div class="boot" id="boot">Connecting...</div>
   </div>
-  <div class="note">Owner-only. Creating a pool writes its config to the shared backend; members then see that pool when they sign in on the board. Results are generated from the shared race data, never entered here.</div>
+  <div class="note">Owner-only. Creating or editing a pool writes its config to the shared backend; members then see that pool when they sign in on the board. Results are generated from the shared race data, never entered here.</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -135,47 +143,169 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const slug=s=>s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
 const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-
+const DEFAULT_CODES=["AA","JB","JJ","JP","P5","P6","P7","P8"];
 function boot(t){ $('boot').textContent=t||''; $('boot').style.display=t?'block':'none'; }
 
-/* ---- members repeater ---- */
-const DEFAULT_CODES=["AA","JB","JJ","JP","P5","P6","P7","P8"];
-function memberRow(email,code){
-  const d=document.createElement('div'); d.className='memrow';
-  d.innerHTML=`<input class="m-email" type="email" placeholder="name@email.com" autocomplete="off" value="${esc(email||'')}">
-    <input class="m-code" placeholder="Code" maxlength="4" autocomplete="off" value="${esc(code||'')}">
-    <button class="x" type="button" title="Remove">&times;</button>`;
-  d.querySelector('.x').addEventListener('click',()=>{ d.remove(); refreshJudge(); });
-  d.querySelector('.m-code').addEventListener('input',refreshJudge);
-  d.querySelector('.m-email').addEventListener('input',refreshJudge);
-  return d;
-}
-function addMember(email,code){
-  const box=$('members');
-  if(code==null){ const used=collectMembers().map(m=>m.code); code=DEFAULT_CODES.find(c=>!used.includes(c))||''; }
-  box.appendChild(memberRow(email,code)); refreshJudge();
-}
-function collectMembers(){
-  return [...document.querySelectorAll('#members .memrow')].map(r=>({
+/* ---------- reusable member-repeater (works on any container + judge select) ---------- */
+function collectMembers(container){
+  return [...container.querySelectorAll('.memrow')].map(r=>({
     email:(r.querySelector('.m-email').value||'').trim().toLowerCase(),
     code:(r.querySelector('.m-code').value||'').trim().toUpperCase()
   }));
 }
-function refreshJudge(){
-  const sel=$('pJudge'), cur=sel.value;
-  const opts=collectMembers().filter(m=>m.code);
-  sel.innerHTML=opts.map(m=>`<option value="${esc(m.code)}">${esc(m.code)}${m.email?' - '+esc(m.email):''}</option>`).join('')||'<option value="">Add members first</option>';
-  if(opts.some(o=>o.code===cur)) sel.value=cur;
+function refreshJudge(container, judgeSel){
+  const cur=judgeSel.value;
+  const opts=collectMembers(container).filter(m=>m.code);
+  judgeSel.innerHTML = opts.length
+    ? opts.map(m=>`<option value="${esc(m.code)}">${esc(m.code)}${m.email?' - '+esc(m.email):''}</option>`).join('')
+    : '<option value="">Add members first</option>';
+  if(opts.some(o=>o.code===cur)) judgeSel.value=cur;
+}
+function addMemberRow(container, judgeSel, email, code){
+  if(code==null){ const used=collectMembers(container).map(m=>m.code); code=DEFAULT_CODES.find(c=>!used.includes(c))||''; }
+  const d=document.createElement('div'); d.className='memrow';
+  d.innerHTML=`<input class="m-email" type="email" placeholder="name@email.com" autocomplete="off" value="${esc(email||'')}">
+    <input class="m-code" placeholder="Code" maxlength="4" autocomplete="off" value="${esc(code||'')}">
+    <button class="x" type="button" title="Remove">&times;</button>`;
+  const upd=()=>refreshJudge(container, judgeSel);
+  d.querySelector('.x').addEventListener('click',()=>{ d.remove(); upd(); });
+  d.querySelector('.m-code').addEventListener('input',upd);
+  d.querySelector('.m-email').addEventListener('input',upd);
+  container.appendChild(d); upd();
+  return d;
+}
+/* Validate a pool form model. Returns an error string, or null when clean. */
+function validatePool(name, id, startStage, members, judge){
+  if(!name) return 'Give the pool a name.';
+  if(!id) return 'The pool needs an ID.';
+  if(!(startStage>=1&&startStage<=21)) return 'Start stage must be 1 to 21.';
+  if(members.length<2) return 'Add at least two members.';
+  for(const m of members){
+    if(!validEmail(m.email)) return 'Check the email for '+(m.code||'a member')+'.';
+    if(!/^[A-Z0-9]{2,4}$/.test(m.code)) return 'Each member needs a 2 to 4 character code.';
+  }
+  const codes=members.map(m=>m.code), emails=members.map(m=>m.email);
+  if(new Set(codes).size!==codes.length) return 'Two members share a code.';
+  if(new Set(emails).size!==emails.length) return 'Two members share an email.';
+  if(!codes.includes(judge)) return 'Pick a judge from the members.';
+  return null;
 }
 
-/* auto-slug the id from the name until the user edits the id directly */
+/* ---------- create form ---------- */
 let idEdited=false;
 $('pId').addEventListener('input',()=>{ idEdited=true; });
 $('pName').addEventListener('input',()=>{ if(!idEdited) $('pId').value=slug($('pName').value); });
-$('addMem').addEventListener('click',()=>addMember());
+$('addMem').addEventListener('click',()=>addMemberRow($('members'), $('pJudge')));
 
-/* ---- auth ---- */
-auth.onAuthStateChanged(async user=>{
+$('createBtn').addEventListener('click',async()=>{
+  const name=$('pName').value.trim();
+  const id=slug($('pId').value||name);
+  const startStage=parseInt($('pStage').value,10);
+  const members=collectMembers($('members')).filter(m=>m.email||m.code);
+  const judge=$('pJudge').value;
+  const set=(t,ok)=>{ $('createMsg').textContent=t; $('createMsg').className='msg'+(ok?' ok':' err'); };
+
+  const err=validatePool(name,id,startStage,members,judge);
+  if(err) return set(err);
+
+  const membersMap={}; members.forEach(m=>membersMap[m.email]=m.code);
+  const doc={ name, operator:OWNER_EMAIL, judge, members:membersMap, order:members.map(m=>m.code),
+    startStage, flags:{}, createdAt:FV.serverTimestamp() };
+
+  $('createBtn').disabled=true; set('Creating...',true);
+  try{
+    const ref=db.doc('pools/'+id);
+    if((await ref.get()).exists){ $('createBtn').disabled=false; return set('A pool with ID "'+id+'" already exists.'); }
+    await ref.set(doc);
+    set('Created "'+name+'". Members can sign in on the board now.',true);
+    $('pName').value=''; $('pId').value=''; idEdited=false; $('members').innerHTML=''; addMemberRow($('members'),$('pJudge')); addMemberRow($('members'),$('pJudge'));
+  }catch(e){ set('Could not create: '+(e.message||e)); }
+  $('createBtn').disabled=false;
+});
+
+/* ---------- pools list, with inline edit ---------- */
+let lastRows=[], editingId=null, unsub=null;
+
+function watchPools(){
+  if(unsub) unsub();
+  unsub=db.collection('pools').onSnapshot(snap=>{
+    lastRows=[]; snap.forEach(d=>lastRows.push(Object.assign({id:d.id},d.data())));
+    lastRows.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    if(editingId && !lastRows.some(p=>p.id===editingId)) editingId=null;
+    renderList();
+  }, err=>{ $('poolList').innerHTML='<div class="empty" style="color:var(--red)">Cannot read pools: '+esc(err.message)+'<br>Publish the multi-pool security rules, then reload.</div>'; });
+}
+
+function renderList(){
+  const el=$('poolList');
+  if(!lastRows.length){ el.innerHTML='<div class="empty">No pools yet. Create your first above.</div>'; return; }
+  el.innerHTML='';
+  lastRows.forEach(p=> el.appendChild(editingId===p.id ? editCard(p) : displayCard(p)));
+}
+
+function displayCard(p){
+  const d=document.createElement('div'); d.className='pool';
+  const mem=Object.entries(p.members||{}).map(([em,code])=>
+    `<span class="chip${code===p.judge?' judge':''}" title="${esc(em)}">${esc(code)}${code===p.judge?' - judge':''}</span>`).join('');
+  d.innerHTML=`<div class="pt">${esc(p.name||p.id)} <span class="pid">${esc(p.id)}</span></div>
+    <div class="pmeta">Starts at stage ${esc(p.startStage||'?')} &middot; ${Object.keys(p.members||{}).length} members</div>
+    <div class="members">${mem}</div>
+    <div class="prow"><div class="rowbtns"><button class="lnk edit">Edit roster</button></div>
+      <button class="del">Delete</button></div>`;
+  d.querySelector('.edit').addEventListener('click',()=>{ editingId=p.id; renderList(); });
+  const del=d.querySelector('.del');
+  del.addEventListener('click',()=>{
+    if(del.classList.contains('armed')){ doDelete(p.id); }
+    else { del.classList.add('armed'); del.textContent='Tap again to delete'; setTimeout(()=>{ if(del.isConnected){del.classList.remove('armed');del.textContent='Delete';} },4000); }
+  });
+  return d;
+}
+
+function editCard(p){
+  const d=document.createElement('div'); d.className='pool editing';
+  d.innerHTML=`<div class="pt">Editing ${esc(p.name||p.id)} <span class="pid">${esc(p.id)}</span></div>
+    <label>Pool name</label><input class="e-name" autocomplete="off" value="${esc(p.name||'')}">
+    <label>Starts at stage</label><input class="e-stage" type="number" min="1" max="21" value="${esc(p.startStage||15)}">
+    <label>Members</label><div class="e-members"></div>
+    <button class="addmem e-add" type="button">+ Add member</button>
+    <label>Judge</label><select class="e-judge"></select>
+    <div class="emsg"></div>
+    <div class="editact"><button class="save">Save changes</button><button class="ghost e-cancel" type="button">Cancel</button></div>`;
+  const cont=d.querySelector('.e-members'), jsel=d.querySelector('.e-judge');
+  const entries=Object.entries(p.members||{});
+  // preserve saved order where present
+  const order=(p.order&&p.order.length)?p.order:entries.map(([,c])=>c);
+  order.forEach(code=>{ const hit=entries.find(([,c])=>c===code); if(hit) addMemberRow(cont,jsel,hit[0],hit[1]); });
+  entries.forEach(([em,code])=>{ if(!order.includes(code)) addMemberRow(cont,jsel,em,code); });
+  refreshJudge(cont,jsel); if(p.judge) jsel.value=p.judge;
+
+  d.querySelector('.e-add').addEventListener('click',()=>addMemberRow(cont,jsel));
+  d.querySelector('.e-cancel').addEventListener('click',()=>{ editingId=null; renderList(); });
+  d.querySelector('.save').addEventListener('click',async()=>{
+    const emsg=d.querySelector('.emsg'); const set=(t,ok)=>{ emsg.textContent=t; emsg.className='emsg'+(ok?' ok':''); };
+    const name=d.querySelector('.e-name').value.trim();
+    const startStage=parseInt(d.querySelector('.e-stage').value,10);
+    const members=collectMembers(cont).filter(m=>m.email||m.code);
+    const judge=jsel.value;
+    const err=validatePool(name,p.id,startStage,members,judge);
+    if(err) return set(err);
+    const membersMap={}; members.forEach(m=>membersMap[m.email]=m.code);
+    d.querySelector('.save').disabled=true; set('Saving...',true);
+    try{
+      await db.doc('pools/'+p.id).update({ name, startStage, judge, members:membersMap, order:members.map(m=>m.code) });
+      editingId=null;  // snapshot will re-render the display card
+    }catch(e){ set('Could not save: '+(e.message||e)); d.querySelector('.save').disabled=false; }
+  });
+  return d;
+}
+
+async function doDelete(id){
+  try{ await db.doc('pools/'+id).delete(); }
+  catch(e){ alert('Delete failed: '+(e.message||e)); }
+}
+
+/* ---------- auth ---------- */
+auth.onAuthStateChanged(user=>{
   if(!user){ $('signin').style.display='block'; $('app').style.display='none'; boot(''); $('whoami').innerHTML=''; return; }
   const email=(user.email||'').toLowerCase();
   $('whoami').innerHTML=`signed in<b>${esc(email)}</b>`;
@@ -186,86 +316,13 @@ auth.onAuthStateChanged(async user=>{
     return;
   }
   $('signin').style.display='none'; $('app').style.display='block'; boot('');
-  if(!document.querySelector('#members .memrow')){ addMember(); addMember(); }
+  if(!document.querySelector('#members .memrow')){ addMemberRow($('members'),$('pJudge')); addMemberRow($('members'),$('pJudge')); }
   watchPools();
 });
 $('gbtn').addEventListener('click',()=>{
   const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
   auth.signInWithPopup(p).catch(e=>{ $('signmsg').textContent=e.message; $('signmsg').className='msg err'; });
 });
-
-/* ---- create ---- */
-$('createBtn').addEventListener('click',async()=>{
-  const name=$('pName').value.trim();
-  const id=slug($('pId').value||name);
-  const startStage=parseInt($('pStage').value,10);
-  const members=collectMembers().filter(m=>m.email||m.code);
-  const judge=$('pJudge').value;
-  const set=(t,ok)=>{ $('createMsg').textContent=t; $('createMsg').className='msg'+(ok?' ok':' err'); };
-
-  if(!name) return set('Give the pool a name.');
-  if(!id) return set('The pool needs an ID.');
-  if(!(startStage>=1&&startStage<=21)) return set('Start stage must be 1 to 21.');
-  if(members.length<2) return set('Add at least two members.');
-  for(const m of members){
-    if(!validEmail(m.email)) return set('Check the email for '+(m.code||'a member')+'.');
-    if(!/^[A-Z0-9]{2,4}$/.test(m.code)) return set('Each member needs a 2 to 4 character code.');
-  }
-  const codes=members.map(m=>m.code), emails=members.map(m=>m.email);
-  if(new Set(codes).size!==codes.length) return set('Two members share a code.');
-  if(new Set(emails).size!==emails.length) return set('Two members share an email.');
-  if(!codes.includes(judge)) return set('Pick a judge from the members.');
-
-  const membersMap={}; members.forEach(m=>membersMap[m.email]=m.code);
-  const order=codes.slice();
-  const doc={ name, operator:OWNER_EMAIL, judge, members:membersMap, order,
-    startStage, flags:{}, createdAt:FV.serverTimestamp() };
-
-  $('createBtn').disabled=true; set('Creating...',true);
-  try{
-    const ref=db.doc('pools/'+id);
-    if((await ref.get()).exists){ $('createBtn').disabled=false; return set('A pool with ID "'+id+'" already exists.'); }
-    await ref.set(doc);
-    set('Created "'+name+'". Members can sign in on the board now.',true);
-    $('pName').value=''; $('pId').value=''; idEdited=false; $('members').innerHTML=''; addMember(); addMember();
-  }catch(e){
-    set('Could not create: '+(e.message||e));
-  }
-  $('createBtn').disabled=false;
-});
-
-/* ---- list ---- */
-let unsub=null;
-function watchPools(){
-  if(unsub) unsub();
-  unsub=db.collection('pools').onSnapshot(snap=>{
-    const el=$('poolList');
-    if(snap.empty){ el.innerHTML='<div class="empty">No pools yet. Create your first above.</div>'; return; }
-    const rows=[];
-    snap.forEach(d=>rows.push(Object.assign({id:d.id},d.data())));
-    rows.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-    el.innerHTML=rows.map(renderPool).join('');
-    el.querySelectorAll('.del').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        if(btn.classList.contains('armed')){ doDelete(btn.dataset.id); }
-        else { el.querySelectorAll('.del.armed').forEach(x=>{x.classList.remove('armed');x.textContent='Delete';}); btn.classList.add('armed'); btn.textContent='Tap again to delete'; setTimeout(()=>{ if(btn.isConnected){btn.classList.remove('armed');btn.textContent='Delete';} },4000); }
-      });
-    });
-  }, err=>{ $('poolList').innerHTML='<div class="empty" style="color:var(--red)">Cannot read pools: '+esc(err.message)+'<br>Publish the multi-pool security rules, then reload.</div>'; });
-}
-function renderPool(p){
-  const mem=Object.entries(p.members||{}).map(([em,code])=>
-    `<span class="chip${code===p.judge?' judge':''}" title="${esc(em)}">${esc(code)}${code===p.judge?' - judge':''}</span>`).join('');
-  return `<div class="pool"><div class="pt">${esc(p.name||p.id)} <span class="pid">${esc(p.id)}</span></div>
-    <div class="pmeta">Starts at stage ${esc(p.startStage||'?')} &middot; ${Object.keys(p.members||{}).length} members</div>
-    <div class="members">${mem}</div>
-    <div class="prow"><span style="font-size:11.5px;color:var(--mute)">operator: ${esc(p.operator||OWNER_EMAIL)}</span>
-      <button class="del" data-id="${esc(p.id)}">Delete</button></div></div>`;
-}
-async function doDelete(id){
-  try{ await db.doc('pools/'+id).delete(); }
-  catch(e){ alert('Delete failed: '+(e.message||e)); }
-}
 boot('Connecting...');
 </script>
 </body>
