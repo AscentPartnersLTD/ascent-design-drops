@@ -604,7 +604,7 @@
       <div class="charts">
         <div class="chart"><div class="ct">Placement <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
         <div class="chart"><div class="ct">Rank <small>the day's picks ranked 1 to 8 by finish &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
-        <div class="hl-tile"><div class="big">29/36</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 29 of 36 podium spots across the 12 scored stages, at least 2 every day and all 3 on six of them. Plus 61 of 120 top-10 slots.</div></div></div>
+        <div class="hl-tile"><div class="big">32/39</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 32 of 39 podium spots across the 13 scored stages, at least 2 every day and all 3 on seven of them. Plus 69 of 130 top-10 slots.</div></div></div>
         <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 in the placement tally, no payoff.</div></div></div>
       </div>
     </div>
@@ -985,7 +985,7 @@ const RACE = [
   { n:11, date:"Jul 15", route:"Vichy > Nevers",           type:"Flat sprint",       win:"S. Waerenskjold", extra:"Uno-X sprint win" },
   { n:12, date:"Jul 16", route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", win:"Tim Merlier", extra:"Merlier doubles up" },
   { n:13, date:"Jul 17", route:"Dole > Belfort",           type:"Hilly / Ballon d'Alsace", win:"Mauro Schmid",  extra:"Longest stage, break stays away" },
-  { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"", upcoming:true, extra:"Seven climbs, 155.3 km" },
+  { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"T. Pogacar", extra:"Seven climbs, 155.3 km" },
   { n:15, date:"Jul 19", route:"Plateau de Solaison",      type:"Summit finish",     win:"", upcoming:true, extra:"New summit finish" },
   { n:16, date:"Jul 21", route:"Evian-les-Bains ITT",      type:"Individual TT",     win:"", upcoming:true, extra:"26.1 km, Lake Geneva" },
   { n:17, date:"Jul 22", route:"Flat stage",               type:"Flat sprint",       win:"", upcoming:true, extra:"Sprinters' chance" },
@@ -1120,10 +1120,8 @@ const STAGES = [
       JB:"Girmay 4th and Pedersen 9th, a tidy, consistent 13 with no drama.",
       JJ:"Philipsen took 3rd on the line and Pluimers held 11th, a steady 14 just off JB." },
     note:"Magny-Cours to Chalon-sur-Saone. Merlier won the bunch sprint from Kooij and Philipsen. A crash inside the final 600 m held up part of the field and caught Waerenskjold, who was classified 107th; the safety rule gives him the bunch time but his placing stands. JP best on the day at 8 (Merlier 1, Kanter 7); AA's day ran to 109 on the Waerenskjold crash. Finishes pulled from the official letour.fr classification." },
-  /* combatif pending: letour's Stage 13 combativity classification (ice endpoint) returned 204 No Content
-     at scoring time. Not fabricating it; add combatif:"X. Surname" here when the jury result posts. */
   { n:13, route:"Dole > Belfort", type:"Hilly / Ballon d'Alsace", km:205.8, win:"M. Schmid",
-    breakaway:true, breakThru:19,
+    combatif:"T. Pidcock", breakaway:true, breakThru:19,
     days:{ AA:34, JB:44, JP:97, JJ:159 }, best:"AA",
     picks:{ AA:[["T. Pidcock",3],["B. Healy",31]], JB:[["I. del Toro",39],["B. McNulty",5]],
             JP:[["T. Pogacar",38],["R. Carapaz",59]], JJ:[["A. Baudin",92],["R. Debruyne",67]] },
@@ -1132,42 +1130,47 @@ const STAGES = [
       JP:"The two-ended bet came up empty. Pogacar sat in the GC group on a day the favorites let the break go, finishing 38th, and Carapaz never made the front move and rolled in 59th. A 97 on a stage that rewarded going up the road.",
       JB:"A split UAE card that half worked. McNulty was in the break and delivered a strong 5th, but del Toro stayed with the GC bunch for 39th, so the day landed at 44, second best behind AA.",
       JJ:"The aggressive picks fit a breakaway day on paper, but neither Baudin nor Debruyne made the winning move; both were swept into the second group for 67th and 92nd, a 159 that handed the overall lead to AA." },
-    note:"Dole to Belfort, the longest stage of the Tour at 205.8 km, finishing over the Ballon d'Alsace. Mauro Schmid won from a large early break that beat the GC bunch by more than seven minutes; the favorites called a truce and let the move go. Pidcock 3rd out of the break is AA's day and the podium that took over the placement lead. Finishes pulled from the official letour.fr classification." }
+    note:"Dole to Belfort, the longest stage of the Tour at 205.8 km, finishing over the Ballon d'Alsace. Mauro Schmid won from a large early break that beat the GC bunch by more than seven minutes; the favorites called a truce and let the move go. Pidcock 3rd out of the break is AA's day and the podium that took over the placement lead. The jury later named Pidcock the day's most combative rider. Finishes pulled from the official letour.fr classification." },
+  { n:14, route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3, win:"T. Pogacar",
+    combatif:"R. Carapaz",
+    days:{ AA:7, JP:7, JB:10, JJ:12 },
+    picks:{ AA:[["T. Pogacar",1],["J. Ayuso",6]], JB:[["I. del Toro",2],["R. Carapaz",8]],
+            JJ:[["F. Lipowitz",7],["R. Evenepoel",5]], JP:[["J. Vingegaard",4],["P. Seixas",3]] },
+    reads:{
+      AA:"Pogacar delivered the win, the fifth stage winner on AA's card this Tour, and Ayuso backed it with 6th for a 7 that shares the day's best; the only concession is Ayuso finishing 12 seconds off the podium group.",
+      JP:"Seixas 3rd and Vingegaard 4th is the tightest pair JP has drafted all race, tied for the day at 7; the ceiling was that neither could go with Pogacar when the winning move went.",
+      JB:"Del Toro chased his teammate home in 2nd and Carapaz earned the day's official combativity award; the drag is Carapaz crossing 8th, last of the pool's picks on a day everyone landed inside the top eight.",
+      JJ:"Evenepoel 5th and Lipowitz 7th is a clean GC pair with both riders inside the top eight; the flip side is neither touched the podium, so a solid 12 still reads as the heaviest card on the pool's best day." },
+    note:"Le Markstein. Pogacar won alone by 38 seconds; del Toro and Seixas came in together behind him. The pool's best collective day of the race: all eight picks finished in the top eight for 36 combined, and AA (Pogacar 1st, Ayuso 6th) and JP (Seixas 3rd, Vingegaard 4th) tied the day at 7. Carapaz took the official combativity award. Finishes pulled from the official letour.fr classification." }
 ];
 
 const UPCOMING = {
-  n:14, route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
+  n:15, route:"Champagnole > Plateau de Solaison", type:"Summit finish", km:184,
   intel:{
-    summary:"A short, savage Vosges mountain day, seven climbs and 3,800 m of climbing that ends on the Col du Haag before a 6 km run-in to Le Markstein; the first real GC summit test since the Pyrenees.",
+    summary:"A big Jura-into-Alps GC day: 184 km and about 4,700 m of climbing across six categorized ascents, capped by the brutal Plateau de Solaison summit finish, 11.3 km at 9.1 percent.",
     facts:[
-      "155.3 km with 3,800 m of climbing packed into seven categorized ascents",
-      "Over the Grand Ballon and Ballon d'Alsace early, then a relentless lumpy finale",
-      "Final climb is the Col du Haag, 11.2 km at 7.3 percent, cresting 5.9 km from the line",
-      "Suits the climbers and GC contenders, though a strong break could also survive on this terrain"
+      "184 km with about 4,700 m of climbing across six categorized ascents",
+      "The Col de la Croisette midway is 7.6 km at 8.8 percent, its final 4.7 km at a savage 11.2",
+      "Finish climb is the Plateau de Solaison, 11.3 km at 9.1 percent with four of them in double digits, and the line sits at the summit",
+      "A pure climbers' and GC test, the last summit showdown before the Evian time trial"
     ]
   },
-  picks:{ AA:["T. Pogacar","J. Ayuso"], JB:["I. del Toro","R. Carapaz"], JJ:["F. Lipowitz","R. Evenepoel"], JP:["J. Vingegaard","P. Seixas"] },
-  reads:{
-    AA:"Pogacar is the safest anchor on any summit and should be first or second up the Col du Haag; the open question is whether Ayuso holds the elite group when the pace lifts or slips a few places late.",
-    JB:"Del Toro has climbed with the best all Tour and Carapaz is a real breakaway threat on this terrain; the risk is Carapaz riding an early move that gets pulled back and leaving one deep finish.",
-    JJ:"Two genuine GC men who both belong in the front group; Evenepoel is the one to watch, since a pure uphill finish is where he can concede a handful of seconds and places to the pure climbers.",
-    JP:"Vingegaard is the one rider who can actually take time on Pogacar uphill, and Seixas has been quietly excellent; the downside is that this is the hardest GC test since the Pyrenees and Seixas is still young."
-  }
+  picks:{ AA:[], JB:[], JJ:[], JP:[] }
 };
 
 /* Next-stage weather. The widget on the Stats tab fetches a live forecast from
    Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
    each time you roll UPCOMING to the next stage. Coordinates are the finish town. */
 const WEATHER = {
-  stage: 14, place: "Le Markstein", finish: "Mulhouse > Le Markstein",
-  lat: 47.924, lon: 7.034, date: "2026-07-18"
+  stage: 15, place: "Plateau de Solaison", finish: "Champagnole > Plateau de Solaison",
+  lat: 46.033, lon: 6.428, date: "2026-07-19"
 };
 
 /* The stage AFTER upcoming, for the "Next two stages" card on Stats. Brief course
    info only (no picks). Update it each time UPCOMING rolls forward. */
 const NEXT2 = {
-  n: 15, route: "Champagnole > Plateau de Solaison", type: "Summit finish", km: 184,
-  line: "A big Jura-into-Alps day, 184 km and about 4,700 m of climbing, finishing up the brutal Plateau de Solaison, 11.3 km at 9.1 percent. A pure climbers' and GC summit test."
+  n: 16, route: "Evian-les-Bains > Thonon-les-Bains", type: "Individual TT", km: 26.1,
+  line: "A 26.1 km individual time trial along Lake Geneva, and a hilly one: a 9.6 km climb at 4.2 percent, a 7 km descent, then 9 flat km to the line in Thonon. A GC day against the clock more than a pure specialists' course."
 };
 
 /* "Who's in the break?" live widget. Paste the deployed Cloudflare Worker URL here
@@ -2106,19 +2109,20 @@ const stats=[
   {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`},
   {k:"The MVDP tax",v:"275 PTS",ink:true,d:"Picked 3 times (2 by JP): 22nd, 125th, 128th. Then he won the voided Stage 9, of course."},
   {k:"The reinstatement",v:"119TH > 3RD",small:true,d:"Philipsen's Nevers relegation was overturned on appeal. The official result restores his 3rd, dropping JP's Stage 11 from 121 to 5."},
+  {k:"Collective best day",v:"ST 14",small:true,d:"Le Markstein. All eight picks finished inside the top eight for 36 combined, the sharpest collective card of the race, with AA and JP tied on 7."},
   {k:"Collective worst day",v:"ST 13",small:true,d:"Dole to Belfort. The favorites let the break ride, and with JJ's pair missing the move the four combined for 334, the pool's heaviest day of the race."},
   {k:"Biggest single burial",v:"128th",small:true,d:"JP's MVDP on the Stage 5 sprint. Did he fall asleep in the peloton?"},
-  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked five times (three by AA, two by JP): 3, 8, 57, 4, 2. The 57 was the Foix breakaway day."},
+  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked six times (three by AA, two by JP, one by JJ): 3, 8, 57, 4, 2, 5. The 57 was the Foix breakaway day."},
   {k:"Stage lost to hydration",v:"ST 9",small:true,ink:true,d:"Heat-shortened, then DNS for the whole pool after the World Cup watch party."}
 ];
 document.getElementById('statgrid').innerHTML=stats.map(s=>
   `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
 
 const arch=[
-  {k:"AA",lead:true,t:"The new leader",b:"Pidcock's 3rd out of the Ballon d'Alsace break moved AA to the front of both boards, placement 365 and rank 96, and earned a second Sélection la plus Combative. Still the most stage winners drafted at four: Pedersen, Merlier, Pogacar, Waerenskjold. The aggressive board finally cashed in."},
-  {k:"JB",t:"Quiet in second",b:"Second on placement at 377, though last on rank at 122. A split UAE card at Belfort, McNulty 5th up the road against del Toro back in the GC group, is the shape of his season: name-brand picks that stay in steady touch without a signature day."},
-  {k:"JJ",t:"Panache, and a costly day",b:"Loulou now, and a hard one. The eleven-stage leader watched Baudin and Debruyne miss the winning move at Belfort and slid to third on placement at 441, though he still holds second on rank at 106. The aggression that built the lead is the same aggression that cost him the day it did not land."},
-  {k:"JP",t:"The MVDP believer",b:"Still last on placement at 573, 275 of it the MVDP tax, but the picks read closer than that: Pogacar and Carapaz simply had no stage on a day the favorites let the break ride. Third on rank at 108."}
+  {k:"AA",lead:true,t:"The leader, compounding",b:"Pogacar's Le Markstein win, the fifth stage winner on AA's card (Pedersen, Merlier, Pogacar twice, Waerenskjold), stretched the lead on both boards to placement 372 and rank 103. Pidcock's Belfort ride also brought the official combativity prize. The risk in an all-favorites card is the day the favorites sit up; so far that day has cost everyone else more."},
+  {k:"JB",t:"Second, still waiting on a signature day",b:"Second on placement at 387 and closest to AA, with del Toro 2nd and a Carapaz combativity award at Le Markstein the newest proof the picks belong. The catch stays the same: last on rank at 132, steady top-tens without the day that flips a board."},
+  {k:"JJ",t:"Panache, paying interest",b:"Loulou's aggression built an eleven-stage lead and then Belfort took it back. Even a clean Le Markstein card, Evenepoel 5th and Lipowitz 7th, was the pool's heaviest day at 12, and JP nosed past him on rank, 115 to 118. Third on placement at 453 with the mountains still to come, which is where his picks live."},
+  {k:"JP",t:"The MVDP believer, rebuilding",b:"Still last on placement at 580, 275 of it the MVDP tax, but the recent form is real: Seixas 3rd and Vingegaard 4th tied Le Markstein's best card and lifted JP to second on rank at 115. The bill from the sprint weeks is paid; the Alps decide what the rebuild is worth."}
 ];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
   `<div class="arch ${a.lead?'lead':''}"><div class="who">${a.k}</div><div><div class="t">${a.t}</div><div class="b">${a.b}</div></div></div>`).join('');

@@ -1003,6 +1003,16 @@ const SHARED_UPCOMING = {
         "Final climb is the Col du Haag, 11.2 km at 7.3 percent, cresting 5.9 km from the line",
         "Suits the climbers and GC contenders, though a strong break could also survive on this terrain"
       ]
+    } },
+  15: { route:"Champagnole > Plateau de Solaison", type:"Summit finish", km:184,
+    intel:{
+      summary:"A big Jura-into-Alps GC day: 184 km and about 4,700 m of climbing across six categorized ascents, capped by the brutal Plateau de Solaison summit finish, 11.3 km at 9.1 percent.",
+      facts:[
+        "184 km with about 4,700 m of climbing across six categorized ascents",
+        "The Col de la Croisette midway is 7.6 km at 8.8 percent, its final 4.7 km at a savage 11.2",
+        "Finish climb is the Plateau de Solaison, 11.3 km at 9.1 percent with four of them in double digits, and the line sits at the summit",
+        "A pure climbers' and GC test, the last summit showdown before the Evian time trial"
+      ]
     } }
 };
 async function buildCDF(){
@@ -1010,7 +1020,11 @@ async function buildCDF(){
   const riderProfile={}; ORDER.forEach(c=>riderProfile[c]={pin:'',avatar:''});
   const zero={}; ORDER.forEach(c=>zero[c]=0);
   let stages=[];
-  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data(); stages.push(Object.assign({n:Number(d.id)},v)); }); }catch(e){}
+  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data();
+    // Firestore cannot store nested arrays, so stage docs carry picks as maps
+    // ({r:"T. Pogacar",f:1}); convert to the [rider,finish] pairs runBoard expects.
+    if(v.picks) Object.keys(v.picks).forEach(k=>{ v.picks[k]=(v.picks[k]||[]).map(p=>Array.isArray(p)?p:[p.r,(p.f===undefined?null:p.f)]); });
+    stages.push(Object.assign({n:Number(d.id)},v)); }); }catch(e){}
   stages.sort((a,b)=>a.n-b.n);
   const upPicks={}; ORDER.forEach(c=>upPicks[c]=[]);
   // pull the live draft's picks so the stage card and Allegiances reflect the round the moment it is drafted
@@ -1122,7 +1136,7 @@ const RACE = [
   { n:11, date:"Jul 15", route:"Vichy > Nevers",           type:"Flat sprint",       win:"S. Waerenskjold", extra:"Uno-X sprint win" },
   { n:12, date:"Jul 16", route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", win:"Tim Merlier", extra:"Merlier doubles up" },
   { n:13, date:"Jul 17", route:"Dole > Belfort",           type:"Hilly / Ballon d'Alsace", win:"Mauro Schmid",  extra:"Longest stage, break stays away" },
-  { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"", upcoming:true, extra:"Seven climbs, 155.3 km" },
+  { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"T. Pogacar", extra:"Seven climbs, 155.3 km" },
   { n:15, date:"Jul 19", route:"Plateau de Solaison",      type:"Summit finish",     win:"", upcoming:true, extra:"New summit finish" },
   { n:16, date:"Jul 21", route:"Evian-les-Bains ITT",      type:"Individual TT",     win:"", upcoming:true, extra:"26.1 km, Lake Geneva" },
   { n:17, date:"Jul 22", route:"Flat stage",               type:"Flat sprint",       win:"", upcoming:true, extra:"Sprinters' chance" },
@@ -1148,7 +1162,8 @@ const RACE_TOP5 = {
   10:["T. Pogacar","R. Evenepoel","P. Seixas","F. Lipowitz","J. Ayuso"],
   11:["S. Waerenskjold","O. Kooij","J. Philipsen","M. Fretin","H. Artz"],
   12:["T. Merlier","O. Kooij","J. Philipsen","B. Girmay","M. Fretin"],
-  13:["M. Schmid","H. Tejada","T. Pidcock","M. Van Gils","B. McNulty"]
+  13:["M. Schmid","H. Tejada","T. Pidcock","M. Van Gils","B. McNulty"],
+  14:["T. Pogacar","I. del Toro","P. Seixas","J. Vingegaard","R. Evenepoel"]
 };
 
 /* Pool picks + finishes where known. null = not posted. */
@@ -1160,15 +1175,15 @@ const UPCOMING = CDF.upcoming;
    Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
    each time you roll UPCOMING to the next stage. Coordinates are the finish town. */
 const WEATHER = {
-  stage: 14, place: "Le Markstein", finish: "Mulhouse > Le Markstein",
-  lat: 47.924, lon: 7.034, date: "2026-07-18"
+  stage: 15, place: "Plateau de Solaison", finish: "Champagnole > Plateau de Solaison",
+  lat: 46.033, lon: 6.428, date: "2026-07-19"
 };
 
 /* The stage AFTER upcoming, for the "Next two stages" card on Stats. Brief course
    info only (no picks). Update it each time UPCOMING rolls forward. */
 const NEXT2 = {
-  n: 15, route: "Champagnole > Plateau de Solaison", type: "Summit finish", km: 184,
-  line: "A big Jura-into-Alps day, 184 km and about 4,700 m of climbing, finishing up the brutal Plateau de Solaison, 11.3 km at 9.1 percent. A pure climbers' and GC summit test."
+  n: 16, route: "Evian-les-Bains > Thonon-les-Bains", type: "Individual TT", km: 26.1,
+  line: "A 26.1 km individual time trial along Lake Geneva, and a hilly one: a 9.6 km climb at 4.2 percent, a 7 km descent, then 9 flat km to the line in Thonon. A GC day against the clock more than a pure specialists' course."
 };
 
 /* "Who's in the break?" live widget. Paste the deployed Cloudflare Worker URL here
@@ -2727,6 +2742,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0803</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1546</div>
 </body>
 </html>
