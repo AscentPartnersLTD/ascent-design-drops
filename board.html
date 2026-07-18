@@ -910,6 +910,7 @@ const RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":
 const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"col-du-fantasy.firebaseapp.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore(); const FV=firebase.firestore.FieldValue;
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});   // stay signed in across visits
 const OWNER_EMAIL="allen@ascentpartnersltd.com";
 const PALETTE=["#c9971a","#2f8f52","#26347e","#cf2530","#7d3ac1","#e07b00","#0f9e9e","#c02d6b"];
 const init=r=>r.replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -939,7 +940,41 @@ auth.onAuthStateChanged(async user=>{
     subscribe();     // live draft into #draftMount
   }catch(e){ console.error(e); showGate('Error: '+(e.message||e), true); }
 });
-document.addEventListener('click',e=>{ if(e.target && (e.target.id==='gbtn'||e.target.id==='gate-google')){ const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'}); auth.signInWithPopup(p).catch(err=>showGate(err.message,true)); }});
+document.addEventListener('click',e=>{
+  const t=e.target && e.target.closest ? e.target.closest('#gbtn,#gate-google,#gate-emaillink') : null;
+  if(t && (t.id==='gbtn'||t.id==='gate-google')){
+    const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
+    auth.signInWithPopup(p).catch(err=>{
+      const c=err&&err.code;
+      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ auth.signInWithRedirect(p); }
+      else { showGate(err.message,true); }
+    });
+  } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
+});
+auth.getRedirectResult().catch(err=>{ if(err) showGate(err.message,true); });
+const LINK_KEY='cdf_emailForSignIn';
+const acs={ url: location.origin+location.pathname+location.search, handleCodeInApp:true };
+function sendEmailLink(){
+  const inp=$('gate-email'); const email=((inp&&inp.value)||'').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showGate('Enter a valid email to get a sign-in link.',true); if(inp)inp.focus(); return; }
+  const b=$('gate-emaillink'); if(b) b.disabled=true; showGate('Sending your sign-in link...');
+  auth.sendSignInLinkToEmail(email,acs).then(()=>{
+    try{ localStorage.setItem(LINK_KEY,email); }catch(e){}
+    if(b) b.disabled=false;
+    showGate('Link sent. Check '+email+' for a sign-in link from Col du Fantasy and open it on this device.');
+  }).catch(err=>{
+    if(b) b.disabled=false;
+    const c=err&&err.code;
+    if(c==='auth/operation-not-allowed'){ showGate('Email link sign-in is not switched on in Firebase yet.',true); }
+    else if(c==='auth/unauthorized-continue-uri'){ showGate('This site domain is not authorized in Firebase yet.',true); }
+    else { showGate('Could not send the link: '+(err?err.message:'unknown error'),true); }
+  });
+}
+if(auth.isSignInWithEmailLink(location.href)){
+  let em=''; try{ em=localStorage.getItem(LINK_KEY)||''; }catch(e){}
+  if(!em){ em=(prompt('Confirm the email you requested the link for')||'').trim().toLowerCase(); }
+  if(em){ showGate('Finishing sign-in...'); auth.signInWithEmailLink(em,location.href).then(()=>{ try{localStorage.removeItem(LINK_KEY);}catch(e){} if(history.replaceState) history.replaceState(null,'',location.origin+location.pathname+location.search); }).catch(err=>showGate('That sign-in link did not work ('+(err?err.message:'expired or already used')+'). Request a fresh one.',true)); }
+}
 
 async function resolvePool(){
   if(paramPool) return paramPool;
