@@ -585,6 +585,22 @@
         .break-card .bw-refresh{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);border:1px solid var(--line2);border-radius:999px;padding:5px 13px;cursor:pointer;transition:border-color .15s;white-space:nowrap}
         .break-card .bw-refresh:hover{border-color:var(--gold-d)}
         .break-card .bw-refresh:disabled{opacity:.5;cursor:default}
+        .break-card .bw-grp{margin-top:12px}
+        .break-card .bw-grp:first-of-type{margin-top:2px}
+        .break-card .bw-div{display:flex;align-items:center;gap:9px;padding:6px 0 7px;border-top:1px solid var(--line)}
+        .break-card .bw-grp:first-of-type .bw-div{border-top:none}
+        .break-card .bw-gname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+        .break-card .bw-ggap{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;color:var(--mute);white-space:nowrap}
+        .break-card .bw-gcount{font-size:11px;color:var(--mute);white-space:nowrap}
+        .break-card .bw-jers{display:inline-flex;gap:4px;align-items:center}
+        .break-card .bw-j{width:13px;height:15px;border-radius:3px 3px 4px 4px;display:inline-block;position:relative}
+        .break-card .bw-j.yellow{background:#f7d222}
+        .break-card .bw-j.green{background:#2fa64e}
+        .break-card .bw-j.white{background:#fff;box-shadow:inset 0 0 0 1px var(--line2)}
+        .break-card .bw-j.polka{background:#fff;box-shadow:inset 0 0 0 1px var(--line2);background-image:radial-gradient(circle at 3px 4px,#d3232e 1.6px,transparent 1.8px),radial-gradient(circle at 9px 8px,#d3232e 1.6px,transparent 1.8px),radial-gradient(circle at 4px 11px,#d3232e 1.6px,transparent 1.8px)}
+        .break-card .bw-gours{display:flex;flex-wrap:wrap;gap:5px 7px;margin:2px 0 4px}
+        .break-card .bw-gbtn{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--gold-d);background:none;border:none;cursor:pointer;padding:3px 0}
+        .break-card .bw-glist{display:flex;flex-wrap:wrap;gap:5px 7px;margin:6px 0 2px}
       </style>
       <div class="bw-head">
         <div class="bw-h-txt"><div class="bw-title"><svg class="bw-icon" viewBox="0 0 38 20" fill="none" aria-hidden="true"><g style="fill:var(--mute)"><circle cx="4.5" cy="6" r="1.65"/><circle cx="7.5" cy="6" r="1.65"/><circle cx="10.5" cy="6" r="1.65"/><circle cx="13.5" cy="6" r="1.65"/><circle cx="3" cy="10" r="1.65"/><circle cx="6" cy="10" r="1.65"/><circle cx="9" cy="10" r="1.65"/><circle cx="12" cy="10" r="1.65"/><circle cx="15" cy="10" r="1.65"/><circle cx="4.5" cy="14" r="1.65"/><circle cx="7.5" cy="14" r="1.65"/><circle cx="10.5" cy="14" r="1.65"/><circle cx="13.5" cy="14" r="1.65"/></g><g style="fill:var(--gold-d)"><circle cx="27.5" cy="7.4" r="1.9"/><circle cx="27.5" cy="12.6" r="1.9"/><circle cx="31.5" cy="10" r="1.9"/></g></svg>Live Break Check</div><div class="bw-sub">Who is up the road right now, straight from the official feed</div></div>
@@ -2630,15 +2646,38 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   function stampNow(data){ try{ if(data&&data.updatedAt) return new Date(data.updatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }catch(e){} return 'just now'; }
   function wireRefresh(){ var rf=document.getElementById('bwRefresh'); if(rf) rf.addEventListener('click', doFetch); }
 
+  function jerseyChips(g, jerseys){
+    if(!jerseys || !g.bibs || !g.bibs.length) return '';
+    var chips='';
+    [['yellow','Yellow jersey'],['green','Green jersey'],['polka','Polka dot jersey'],['white','White jersey']].forEach(function(j){
+      var w=jerseys[j[0]];
+      if(w && w.bib!=null && g.bibs.indexOf(w.bib)>=0){
+        chips+='<span class="bw-j '+j[0]+'" title="'+j[1]+' &middot; '+esc(w.name||'')+'"></span>';
+      }
+    });
+    return chips?'<span class="bw-jers">'+chips+'</span>':'';
+  }
+
   function render(data){
     if(!data || data.error){ BODY.className='bw-body has'; BODY.innerHTML=controlsRow('')+'<div class="bw-muted">Could not reach the live feed right now. Hit Refresh in a moment.</div>'; wireRefresh(); return; }
     if(!data.live || !data.groups || !data.groups.length){ BODY.className='bw-body has'; BODY.innerHTML=controlsRow('')+'<div class="bw-muted">No live race on the road right now. This lights up once the stage rolls out.</div>'; wireRefresh(); return; }
     var groups=data.groups.slice();
+    var jerseys=data.jerseys||null;
     var front=groups[0]; // Worker sorts by order, so [0] is the front of the race
     var peloton=null;
     for(var i=0;i<groups.length;i++){ if(/peloton|bunch/i.test(groups[i].name||'')){ peloton=groups[i]; break; } }
     if(!peloton){ peloton=groups.reduce(function(a,b){return b.count>a.count?b:a;},groups[0]); }
     var hasBreak=groups.length>1 && front!==peloton;
+
+    // label every group: Breakaway / Chase 1..N / Peloton / Dropped 1..N
+    var pIdx=groups.indexOf(peloton), chase=0, dropped=0;
+    groups.forEach(function(g,idx){
+      if(g===peloton){ g.label='Peloton'; }
+      else if(idx===0 && hasBreak){ g.label='Breakaway'; }
+      else if(idx<pIdx){ chase++; g.label='Chase '+chase; }
+      else { dropped++; g.label='Dropped'+(groups.length-pIdx>2?' '+dropped:''); }
+    });
+    if(!hasBreak) front.label='Peloton';
 
     var picks=poolPicks();
     var rows=picks.map(function(pp){
@@ -2648,7 +2687,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       if(!grp){ status='Not shown'; cls='out'; }
       else if(grp===front && hasBreak){ status='In the break'; cls='break'; }
       else if(grp===peloton){ status='In the bunch'; cls='bunch'; }
-      else { status='Chasing'; cls='chase'; }
+      else { status=grp.label; cls='chase'; }
       return {pp:pp,cls:cls,status:status};
     });
     var order={break:0,chase:1,bunch:2,out:3};
@@ -2665,29 +2704,47 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     var rowsHtml = rows.map(function(r){
       return '<div class="bw-row"><span class="bw-plr" style="color:'+COL[r.pp.p]+'">'+r.pp.p+'</span>'
         +'<span class="bw-rider">'+esc(r.pp.rider)+'</span>'
-        +'<span class="bw-chip '+r.cls+'">'+r.status+'</span></div>';
+        +'<span class="bw-chip '+r.cls+'">'+esc(r.status)+'</span></div>';
     }).join('');
 
-    var rosterHtml='';
-    if(hasBreak){
-      var names=front.riders.map(function(rn){
-        var ours=picks.some(function(pp){return matches(rn,pp.rider);});
-        return '<span class="bw-name'+(ours?' ours':'')+'">'+esc(rn)+'</span>';
+    // the road, group by group: divider, gap, jersey cards, our picks, roster button
+    var ladder = groups.map(function(g,idx){
+      var ours=picks.filter(function(pp){ return g.riders.some(function(rn){return matches(rn,pp.rider);}); });
+      var oursHtml=ours.length?'<div class="bw-gours">'+ours.map(function(pp){
+        return '<span class="bw-name ours"><b style="color:'+COL[pp.p]+'">'+pp.p+'</b> '+esc(pp.rider)+'</span>';
+      }).join('')+'</div>':'';
+      var names=g.riders.map(function(rn){
+        var mine=picks.some(function(pp){return matches(rn,pp.rider);});
+        return '<span class="bw-name'+(mine?' ours':'')+'">'+esc(rn)+'</span>';
       }).join('');
-      rosterHtml='<div class="bw-roster"><button class="bw-toggle" type="button" id="bwToggle">Show the full break ('+front.count+') &gt;</button>'
-        +'<div class="bw-list" id="bwList" style="display:none">'+names+'</div></div>';
-    }
+      var gapTxt = idx===0 ? (g.kmToGo?g.kmToGo+' km to go':'front') : '+'+gapStr(g.gap);
+      return '<div class="bw-grp">'
+        +'<div class="bw-div"><span class="bw-gname">'+esc(g.label)+'</span>'
+        +jerseyChips(g,jerseys)
+        +'<span class="bw-ggap">'+gapTxt+'</span>'
+        +'<span class="bw-gcount">'+g.count+' rider'+(g.count===1?'':'s')+'</span></div>'
+        +oursHtml
+        +'<button class="bw-gbtn" type="button" data-bwg="'+idx+'">Show riders &gt;</button>'
+        +'<div class="bw-glist" data-bwl="'+idx+'" style="display:none">'+names+'</div>'
+        +'</div>';
+    }).join('');
 
     BODY.className='bw-body has';
     BODY.innerHTML=controlsRow(stampNow(data))
       +'<div class="bw-headline">'+head+'</div>'
       +(meta?'<div class="bw-meta">'+meta+'</div>':'')
       +(rows.length?'<div class="bw-ours">'+rowsHtml+'</div>':'')
-      +rosterHtml
-      +'<div class="bw-foot">Live from the official race feed. Hit Refresh for a new snapshot.</div>';
+      +ladder
+      +'<div class="bw-foot">Live from the official race feed. Jersey cards mark where the classification leaders are riding. Hit Refresh for a new snapshot.</div>';
 
-    var tg=document.getElementById('bwToggle');
-    if(tg){ tg.addEventListener('click',function(){ var L=document.getElementById('bwList'); var open=L.style.display!=='none'; L.style.display=open?'none':''; tg.innerHTML=open?('Show the full break ('+front.count+') &gt;'):'Hide the full break'; }); }
+    BODY.querySelectorAll('.bw-gbtn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var L=BODY.querySelector('[data-bwl="'+btn.getAttribute('data-bwg')+'"]');
+        var open=L.style.display!=='none';
+        L.style.display=open?'none':'';
+        btn.innerHTML=open?'Show riders &gt;':'Hide riders';
+      });
+    });
     wireRefresh();
   }
 
@@ -2695,6 +2752,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     var rf=document.getElementById('bwRefresh'); if(rf) rf.disabled=true;
     BODY.className='bw-body has'; BODY.innerHTML='<div class="bw-muted">Reading the race...</div>';
     var stage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:'';
+    try{ var ov=new URLSearchParams(location.search).get('bwstage'); if(ov) stage=ov; }catch(e){}
     fetch(BREAK_WORKER.replace(/\/$/,'')+'/?stage='+encodeURIComponent(stage),{cache:'no-store'})
       .then(function(r){return r.json();})
       .then(function(d){ render(d); })
@@ -2839,6 +2897,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1658</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1738</div>
 </body>
 </html>
