@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><!-- build:20260715-143742 stage11 JJ=Girmay+Bauhaus -->
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -549,7 +549,7 @@
         #draftMount .tcap b{font-size:10px}
       }
     </style>
-    <div id="draftMount" style="display:none"></div>
+    <div id="draftMount"></div>
     <div class="today-order" id="todayOrder"></div>
     <div class="break-card" id="breakWidget" style="display:none">
       <style>
@@ -623,8 +623,8 @@
       <div class="charts">
         <div class="chart"><div class="ct">Placement <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
         <div class="chart"><div class="ct">Rank <small>the day's picks ranked 1 to 8 by finish &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
-        <div class="hl-tile"><div class="big">32/39</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 32 of 39 podium spots across the 13 scored stages, at least 2 every day and all 3 on seven of them. Plus 69 of 130 top-10 slots.</div></div></div>
-        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 in the placement tally, no payoff.</div></div></div>
+        <div class="hl-tile" data-hl="0"><div class="big" style="font-size:22px">Soon</div><div><div class="t">Pool records</div><div class="b">Podium hit rate and the season's milestones fill in here as stages are scored.</div></div></div>
+        
       </div>
     </div>
 
@@ -824,7 +824,7 @@
         <div>
           <div class="tilt-sh">How much is first pick worth, by stage type?</div>
           <div id="tiltSliders"></div>
-          <div class="tilt-foot">First-pick order is the rotation the group has run all Tour: AA led Stage 1, and because the void Stage 9 took no draft, the cycle lands exactly on today's board. It is a what-if lens, not a score.</div>
+          <div class="tilt-foot">First-pick order follows the group's rotation, anchored to today's board. It is a what-if lens, not a score.</div>
         </div>
         <div>
           <div class="tilt-sh">First-pick value <span>(weighted, over the scope)</span></div>
@@ -944,7 +944,267 @@
   </footer>
 </div>
 
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
 <script>
+const RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/11/72252/0:0,400:400-0-0-70/38b77"},{"r":"P. Seixas","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/51/71734/0:0,400:400-0-0-70/54716"},{"r":"R. Evenepoel","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/21/71737/0:0,400:400-0-0-70/36350"},{"r":"T. Pidcock","t":"Pinarello Q36.5","c":"#009CA6","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/171/71794/0:0,400:400-0-0-70/526ee"},{"r":"T. Pogacar","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/1/71834/0:0,400:400-0-0-70/9a582"},{"r":"R. Gregoire","t":"Groupama-FDJ United","c":"#26429B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/181/71791/0:0,400:400-0-0-70/2236c"},{"r":"M. van der Poel","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/101/71756/0:0,400:400-0-0-70/bbd49"},{"r":"M. Vacek","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/37/71744/0:0,400:400-0-0-70/c5383"},{"r":"I. del Toro","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/2/71837/0:0,400:400-0-0-70/5d784"},{"r":"T. Johannessen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/125/71886/0:0,400:400-0-0-70/67518"},{"r":"J. Ayuso","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/31/71732/0:0,400:400-0-0-70/b2640"},{"r":"Q. Simmons","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/34/71864/0:0,400:400-0-0-70/267bf"},{"r":"M. Pedersen","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/33/71739/0:0,400:400-0-0-70/b9b9e"},{"r":"B. Healy","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/44/71874/0:0,400:400-0-0-70/8d88c"},{"r":"J. Philipsen","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/105/71879/0:0,400:400-0-0-70/47c2e"},{"r":"S. Waerenskjold","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"O. Kooij","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/55/71846/0:0,400:400-0-0-70/14a75"},{"r":"B. Girmay","t":"NSN Cycling Team","c":"#F7A600","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/131/71889/0:0,400:400-0-0-70/d6cec"},{"r":"J. Abrahamsen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/122/71884/0:0,400:400-0-0-70/9e49c"},{"r":"T. Traaen","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"B. O'Connor","t":"Team Jayco AlUla","c":"#00A94F","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/111/71760/0:0,400:400-0-0-70/8fc03"},{"r":"S. Quinn","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/45/71736/0:0,400:400-0-0-70/86d77"},{"r":"M. Kanter","t":"XDS Astana Team","c":"#00A9CE","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/64/71733/0:0,400:400-0-0-70/093a7"},{"r":"T. Merlier","t":"Soudal Quick-Step","c":"#0033A0","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/91/71752/0:0,400:400-0-0-70/70dcd"},{"r":"M. Fretin","t":"Cofidis","c":"#E2001A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/165/71781/0:0,400:400-0-0-70/be306"},{"r":"H. Artz","t":"Lotto-Intermarché","c":"#A6093D","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/152/71830/0:0,400:400-0-0-70/dc4b5"},{"r":"F. Lipowitz","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/25/71731/0:0,400:400-0-0-70/ce3e1"},{"r":"A. Yates","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/8/71870/0:0,400:400-0-0-70/231b7"},{"r":"J. Jegat","t":"TotalEnergies","c":"#F04E23","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/201/71812/0:0,400:400-0-0-70/334e1"},{"r":"R. Pluimers","t":"Tudor Pro Cycling","c":"#2B2B2B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/195/71811/0:0,400:400-0-0-70/b1dd4"},{"r":"P. Bauhaus","t":"Bahrain Victorious","c":"#C8102E","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/72/71860/0:0,400:400-0-0-70/da949"},{"r":"B. McNulty","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/4/71836/0:0,400:400-0-0-70/8efa9"},{"r":"A. Baudin","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/43/71742/0:0,400:400-0-0-70/f78a8"},{"r":"R. Debruyne","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/102/71878/0:0,400:400-0-0-70/ccddb"},{"r":"R. Carapaz","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/41/71725/0:0,400:400-0-0-70/7396a"}];
+const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"col-du-fantasy.firebaseapp.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.firestore(); const FV=firebase.firestore.FieldValue;
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});   // stay signed in across visits
+const OWNER_EMAIL="allen@ascentpartnersltd.com";
+const PALETTE=["#c9971a","#2f8f52","#26347e","#cf2530","#7d3ac1","#e07b00","#0f9e9e","#c02d6b"];
+const init=r=>r.replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+let myEmail=null,isOwner=false,poolId=null,pool=null,STAGE=null,ORDER=[],SNAKE=[],PMETA={},JUDGE=null,myCode=null,isJudge=false,draft=null,unsub=null,chosen=null;
+const DEFAULT_POOL='col-du-fantasy';
+const paramPool=new URLSearchParams(location.search).get('pool')||DEFAULT_POOL||null;
+function showGate(msg,err){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){m.textContent=msg; m.className=(err?'err':'');}}} }
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ showGate(''); return; }
+  myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
+  try{
+    const id=await resolvePool(); if(!id){ return; }
+    await loadPool(id);
+    if(myCode){ db.doc('userPools/'+myEmail).set({pools:FV.arrayUnion(poolId)},{merge:true}).catch(()=>{}); }
+    const CDF=await buildCDF();
+    document.documentElement.classList.remove('gated'); document.body.classList.remove('gated');
+    var g=$('gate'); if(g) g.style.display='none';
+    try{ window.__runBoard(CDF); }catch(e){ console.error('runBoard error',e); }
+    try{ if(CDF.editorial&&CDF.editorial.hlTiles&&CDF.editorial.hlTiles.length){
+      const first=document.querySelector('.hl-tile[data-hl]');
+      if(first){ const parent=first.parentNode;
+        const html=CDF.editorial.hlTiles.map(t=>'<div class="hl-tile"><div class="big">'+t.big+'</div><div><div class="t">'+t.t+'</div><div class="b">'+t.b+'</div></div></div>').join('');
+        const frag=document.createElement('div'); frag.innerHTML=html;
+        while(frag.firstChild) parent.insertBefore(frag.firstChild, first);
+        first.remove();
+      } }
+      if(CDF.editorial&&CDF.editorial.tiltFoot){ const tf=document.querySelector('.tilt-foot'); if(tf) tf.textContent=CDF.editorial.tiltFoot; }
+    }catch(e){ console.error('hl-tiles editorial error',e); }
+    try{ fillClockAward(); }catch(e){ console.error('clock award error',e); }
+    var _s=document.querySelector('.mast-t .s'); if(_s) _s.textContent=(pool.subtitle||((pool.name||'Fantasy pool')+' - Cycling'));
+    document.title=pool.pageTitle||('Col du Fantasy - '+(pool.name||'Pool'));
+    if(!CDF.stages.length){
+      var _ins=document.querySelector('#callouts .insight .txt');
+      if(_ins) _ins.innerHTML='The boards are level to start. The story fills in as the race is scored.';
+    }
+    subscribe();     // live draft into #draftMount
+  }catch(e){ console.error(e); showGate('Error: '+(e.message||e), true); }
+});
+document.addEventListener('click',e=>{
+  const t=e.target && e.target.closest ? e.target.closest('#gbtn,#gate-google,#gate-emaillink') : null;
+  if(t && (t.id==='gbtn'||t.id==='gate-google')){
+    const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
+    auth.signInWithPopup(p).catch(err=>{
+      const c=err&&err.code;
+      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ auth.signInWithRedirect(p); }
+      else { showGate(err.message,true); }
+    });
+  } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
+});
+auth.getRedirectResult().catch(err=>{ if(err) showGate(err.message,true); });
+const LINK_KEY='cdf_emailForSignIn';
+const acs={ url: location.origin+location.pathname+location.search, handleCodeInApp:true };
+function sendEmailLink(){
+  const inp=$('gate-email'); const email=((inp&&inp.value)||'').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showGate('Enter a valid email to get a sign-in link.',true); if(inp)inp.focus(); return; }
+  const b=$('gate-emaillink'); if(b) b.disabled=true; showGate('Sending your sign-in link...');
+  auth.sendSignInLinkToEmail(email,acs).then(()=>{
+    try{ localStorage.setItem(LINK_KEY,email); }catch(e){}
+    if(b) b.disabled=false;
+    showGate('Link sent. Check '+email+' for a sign-in link from Col du Fantasy and open it on this device.');
+  }).catch(err=>{
+    if(b) b.disabled=false;
+    const c=err&&err.code;
+    if(c==='auth/operation-not-allowed'){ showGate('Email link sign-in is not switched on in Firebase yet.',true); }
+    else if(c==='auth/unauthorized-continue-uri'){ showGate('This site domain is not authorized in Firebase yet.',true); }
+    else { showGate('Could not send the link: '+(err?err.message:'unknown error'),true); }
+  });
+}
+if(auth.isSignInWithEmailLink(location.href)){
+  let em=''; try{ em=localStorage.getItem(LINK_KEY)||''; }catch(e){}
+  if(!em){ em=(prompt('Confirm the email you requested the link for')||'').trim().toLowerCase(); }
+  if(em){ showGate('Finishing sign-in...'); auth.signInWithEmailLink(em,location.href).then(()=>{ try{localStorage.removeItem(LINK_KEY);}catch(e){} if(history.replaceState) history.replaceState(null,'',location.origin+location.pathname+location.search); }).catch(err=>showGate('That sign-in link did not work ('+(err?err.message:'expired or already used')+'). Request a fresh one.',true)); }
+}
+
+async function resolvePool(){
+  if(paramPool) return paramPool;
+  if(isOwner){ const all=await db.collection('pools').get(); if(all.size===1) return all.docs[0].id; if(all.size===0){ showGate('No pools yet. Create one in the operator console.'); return null;} showGate('Operator: '+all.docs.map(d=>'<a href="?pool='+d.id+'">'+(d.data().name||d.id)+'</a>').join(' · ')); return null; }
+  const idx=await db.doc('userPools/'+myEmail).get(); const ids=idx.exists?(idx.data().pools||[]):[];
+  for(const id of ids){ try{ const s=await db.doc('pools/'+id).get(); if(s.exists) return id; }catch(e){} }
+  showGate('You are not in a pool yet. Ask Allen to add you, then sign in again.'); return null;
+}
+async function loadPool(id){
+  const snap=await db.doc('pools/'+id).get(); if(!snap.exists) throw new Error('That pool does not exist.');
+  poolId=id; pool=snap.data(); STAGE=String(pool.startStage);
+  ORDER=(pool.order&&pool.order.length)?pool.order.slice():Object.values(pool.members||{});
+  SNAKE=ORDER.concat(ORDER.slice().reverse()); JUDGE=pool.judge||null;
+  PMETA={}; { const seats=ORDER.slice().sort(); ORDER.forEach(c=>{ PMETA[c]={n:(pool.names&&pool.names[c])||c,c:PALETTE[seats.indexOf(c)%PALETTE.length]}; }); }
+  myCode=(pool.members||{})[myEmail]||null; isJudge=(myCode&&myCode===JUDGE);
+}
+/* Shared race intel for the upcoming stage (same for every pool). Update per stage until the
+   boards are unified (Phase 2); mirrors the master's UPCOMING route/type/km/intel. */
+const SHARED_UPCOMING = {
+  14: { route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
+    intel:{
+      summary:"A short, savage Vosges mountain day, seven climbs and 3,800 m of climbing that ends on the Col du Haag before a 6 km run-in to Le Markstein; the first real GC summit test since the Pyrenees.",
+      facts:[
+        "155.3 km with 3,800 m of climbing packed into seven categorized ascents",
+        "Over the Grand Ballon and Ballon d'Alsace early, then a relentless lumpy finale",
+        "Final climb is the Col du Haag, 11.2 km at 7.3 percent, cresting 5.9 km from the line",
+        "Suits the climbers and GC contenders, though a strong break could also survive on this terrain"
+      ]
+    } },
+  15: { route:"Champagnole > Plateau de Solaison", type:"Summit finish", km:184,
+    intel:{
+      summary:"A big Jura-into-Alps GC day: 184 km and about 4,700 m of climbing across six categorized ascents, capped by the brutal Plateau de Solaison summit finish, 11.3 km at 9.1 percent.",
+      facts:[
+        "184 km with about 4,700 m of climbing across six categorized ascents",
+        "The Col de la Croisette midway is 7.6 km at 8.8 percent, its final 4.7 km at a savage 11.2",
+        "Finish climb is the Plateau de Solaison, 11.3 km at 9.1 percent with four of them in double digits, and the line sits at the summit",
+        "A pure climbers' and GC test, the last summit showdown before the Evian time trial"
+      ]
+    } }
+};
+
+/* Draft clock award (Stats tab) - parity with the primary board. Reads this pool's
+   draft docs, computes average time on the clock per pick. Rule: count a pick only
+   when the previous pick was someone else (skips the untimed leadoff and the
+   back-to-back turn pick). Rank by average. */
+function fillClockAward(){
+  const box=document.getElementById('clockAwardBox'); const body=document.getElementById('clockAwardBody');
+  if(!box||!body) return;
+  const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const nameOf=c=>(PMETA[c]&&PMETA[c].n)||c;
+  const fmt=ms=>{ if(ms<0)ms=0; let s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60); s=s%60; const p=n=>(n<10?'0':'')+n; return h?(h+':'+p(m)+':'+p(s)):(m+':'+p(s)); };
+  const maxStage=Number(STAGE)||21;
+  const gets=[]; for(let n=1;n<=maxStage;n++){ gets.push(db.doc('pools/'+poolId+'/drafts/'+n).get().catch(()=>null)); }
+  Promise.all(gets).then(snaps=>{
+    const agg={};
+    snaps.forEach(s=>{
+      if(!s||!s.exists) return; const d=s.data()||{}; const picks=d.picks||[], la=d.lockAt||{};
+      for(let k=2;k<=picks.length;k++){
+        const a=la[String(k)], b=la[String(k-1)];
+        if(!a||!a.toMillis||!b||!b.toMillis) continue;
+        if(!picks[k-1]||!picks[k-2]||picks[k-1].player===picks[k-2].player) continue;
+        const who=picks[k-1].player; if(!who) continue;
+        if(!agg[who]) agg[who]={ms:0,n:0};
+        agg[who].ms+=Math.max(0,a.toMillis()-b.toMillis()); agg[who].n++;
+      }
+    });
+    const rows=Object.keys(agg).map(c=>({c,avg:agg[c].ms/agg[c].n,n:agg[c].n})).filter(r=>r.n>0).sort((x,y)=>x.avg-y.avg);
+    if(!rows.length) return;
+    const fast=rows[0], slow=rows[rows.length-1], mx=slow.avg||1;
+    const pills='<div class="ca-pills"><span class="ca-pill fast"><b>Quickest</b> '+E(nameOf(fast.c))+' &middot; '+fmt(fast.avg)+'</span>'
+      +(rows.length>1?'<span class="ca-pill slow"><b>Slowest</b> '+E(nameOf(slow.c))+' &middot; '+fmt(slow.avg)+'</span>':'')+'</div>';
+    const ladder='<div class="ca-ladder">'+rows.map((r,i)=>'<div class="ca-row"><span class="ca-pos">'+(i+1)+'</span><span class="ca-name">'+E(nameOf(r.c))+'</span><span class="ca-bar"><i style="width:'+Math.round(100*r.avg/mx)+'%"></i></span><span class="ca-t">'+fmt(r.avg)+'</span></div>').join('')+'</div>';
+    body.innerHTML=pills+ladder;
+  }).catch(()=>{});
+}
+
+async function buildCDF(){
+  const seatList=(pool.seats&&pool.seats.length)?pool.seats.slice():ORDER.slice().sort();
+  const players={}; seatList.forEach(c=>players[c]={name:(pool.names&&pool.names[c])||c});
+  const riderProfile={}; seatList.forEach(c=>riderProfile[c]={pin:'',avatar:''});
+  const zero={}; seatList.forEach(c=>zero[c]=0);
+  let stages=[];
+  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{
+    if(!/^\d+$/.test(d.id)) return; // only numeric doc ids are stages; ignore scratch/meta docs
+    const v=d.data();
+    // Firestore cannot store nested arrays, so stage docs carry picks as maps
+    // ({r:"T. Pogacar",f:1}); convert to the [rider,finish] pairs runBoard expects.
+    if(v.picks) Object.keys(v.picks).forEach(k=>{ v.picks[k]=(v.picks[k]||[]).map(p=>Array.isArray(p)?p:[p.r,(p.f===undefined?null:p.f)]); });
+    stages.push(Object.assign({n:Number(d.id)},v)); }); }catch(e){}
+  stages.sort((a,b)=>a.n-b.n);
+  const upPicks={}; ORDER.forEach(c=>upPicks[c]=[]);
+  // pull the live draft's picks so the stage card and Allegiances reflect the round the moment it is drafted
+  try{ const dsnap=await db.doc('pools/'+poolId+'/drafts/'+STAGE).get();
+    if(dsnap.exists){ (dsnap.data().picks||[]).forEach(p=>{ if(p&&p.player&&p.rider&&upPicks[p.player]) upPicks[p.player].push(p.rider); }); } }catch(e){}
+  const su=(SHARED_UPCOMING&&SHARED_UPCOMING[Number(STAGE)])||{};
+  const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:su.route||'', type:su.type||'', km:su.km||0, intel:su.intel||{summary:'',facts:[]}, picks:upPicks };
+  const official=pool.official||{ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
+  const ledger=pool.personaLedger||{order:ORDER.slice(),by:{},seen:{}};
+  const rp=pool.riderProfile||riderProfile;
+  const seats=seatList.slice();
+  return { players, order:ORDER.slice(), seats, riderProfile:rp, personaLedger:ledger, official, stages, upcoming, editorial:pool.editorial||null };
+}
+/* ---------------- draft engine (per pool) ---------------- */
+function draftRef(){ return db.doc('pools/'+poolId+'/drafts/'+STAGE); }
+function draftInit(){ return { n:Number(STAGE), order:ORDER, snake:SNAKE, queue:SNAKE.slice(), picks:[], status:'pending', createdAt:FV.serverTimestamp() }; }
+function subscribe(){
+  if(unsub) unsub();
+  unsub=draftRef().onSnapshot(async snap=>{
+    if(!snap.exists){ if(isOwner||myCode){ try{ await draftRef().set(draftInit()); }catch(e){ $('draftMount').innerHTML=warn('Could not open the draft: '+esc(e.message)); } return; } $('draftMount').innerHTML='<div class="draft"><div class="allin"><div class="sm">The draft has not been opened yet.</div></div></div>'; return; }
+    draft=snap.data();
+    if(draft.status==='pending'&&(draft.picks||[]).length===0&&JSON.stringify(draft.order||[])!==JSON.stringify(ORDER)){ if(isOwner||myCode){ try{ await draftRef().set(draftInit()); }catch(e){} return; } }
+    renderDraft();
+    highlightSeat();
+  }, err=>{ $('draftMount').innerHTML=warn('Permission error: '+esc(err.message)); });
+}
+function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div></div>'; }
+function highlightSeat(){ const clock=(draft&&draft.queue&&draft.queue[0])||null; document.querySelectorAll('.pb-seat').forEach(s=>s.classList.toggle('on', s.dataset.code===clock)); }
+function head(sub,badge){ return `<div class="dh"><div class="dh-l"><div class="dh-ico"><svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg></div><div><div class="dh-t">Stage ${esc(STAGE)} draft</div><div class="dh-s">${sub}</div></div></div>${badge||''}</div>`; }
+function riderAv(rider,pending,clock,player){ if(pending) return `<span class="tav pending ${clock?'clock':''}"><span class="fb" style="color:${PMETA[player].c}">${player}</span></span>`; const col=rider.c||'#888'; const fb=`<span class="fb" style="background:${col}">${init(rider.r)}</span>`; const img=rider.p?`<img class="ph" src="${esc(rider.p)}" onerror="this.remove()">`:''; return `<span class="tav" style="box-shadow:0 0 0 2.5px ${col}">${fb}${img}</span>`; }
+function fmtDur(ms){ if(ms<0) ms=0; let s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
+function tickClock(){ const el=$('drClockTimer'); if(!el||!draft) return; const picks=draft.picks||[], queue=draft.queue||[]; if(draft.status==='complete'||!queue.length){ el.textContent=''; return; } const la=draft.lockAt||{}, start=la[String(picks.length)]; let ms=(start&&start.toMillis)?start.toMillis():null; if(ms==null){ Object.keys(la).forEach(k=>{ const v=la[k]; if(v&&v.toMillis){ const t=v.toMillis(); if(ms==null||t>ms) ms=t; } }); if(ms==null && draft.createdAt && draft.createdAt.toMillis) ms=draft.createdAt.toMillis(); } if(ms==null){ el.textContent=''; return; } el.textContent=' · '+fmtDur(Date.now()-ms); }
+setInterval(tickClock,1000);
+function renderMini(picks){
+  // draft complete: the widget shrinks to a compact bar (same behavior as the primary board)
+  let avs='';
+  picks.slice(0,SNAKE.length).forEach(pk=>{
+    const col=pk.color||'#888';
+    const img=pk.photo?`<img src="${esc(pk.photo)}" onerror="this.remove()">`:'';
+    avs+=`<span class="mb-av" style="border-color:${col}" title="${esc(pk.rider)} (${pk.player})">${img}${img?'':`<span class="mfb" style="background:${col}">${pk.player}</span>`}</span>`;
+  });
+  $('draftMount').innerHTML=`<div class="draft mini"><div class="minibar">`+
+    `<div class="mb-t"><span class="mb-ico"><svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg></span>Stage ${esc(STAGE)} draft locked</div>`+
+    `<span class="dh-badge badge-done">All ${picks.length} in</span>`+
+    `<span class="mb-avs">${avs}</span>`+
+    `<span class="mb-more">Picks are live on the stage card</span>`+
+    `</div></div>`;
+}
+function renderDraft(){
+  const picks=draft.picks||[], queue=draft.queue||[]; const clock=queue[0]||null; const status=draft.status||'pending';
+  const done=status==='complete'||queue.length===0; const pending=status==='pending'&&picks.length===0; const leadoff=ORDER[0];
+  if(done && picks.length){ renderMini(picks); return; }
+  let nodes='';
+  for(let i=0;i<SNAKE.length;i++){ if(i===ORDER.length) nodes+='<div class="tgap"></div>';
+    if(i<picks.length){ const pk=picks[i]; nodes+=`<div class="tnode">${riderAv({r:pk.rider,c:pk.color||'#888',p:pk.photo},false)}<div class="tcap"><b style="color:${PMETA[pk.player].c}">#${i+1}</b>${pk.player}</div><div class="tname">${esc(pk.rider)}</div></div>`; }
+    else { const qi=i-picks.length, player=queue[qi], clk=(qi===0&&!pending); nodes+=`<div class="tnode">${riderAv(null,true,clk,player)}<div class="tcap"><b style="color:${PMETA[player].c}">#${i+1}</b>${player}</div></div>`; } }
+  let badge = pending?'<span class="dh-badge badge-pending">Not started</span>':(done?`<span class="dh-badge badge-done">All ${picks.length} in</span>`:`<span class="dh-badge badge-clock">${PMETA[clock].n} on the clock<span id="drClockTimer" style="font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.02em"></span></span>`);
+  const sub = pending?`Snake draft · opens on ${PMETA[leadoff].n}'s first pick`:(done?'Snake draft · complete':'Snake draft · live');
+  let action='';
+  if(done){ action=`<div class="action"><div class="allin"><div class="big">All picks are in.</div><div class="sm">Standings post once the stage is scored.</div></div></div>`; }
+  else if(pending){ if(clock===myCode){ action=`<div class="action"><div class="a-h">You lead off · pick #1<small>Locking your first rider opens the draft for everyone.</small></div>${searchRow('Launch the draft')}</div>`; } else if(isOwner){ action=`<div class="action"><div class="a-h">${PMETA[leadoff].n} leads off · pick #1<small>Admin: you can lock their opening rider for them and launch the draft.</small></div>${searchRow('Enter for '+PMETA[leadoff].n)}<div class="seedbar">Draft armed for Stage ${esc(STAGE)}. It goes live the instant you lock pick #1.</div></div>`; } else { action=`<div class="action"><div class="pendline"><b>The draft opens when ${PMETA[leadoff].n} makes the first pick.</b> Your turn shows here the moment it is live.</div></div>`; } }
+  else if(clock===myCode){ action=`<div class="action"><div class="a-h">You are on the clock · pick #${picks.length+1}</div>${searchRow('Lock pick')}</div>`; }
+  else { const mine=[]; queue.forEach((c,idx)=>{ if(c===myCode) mine.push(idx); }); const nextTxt=myCode?(mine.length?`Your next turn is pick #${picks.length+mine[0]+1}.`:'Both your picks are in.'):'You are watching.'; action=`<div class="action"><div class="waitline"><b>${PMETA[clock].n} is on the clock.</b> ${nextTxt}</div></div>`; }
+  let admin=''; if(isOwner&&!pending&&clock&&clock!==myCode){ admin=`<div class="admin"><div class="ad-h">Operator · enter for the player on the clock</div><div class="ad-b">${PMETA[clock].n} is up (pick #${picks.length+1}).</div>${searchRow('Enter for '+PMETA[clock].n)}</div>`; }
+  let judge=''; if(isJudge&&!pending&&clock&&clock!==myCode){ judge=`<div class="judge"><div class="j-h">Judge control</div><div class="j-b">Waiting on <b>${PMETA[clock].n}</b> (pick #${picks.length+1}).</div><button class="j-skip" id="bump" type="button">Bump ${PMETA[clock].n} to the back</button></div>`; }
+  $('draftMount').innerHTML='<div class="draft">'+head(sub,badge)+`<div class="ticker">${nodes}</div>`+action+admin+judge+'</div>';
+  let forCode=null; if(clock===myCode) forCode=myCode; else if(isOwner&&pending) forCode=ORDER[0]; else if(isOwner&&clock&&clock!==myCode) forCode=clock;
+  if(forCode) wireSearch(forCode);
+  const b=$('bump'); if(b) b.addEventListener('click',doBump);
+  tickClock();
+}
+function searchRow(label){ return `<div class="searchrow"><input id="s" placeholder="Search a rider still on the board..." autocomplete="off"><button class="lockbtn" id="lock" disabled>${esc(label)}</button><div class="ac" id="ac"></div></div>`; }
+function wireSearch(forCode){ const input=$('s'),ac=$('ac'),lock=$('lock'); if(!input) return; const taken=new Set((draft.picks||[]).map(p=>p.rider)); chosen=null; const label=lock.textContent;
+  input.addEventListener('input',()=>{ chosen=null; lock.disabled=true; const q=input.value.trim().toLowerCase(); if(!q){ac.classList.remove('open');return;} const ms=RIDERS.filter(r=>!taken.has(r.r)&&(r.r.toLowerCase().includes(q)||r.t.toLowerCase().includes(q))).slice(0,8); ac.innerHTML=ms.length?ms.map((r,i)=>`<div class="ac-item" data-i="${i}"><img class="ac-av" src="${esc(r.p||'')}" onerror="this.style.visibility='hidden'"><span class="ac-rn">${esc(r.r)}</span><span class="ac-rt">${esc(r.t)}</span></div>`).join(''):'<div class="ac-item" style="color:var(--mute)">No match (35 riders now; full field next)</div>'; ac.classList.add('open'); ac.querySelectorAll('.ac-item[data-i]').forEach(it=>it.addEventListener('mousedown',e=>{e.preventDefault();chosen=ms[+it.dataset.i];input.value=chosen.r+'  ('+chosen.t+')';ac.classList.remove('open');lock.disabled=false;})); });
+  input.addEventListener('blur',()=>setTimeout(()=>ac.classList.remove('open'),150)); lock.addEventListener('click',()=>submitPick(forCode,label)); }
+async function submitPick(forCode,label){ if(!chosen) return; const code=forCode||myCode; const lock=$('lock'); if(lock){lock.disabled=true;lock.textContent='Saving...';} const ref=draftRef(); const picked=chosen;
+  try{ await db.runTransaction(async tx=>{ const d=(await tx.get(ref)).data(); if(d.status==='complete') throw new Error('draft closed'); if(d.queue[0]!==code) throw new Error('not your turn'); if((d.picks||[]).some(p=>p.rider===picked.r)) throw new Error('already taken'); const pnum=(d.picks||[]).length+1; const pick={n:pnum,player:code,rider:picked.r,team:picked.t,photo:picked.p||'',color:picked.c||'',by:myEmail,admin:code!==myCode}; const queue=d.queue.slice(1); const upd={picks:(d.picks||[]).concat([pick]),queue,status:queue.length?'live':'complete'}; upd['lockAt.'+pnum]=FV.serverTimestamp(); tx.update(ref,upd); }); }
+  catch(e){ alert('Could not lock pick: '+(e.message||e)); const l=$('lock'); if(l){l.disabled=false;l.textContent=label||'Lock pick';} } }
+async function doBump(){ const ref=draftRef(); try{ await db.runTransaction(async tx=>{ const d=(await tx.get(ref)).data(); if(!d.queue.length) return; const q=d.queue.slice(); q.push(q.shift()); tx.update(ref,{queue:q,bumpedAt:FV.serverTimestamp()}); }); }catch(e){ alert('Bump failed: '+(e.message||e)); } }
+
+</script>
+
+<script>
+window.__runBoard=function(CDF){
+
 /* =========================================================================
    EDIT ZONE
    All standings compute from STAGES. OFFICIAL / JJ_POSTED / ASK_JJ are JJ's
@@ -952,10 +1212,7 @@
    on the page. Hand-written stats live in the hl-tiles, the stats array, and
    the arch array below the edit zone - refresh ALL of them every update.
    ========================================================================= */
-const PLAYERS = {
-  AA:{name:"Allen Abbott"}, JP:{name:"Jason Pfetcher"},
-  JB:{name:"Jeff Bush"},     JJ:{name:"Jeff Johns"}
-};
+const PLAYERS = CDF.players;
 
 /* Palmarès personas are assigned DYNAMICALLY each update: every player is matched to
    the classic-cyclist persona that best fits their current characteristics (leader,
@@ -963,10 +1220,7 @@ const PLAYERS = {
    so a change of places can hand someone a new alter-ego. Catalog + matching live
    below the edit zone (PERSONA_CATALOG). Optional overrides here: pin forces a
    persona by id (e.g. pin:"cannibal"); avatar swaps the cartoon for a real photo. */
-const RIDER_PROFILE = {
-  AA:{ pin:"", avatar:"" }, JJ:{ pin:"", avatar:"" },
-  JB:{ pin:"", avatar:"" }, JP:{ pin:"", avatar:"" }
-};
+const RIDER_PROFILE = CDF.riderProfile;
 
 /* Persona ledger - the LAST SETTLED board (the standings order and the persona each
    player held) plus every persona each player has ever worn. The engine below diffs
@@ -977,17 +1231,9 @@ const RIDER_PROFILE = {
    UPKEEP (only when the standings order changes): before rebuilding, set `order` and
    `by` to the board that is CURRENTLY displayed and push each player's current persona
    id onto `seen`. Then add the new stage. The engine reassigns whoever moved. */
-const PERSONA_LEDGER = {
-  order: ["AA","JB","JJ","JP"],
-  by:    { AA:"badger", JB:"roglic", JJ:"alaphilippe", JP:"eternalsecond" },
-  seen:  { AA:["cannibal","sagan","badger"], JJ:["godofthunder","wiggins","alaphilippe"], JB:["professor","roglic"], JP:["eternalsecond"] }
-};
+const PERSONA_LEDGER = CDF.personaLedger;
 
-const OFFICIAL = {
-  through: 7,
-  placement: { AA:141, JJ:200, JB:268, JP:318 },   // primary, lower is better
-  rank:      { JJ:49,  AA:60,  JP:65,  JB:75 }      // secondary, lower is better
-};
+const OFFICIAL = CDF.official;
 
 /* Full 21-stage calendar. win:"" + upcoming:true for stages not yet raced. */
 const RACE = [
@@ -1014,168 +1260,30 @@ const RACE = [
   { n:21, date:"Jul 26", route:"Paris > Champs-Elysees",   type:"Finale / Montmartre",win:"", upcoming:true, extra:"Three Montmartre climbs" }
 ];
 
-/* Pool picks + finishes where known. null = not posted. */
-const STAGES = [
-  { n:1, route:"Barcelona TTT", type:"Team time trial", km:19.7, win:"Team Visma",
-    days:{ AA:16, JJ:8, JP:9, JB:13 },
-    picks:{ AA:[["UAE Team Emirates",3],["Missed 2nd (penalty)",13]], JB:[["Visma-Lease a Bike",1],["Pinarello Q36.5",12]],
-            JJ:[["Ineos",2],["Decathlon",6]], JP:[["Lidl-Trek",4],["Red Bull-Bora",5]] },
-    reads:{
-      AA:"UAE was a legitimate top-three TTT engine and a strong single anchor; the missed second pick takes the penalty slot at 13th, one below the worst actual pick, for a 16 that gives up any edge from the gap.",
-      JP:"Lidl-Trek 4th and Red Bull 5th is a tight, dependable pair; the flip side is neither challenged for the win, a floor over a ceiling.",
-      JB:"Visma was the winning squad, a great lead leg; Pinarello Q36.5 at 12th is the drag that pushed the day to 13.",
-      JJ:"Ineos 2nd and Decathlon 6th is two top-six squads and very safe; the trade-off is no winner and little upside beyond solid." },
-    note:"Team time trial. Visma won it. AA named only one team, UAE (3rd), and missed the second pick. Rule applied: a missed pick scores one slot below the worst actual pick. Pinarello was the worst at 12th, so the empty slot takes 13th, giving UAE 3rd plus 13 for a 16, the worst day of the four and no edge gained from the gap. JJ's tally shows a 25, flagged for him to align. JB took Visma 1st and Pinarello Q36.5 12th for a 13. JJ paired Ineos 2nd and Decathlon 6th for an 8. JP took Lidl-Trek 4th and Red Bull 5th for a 9." },
-  { n:2, route:"Tarragona > Barcelona", type:"Hilly / Montjuic", km:178, win:"I. del Toro",
-    combatif:"F. Engelhardt",
-    days:{ JJ:9, JP:13, AA:13, JB:60 }, best:"JJ",
-    picks:{ AA:[["J. Vingegaard",4],["P. Seixas",9]], JP:[["R. Evenepoel",3],["T. Pidcock",10]],
-            JJ:[["T. Pogacar",2],["R. Gregoire",7]], JB:[["M. van der Poel",22],["M. Vacek",38]] },
-    reads:{
-      AA:"Vingegaard and Seixas both landed inside the top nine, a clean floor; neither was near the front on a day the UAE pair drove clear.",
-      JP:"Evenepoel 3rd anchors it on the podium; Pidcock scraping 10th is the softer leg that kept the pair a step back.",
-      JB:"MVDP and Vacek are aggressive one-day types who could have featured; the uphill drag blunted both and the total ran long.",
-      JJ:"Pogacar 2nd is elite value on a punchy finish; Gregoire 7th is the lighter half of an otherwise strong day." },
-    note:"Montjuic. AA's Vingegaard 4th and Seixas 9th made 13, matched by JP's Evenepoel 3rd and Pidcock 10th. JJ's Pogacar 2nd and Gregoire 7th make 9; the group recap logged an 8, a one-point slip that stays in the official tally. JB ran long on MVDP 22nd and Vacek 38th." },
-  { n:3, route:"Granollers > Les Angles", type:"Mountain", km:191, win:"T. Pogacar",
-    combatif:"A. Baudin",
-    days:{ JJ:6, AA:17, JB:51, JP:127 }, best:"JJ",
-    picks:{ AA:[["I. del Toro",9],["R. Evenepoel",8]], JJ:[["T. Pogacar",1],["T. Johannessen",5]],
-            JP:[["J. Vingegaard",2],["M. van der Poel",125]], JB:[["J. Ayuso",10],["Q. Simmons",41]] },
-    reads:{
-      AA:"Two GC men, del Toro and Evenepoel, both inside the top ten on a mountain day; the downside is neither made the decisive front group.",
-      JP:"Vingegaard 2nd is near-perfect value; MVDP on a summit finish is a style mismatch and 125th wiped out the good leg.",
-      JB:"Ayuso salvaged a top ten; Simmons slipping to 41st on the climbs made it a heavy day.",
-      JJ:"Pogacar for the win plus Johannessen 5th was the model card; no real downside beyond it being hard to repeat." },
-    note:"Les Angles. JJ best with Pogacar 1st and Johannessen 5th for 6. AA at 17 with Evenepoel 8th and Del Toro 9th. JB's Ayuso 10th and Simmons 41st made 51. JP paired Vingegaard 2nd with Van der Poel 125th for a 127, the first of two MVDP mountain burials." },
-  { n:4, route:"Carcassonne > Foix", type:"Hilly / breakaway", km:184, win:"M. Pedersen",
-    combatif:"P. Castrillo", breakaway:true, breakThru:10,
-    days:{ JJ:24, JB:77, AA:58, JP:94 }, best:"JJ",
-    picks:{ AA:[["M. Pedersen",1],["R. Evenepoel",57]], JJ:[["Q. Simmons",2],["R. Gregoire",22]],
-            JP:[["T. Pogacar",33],["B. Healy",61]], JB:[["I. del Toro",34],["J. Vingegaard",43]] },
-    reads:{
-      AA:"Pedersen caught the breakaway win; the offset is Evenepoel sitting in the GC group nearly eight minutes down.",
-      JP:"Pogacar and Healy are the two most dangerous names on paper; a breakaway day neutralized both, the widest total on the board.",
-      JB:"del Toro and Vingegaard are protected leaders who pay off on summit days; on a flat break they idled in the bunch.",
-      JJ:"Simmons made the move for 2nd, strong upside; Gregoire missed it and finished deep, splitting the day." },
-    note:"Foix breakaway. AA (Pedersen 1st) and JJ (Simmons 2nd) held the 1-2, JJ best at 24. The GC group came in about 8 minutes down: Pogacar 33rd, Del Toro 34th, Vingegaard 43rd, Evenepoel 57th, Healy 61st." },
-  { n:5, route:"Lannemezan > Pau", type:"Flat sprint", km:158.3, win:"O. Kooij",
-    combatif:"B. Veistroffer",
-    days:{ AA:12, JB:13, JJ:88, JP:129 }, best:"AA",
-    picks:{ AA:[["J. Philipsen",5],["M. Pedersen",7]], JB:[["T. Merlier",3],["S. Waerenskjold",10]],
-            JP:[["O. Kooij",1],["M. van der Poel",128]], JJ:[["B. Girmay",6],["J. Abrahamsen",82]] },
-    reads:{
-      AA:"Philipsen and Pedersen both top seven, two proven fast men; neither won on a day the pure sprinters delivered.",
-      JP:"Kooij took the stage, the best possible lead leg; MVDP at 128th on a flat day is the recurring pairing that sinks the total.",
-      JB:"Merlier on the podium is a strong anchor; Waerenskjold just holding the top ten is the lighter leg.",
-      JJ:"Girmay in the sprint mix at 6th; Abrahamsen is a breakaway rider, never a sprint fit, and 82nd shows it." },
-    note:"Pau. AA best at 12, JB right behind at 13. JJ's Girmay 6th and Abrahamsen 82nd made 88. JP had the winner in Kooij but MVDP came home 128th for a 129, his 'did he fall asleep in the peloton' day." },
-  { n:6, route:"Pau > Gavarnie-Gedre", type:"Summit / Tourmalet", km:186.2, win:"T. Pogacar",
-    combatif:"T. Pogacar",
-    days:{ AA:9, JB:34, JP:39, JJ:52 }, best:"AA",
-    picks:{ AA:[["R. Evenepoel",4],["P. Seixas",5]], JJ:[["T. Pogacar",1],["T. Traaen",51]],
-            JP:[["J. Vingegaard",2],["B. O'Connor",37]], JB:[["I. del Toro",3],["S. Quinn",31]] },
-    reads:{
-      AA:"Evenepoel and Seixas both top five on a queen-stage summit, the day's best pair; the only gap is they did not beat Pogacar to it.",
-      JP:"Vingegaard 2nd behind only Pogacar is excellent; O'Connor losing big time on the climb is the drag.",
-      JB:"del Toro on the podium; Quinn couldn't hold the front group, which stretched the total.",
-      JJ:"Pogacar for the stage is the anchor; Traeen, the day's early yellow, cracked to 51st." },
-    note:"Tourmalet. AA's Evenepoel 4th and Seixas 5th made a 9, the best pair. The others each held a top-3 pick but their second riders cracked on the climbs: JB's Quinn 31st for 34, JP's O'Connor 37th for 39, JJ's Traeen 51st for 52." },
-  { n:7, route:"Hagetmau > Bordeaux", type:"Flat sprint", km:175.1, win:"T. Merlier",
-    combatif:"B. Veistroffer",
-    days:{ AA:7, JB:14, JJ:14, JP:30 }, best:"AA",
-    picks:{ AA:[["B. Girmay",3],["M. Kanter",4]], JB:[["J. Philipsen",5],["M. Pedersen",9]],
-            JJ:[["T. Merlier",1],["M. Fretin",13]], JP:[["O. Kooij",23],["H. Artz",7]] },
-    reads:{
-      AA:"Girmay 3rd and Kanter 4th, two top-four sprint results and the day's best pair; the only miss is the win itself.",
-      JP:"Artz snuck a top seven; Kooij, a winner two days earlier, got boxed out to 23rd, splitting the day.",
-      JB:"Philipsen and Pedersen both in the top ten again; mid-bunch on a day the win was there to take.",
-      JJ:"Merlier took the stage; Fretin outside the top ten kept it from being a dominant day." },
-    note:"Bordeaux. AA best at 7 with Girmay 3rd and Kanter 4th. JJ's Merlier won the stage, and Fretin 13th made a 14, level with JB. JP's Artz 7th and Kooij 23rd made 30." },
-  { n:8, route:"Bergerac", type:"Flat sprint", km:171, win:"T. Merlier",
-    combatif:"L. Slock",
-    days:{ AA:62, JJ:11, JB:14, JP:16 }, best:"JJ",
-    picks:{ AA:[["T. Merlier",1],["H. Artz",61]], JJ:[["B. Girmay",2],["M. Kanter",9]],
-            JB:[["O. Kooij",3],["S. Waerenskjold",11]], JP:[["J. Philipsen",4],["M. Pedersen",12]] },
-    reads:{
-      AA:"Grabbed the winner in Merlier; Artz drifting to 61st makes it a lopsided pair carried by the top leg.",
-      JP:"Philipsen top five is solid; Pedersen back in 12th on a tight sprint is the softer half.",
-      JB:"Kooij on the podium; Waerenskjold just outside the top ten is the lighter leg.",
-      JJ:"Girmay 2nd and Kanter 9th, the tightest day; the trade-off is getting beaten to the line by Merlier." },
-    note:"Merlier back-to-back. JJ best at 11 with Girmay 2nd and Kanter 9th. AA won the stage through Merlier but Artz came home 61st for a 62." },
-  { n:9, route:"Malemort > Ussel", type:"Void / DNS for all", km:154.6, win:"Neutralized",
-    picks:{}, voidStage:true,
-    note:"Heat-shortened, then wiped for the whole pool after the World Cup watch party left most of the table without picks. Van der Poel won the actual stage, the one day nobody scored. The stage the group chat lost to hydration." },
-  { n:10, route:"Aurillac > Le Lioran", type:"Mountain / Bastille", km:166.6, win:"T. Pogacar",
-    combatif:"R. Carapaz",
-    days:{ JP:6, AA:9, JB:24, JJ:26 }, best:"JP",
-    picks:{ JP:[["R. Evenepoel",2],["F. Lipowitz",4]], AA:[["T. Pogacar",1],["I. del Toro",8]],
-            JB:[["J. Vingegaard",7],["A. Yates",17]], JJ:[["P. Seixas",3],["J. Jegat",23]] },
-    reads:{
-      AA:"Pogacar for the win anchors it; del Toro cracking to 8th left points on the table where a second strong climber was available.",
-      JP:"Evenepoel 2nd and Lipowitz 4th out of one chase group make the tightest pair, a 6; the downside is no win and little dent in the deficit.",
-      JB:"Vingegaard held the top ten; Yates lost contact and came in 17th, widening the day.",
-      JJ:"Seixas on the podium; Jegat well down at 23rd is the leg that stretched the total." },
-    note:"JP's Evenepoel 2nd and Lipowitz 4th out of the same chase group made a 6, the tightest pair. AA had the stage winner in Pogacar but Del Toro cracked to 8th. Yates came in 17th, Jegat 23rd. Not yet in the official cumulative." },
-  { n:11, route:"Vichy > Nevers", type:"Flat sprint", km:161.3, win:"S. Waerenskjold",
-    combatif:"A. Charmig",
-    days:{ AA:19, JB:20, JJ:30, JP:5 }, best:"JP",
-    picks:{ AA:[["M. Kanter",18],["S. Waerenskjold",1]], JB:[["T. Merlier",15],["H. Artz",5]],
-            JJ:[["B. Girmay",6],["P. Bauhaus",24]], JP:[["O. Kooij",2],["J. Philipsen",3]] },
-    reads:{
-      AA:"Waerenskjold won the stage, still the best single pick anywhere; Kanter in 18th made it a 19, a strong day just off the front.",
-      JP:"Kooij 2nd and Philipsen 3rd, reinstated after the relegation was overturned on appeal, give JP the day's best pair at 5, a full recovery from the 121 the provisional result had shown.",
-      JB:"Merlier 15th and Artz 5th once the official result settled, a steady 20 on a chaotic sprint day.",
-      JJ:"Girmay 6th kept JJ in the mix; Bauhaus 24th was adrift, leaving the pair at 30." },
-    note:"Vichy to Nevers, the fastest road stage in Tour history at 50.9 kph. Waerenskjold won from distance. Philipsen crossed the line 3rd, was provisionally relegated for an irregular sprint, then reinstated to 3rd on appeal, which is the official result. That gives JP the day's best at 5 with Kooij 2nd and Philipsen 3rd. Finishes pulled from the official letour.fr classification." },
-  { n:12, route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", km:179.1, win:"T. Merlier",
-    combatif:"B. Veistroffer",
-    days:{ JP:8, JB:13, JJ:14, AA:109 }, best:"JP",
-    picks:{ JJ:[["J. Philipsen",3],["R. Pluimers",11]], JP:[["T. Merlier",1],["M. Kanter",7]],
-            AA:[["O. Kooij",2],["S. Waerenskjold",107]], JB:[["B. Girmay",4],["M. Pedersen",9]] },
-    reads:{
-      AA:"Kooij delivered a superb 2nd, but a crash inside the final 600 m caught Waerenskjold and dropped him to 107th, turning a podium day into the worst total on the board.",
-      JP:"Merlier won it and Kanter backed him up in 7th, comfortably the day's best pair.",
-      JB:"Girmay 4th and Pedersen 9th, a tidy, consistent 13 with no drama.",
-      JJ:"Philipsen took 3rd on the line and Pluimers held 11th, a steady 14 just off JB." },
-    note:"Magny-Cours to Chalon-sur-Saone. Merlier won the bunch sprint from Kooij and Philipsen. A crash inside the final 600 m held up part of the field and caught Waerenskjold, who was classified 107th; the safety rule gives him the bunch time but his placing stands. JP best on the day at 8 (Merlier 1, Kanter 7); AA's day ran to 109 on the Waerenskjold crash. Finishes pulled from the official letour.fr classification." },
-  { n:13, route:"Dole > Belfort", type:"Hilly / Ballon d'Alsace", km:205.8, win:"M. Schmid",
-    combatif:"T. Pidcock", breakaway:true, breakThru:19,
-    days:{ AA:34, JB:44, JP:97, JJ:159 }, best:"AA",
-    picks:{ AA:[["T. Pidcock",3],["B. Healy",31]], JB:[["I. del Toro",39],["B. McNulty",5]],
-            JP:[["T. Pogacar",38],["R. Carapaz",59]], JJ:[["A. Baudin",92],["R. Debruyne",67]] },
-    reads:{
-      AA:"The break bet paid in full. Pidcock rode up the road all day and took 3rd on the stage, the play of the day, while Healy was in the same move but cracked over the Ballon d'Alsace and drifted to 31st. The pair still made 34, the best day on the board and enough to move AA into the overall lead.",
-      JP:"The two-ended bet came up empty. Pogacar sat in the GC group on a day the favorites let the break go, finishing 38th, and Carapaz never made the front move and rolled in 59th. A 97 on a stage that rewarded going up the road.",
-      JB:"A split UAE card that half worked. McNulty was in the break and delivered a strong 5th, but del Toro stayed with the GC bunch for 39th, so the day landed at 44, second best behind AA.",
-      JJ:"The aggressive picks fit a breakaway day on paper, but neither Baudin nor Debruyne made the winning move; both were swept into the second group for 67th and 92nd, a 159 that handed the overall lead to AA." },
-    note:"Dole to Belfort, the longest stage of the Tour at 205.8 km, finishing over the Ballon d'Alsace. Mauro Schmid won from a large early break that beat the GC bunch by more than seven minutes; the favorites called a truce and let the move go. Pidcock 3rd out of the break is AA's day and the podium that took over the placement lead. The jury later named Pidcock the day's most combative rider. Finishes pulled from the official letour.fr classification." },
-  { n:14, route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3, win:"T. Pogacar",
-    combatif:"R. Carapaz",
-    days:{ AA:7, JP:7, JB:10, JJ:12 },
-    picks:{ AA:[["T. Pogacar",1],["J. Ayuso",6]], JB:[["I. del Toro",2],["R. Carapaz",8]],
-            JJ:[["F. Lipowitz",7],["R. Evenepoel",5]], JP:[["J. Vingegaard",4],["P. Seixas",3]] },
-    reads:{
-      AA:"Pogacar delivered the win, the fifth stage winner on AA's card this Tour, and Ayuso backed it with 6th for a 7 that shares the day's best; the only concession is Ayuso finishing 12 seconds off the podium group.",
-      JP:"Seixas 3rd and Vingegaard 4th is the tightest pair JP has drafted all race, tied for the day at 7; the ceiling was that neither could go with Pogacar when the winning move went.",
-      JB:"Del Toro chased his teammate home in 2nd and Carapaz earned the day's official combativity award; the drag is Carapaz crossing 8th, last of the pool's picks on a day everyone landed inside the top eight.",
-      JJ:"Evenepoel 5th and Lipowitz 7th is a clean GC pair with both riders inside the top eight; the flip side is neither touched the podium, so a solid 12 still reads as the heaviest card on the pool's best day." },
-    note:"Le Markstein. Pogacar won alone by 38 seconds; del Toro and Seixas came in together behind him. The pool's best collective day of the race: all eight picks finished in the top eight for 36 combined, and AA (Pogacar 1st, Ayuso 6th) and JP (Seixas 3rd, Vingegaard 4th) tied the day at 7. Carapaz took the official combativity award. Finishes pulled from the official letour.fr classification." }
-];
-
-const UPCOMING = {
-  n:15, route:"Champagnole > Plateau de Solaison", type:"Summit finish", km:184,
-  intel:{
-    summary:"A big Jura-into-Alps GC day: 184 km and about 4,700 m of climbing across six categorized ascents, capped by the brutal Plateau de Solaison summit finish, 11.3 km at 9.1 percent.",
-    facts:[
-      "184 km with about 4,700 m of climbing across six categorized ascents",
-      "The Col de la Croisette midway is 7.6 km at 8.8 percent, its final 4.7 km at a savage 11.2",
-      "Finish climb is the Plateau de Solaison, 11.3 km at 9.1 percent with four of them in double digits, and the line sits at the summit",
-      "A pure climbers' and GC test, the last summit showdown before the Evian time trial"
-    ]
-  },
-  picks:{ AA:[], JB:[], JJ:[], JP:[] }
+/* Official top 5 finishers per scored stage (shared race fact, same for every pool).
+   Stage 1 is the team time trial, so those are teams. Sources: cyclingstage.com,
+   cyclingflash.com, pezcyclingnews.com, cyclinguptodate.com (July 2026). */
+const RACE_TOP5 = {
+  1:["Team Visma-Lease a Bike","Netcompany-INEOS","UAE Team Emirates XRG","Lidl-Trek","Red Bull-BORA-hansgrohe"],
+  2:["I. del Toro","T. Pogacar","R. Evenepoel","J. Vingegaard","M. Skjelmose"],
+  3:["T. Pogacar","J. Vingegaard","R. Carapaz","P. Seixas","T. Johannessen"],
+  4:["M. Pedersen","Q. Simmons","R. Garcia Pierna","M. Frigo","R. Debruyne"],
+  5:["O. Kooij","M. Kanter","T. Merlier","H. Artz","J. Philipsen"],
+  6:["T. Pogacar","J. Vingegaard","I. del Toro","R. Evenepoel","P. Seixas"],
+  7:["T. Merlier","S. Waerenskjold","B. Girmay","M. Kanter","J. Philipsen"],
+  8:["T. Merlier","B. Girmay","O. Kooij","J. Philipsen","P. Bittner"],
+  9:["M. van der Poel","T. Johannessen","T. Pidcock","A. Baudin","F. Ganna"],
+  10:["T. Pogacar","R. Evenepoel","P. Seixas","F. Lipowitz","J. Ayuso"],
+  11:["S. Waerenskjold","O. Kooij","J. Philipsen","M. Fretin","H. Artz"],
+  12:["T. Merlier","O. Kooij","J. Philipsen","B. Girmay","M. Fretin"],
+  13:["M. Schmid","H. Tejada","T. Pidcock","M. Van Gils","B. McNulty"],
+  14:["T. Pogacar","I. del Toro","P. Seixas","J. Vingegaard","R. Evenepoel"]
 };
+
+/* Pool picks + finishes where known. null = not posted. */
+const STAGES = CDF.stages;
+
+const UPCOMING = CDF.upcoming;
 
 /* Next-stage weather. The widget on the Stats tab fetches a live forecast from
    Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
@@ -1200,8 +1308,8 @@ const BREAK_WORKER = "https://col-break.allen-19a.workers.dev";  // deployed Clo
 /* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
    this base, so whoever leads off today drops to last tomorrow. To set a one-off order
    for a single stage (someone out, a manual call), add order:["..",".."] to UPCOMING. */
-const ORDER_BASE = ["JJ","JP","AA","JB"];
-const ORDER_ANCHOR_STAGE = 12;
+const ORDER_BASE = CDF.order.slice();
+const ORDER_ANCHOR_STAGE = Number(CDF.upcoming&&CDF.upcoming.n)||12;
 function todaysOrder(){
   if(UPCOMING.order && UPCOMING.order.length) return UPCOMING.order.slice();
   const b=ORDER_BASE, m=b.length, off=((((UPCOMING.n||ORDER_ANCHOR_STAGE)-ORDER_ANCHOR_STAGE)%m)+m)%m;
@@ -1230,7 +1338,7 @@ const NEED_PICK = [];
 const orderBy = obj => Object.keys(obj).sort((a,b)=>obj[a]-obj[b]); // ascending = better
 
 /* Our cumulative, computed from the stage data across every completed stage (void stage skipped, today held off). */
-const PL4=['AA','JJ','JB','JP'];
+const PL4 = (CDF.seats||CDF.order);
 const COMPLETED = STAGES.filter(s=>!s.voidStage && s.days).map(s=>s.n).sort((a,b)=>a-b);
 const OURS = { through: COMPLETED.length?Math.max(...COMPLETED):0, placement:{}, rank:{} };
 PL4.forEach(p=>{OURS.placement[p]=0;OURS.rank[p]=0;});
@@ -1886,7 +1994,7 @@ function stageCard(st){
     body = `<div class="note"><span class="lab">Commissaire's note</span>${st.note}</div>`;
   } else {
     // per-player day total: prefer confirmed st.days, else compute from complete picks
-    const codes=['AA','JP','JB','JJ'];
+    const codes=(CDF.seats||CDF.order).slice();
     // one table per view: 'place' = sum of finishes (low wins, the system of record),
     // 'points' = top-15 fantasy points (high wins, the what-if lens). Placement math is untouched.
     function scoreTable(mode){
@@ -1974,8 +2082,8 @@ document.getElementById('stages').addEventListener('click',e=>{
 
 /* ===== The Numbers: four metrics ===== */
 (function(){
-  const players=['AA','JJ','JB','JP'];
-  const colors={AA:'#e8b31e',JJ:'#2d6cdf',JB:'#1a8a3a',JP:'#c0392b'};
+  const players=(CDF.seats||CDF.order).slice();
+  const colors=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const picks={}; players.forEach(p=>picks[p]=[]);
   STAGES.forEach(st=>{
     if(!st.picks) return;
@@ -2122,27 +2230,13 @@ document.getElementById('resultsTable').innerHTML =
   }).join('')+`</tbody>`;
 
 /* stats */
-const stats=[
-  {k:"Placement leader",v:OURS.placement[placeLeader],d:`${placeLeader}, lowest total (primary standing). Next: ${placeOrder.slice(1).map(k=>k+' '+OURS.placement[k]).join(', ')}.`},
+const stats=[{k:"Placement leader",v:OURS.placement[placeLeader],d:`${placeLeader}, lowest total (primary standing). Next: ${placeOrder.slice(1).map(k=>k+' '+OURS.placement[k]).join(', ')}.`},
   {k:"Rank leader",v:OURS.rank[rankLeader],ink:true,d:`${rankLeader}, lowest rank total. ${rankOrder.slice(1).map(k=>k+' '+OURS.rank[k]).join(', ')} behind.`},
-  {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`},
-  {k:"The MVDP tax",v:"275 PTS",ink:true,d:"Picked 3 times (2 by JP): 22nd, 125th, 128th. Then he won the voided Stage 9, of course."},
-  {k:"The reinstatement",v:"119TH > 3RD",small:true,d:"Philipsen's Nevers relegation was overturned on appeal. The official result restores his 3rd, dropping JP's Stage 11 from 121 to 5."},
-  {k:"Collective best day",v:"ST 14",small:true,d:"Le Markstein. All eight picks finished inside the top eight for 36 combined, the sharpest collective card of the race, with AA and JP tied on 7."},
-  {k:"Collective worst day",v:"ST 13",small:true,d:"Dole to Belfort. The favorites let the break ride, and with JJ's pair missing the move the four combined for 334, the pool's heaviest day of the race."},
-  {k:"Biggest single burial",v:"128th",small:true,d:"JP's MVDP on the Stage 5 sprint. Did he fall asleep in the peloton?"},
-  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked six times (three by AA, two by JP, one by JJ): 3, 8, 57, 4, 2, 5. The 57 was the Foix breakaway day."},
-  {k:"Stage lost to hydration",v:"ST 9",small:true,ink:true,d:"Heat-shortened, then DNS for the whole pool after the World Cup watch party."}
-];
+  {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`}].concat((CDF.editorial&&CDF.editorial.stats&&CDF.editorial.stats.length)?CDF.editorial.stats:[{k:'Stats and notes',v:'',d:'This fills in with the pool\'s highlights and records as stages are scored.'}]);
 document.getElementById('statgrid').innerHTML=stats.map(s=>
   `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
 
-const arch=[
-  {k:"AA",lead:true,t:"The leader, compounding",b:"Pogacar's Le Markstein win, the fifth stage winner on AA's card (Pedersen, Merlier, Pogacar twice, Waerenskjold), stretched the lead on both boards to placement 372 and rank 103. Pidcock's Belfort ride also brought the official combativity prize. The risk in an all-favorites card is the day the favorites sit up; so far that day has cost everyone else more."},
-  {k:"JB",t:"Second, still waiting on a signature day",b:"Second on placement at 387 and closest to AA, with del Toro 2nd and a Carapaz combativity award at Le Markstein the newest proof the picks belong. The catch stays the same: last on rank at 132, steady top-tens without the day that flips a board."},
-  {k:"JJ",t:"Panache, paying interest",b:"Loulou's aggression built an eleven-stage lead and then Belfort took it back. Even a clean Le Markstein card, Evenepoel 5th and Lipowitz 7th, was the pool's heaviest day at 12, and JP nosed past him on rank, 115 to 118. Third on placement at 453 with the mountains still to come, which is where his picks live."},
-  {k:"JP",t:"The MVDP believer, rebuilding",b:"Still last on placement at 580, 275 of it the MVDP tax, but the recent form is real: Seixas 3rd and Vingegaard 4th tied Le Markstein's best card and lifted JP to second on rank at 115. The bill from the sprint weeks is paid; the Alps decide what the rebuild is worth."}
-];
+const arch=(CDF.editorial&&CDF.editorial.arch&&CDF.editorial.arch.length)?CDF.editorial.arch:[{k:'',t:'Rider archetypes',b:'These build up as the pool rides through the race and the picks tell a story.'}];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
   `<div class="arch ${a.lead?'lead':''}"><div class="who">${a.k}</div><div><div class="t">${a.t}</div><div class="b">${a.b}</div></div></div>`).join('');
 
@@ -2153,421 +2247,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     b.classList.add('on'); document.getElementById('tab-'+b.dataset.tab).classList.add('on');
   });
 });
-</script>
-<script>document.documentElement.classList.add('gated');document.body.classList.add('gated');</script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-<script>
-/* Login gate. Firebase project col-du-fantasy (owner allen@ascentpartnersltd.com).
-   Config values are PUBLIC by design. ALLOW is the pool roster: only these
-   Google accounts see the board. Add each friend's Gmail here. */
-(function(){
-  var firebaseConfig = {
-    apiKey: "AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw",
-    authDomain: "col-du-fantasy.firebaseapp.com",
-    projectId: "col-du-fantasy",
-    storageBucket: "col-du-fantasy.firebasestorage.app",
-    messagingSenderId: "243850980867",
-    appId: "1:243850980867:web:77c8455a03d972cb4fa836"
-  };
-  var ALLOW = [
-    "allen@ascentpartnersltd.com",  // AA / site owner
-    "jjohnsatlaw@gmail.com",        // JJ / Jeff Johns
-    "tara.bisel@gmail.com",         // Tara (reviewer)
-    "afarver7@gmail.com",           // Adam (reviewer)
-    "clintontrautmann@gmail.com",   // Clint "CRT" (reviewer)
-    "jeffmbush@yahoo.com",          // JB / Jeff Bush (Yahoo - signs in via the email link)
-    "jason.pfetcher@gmail.com"      // JP / Jason Pfetcher
-  ];
 
-  var gate = document.getElementById('gate');
-  var msg  = document.getElementById('gate-msg');
-  var btn  = document.getElementById('gate-google');
-  function say(html, err){ msg.className = 'gate-msg' + (err ? ' err' : ''); msg.innerHTML = html; }
-  function open(){ gate.classList.remove('authed'); document.documentElement.classList.add('gated'); document.body.classList.add('gated'); }
-  function pass(){ gate.classList.add('authed'); document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); }
+;
 
-  if(!window.firebase || !firebase.auth){ say('Could not load the sign-in service. Check your connection and refresh.', true); return; }
-  firebase.initializeApp(firebaseConfig);
-  var auth = firebase.auth();
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  var provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-
-  btn.addEventListener('click', function(){
-    btn.disabled = true; say('Opening Google sign-in...');
-    auth.signInWithPopup(provider).catch(function(e){
-      var c = e && e.code;
-      if(c === 'auth/popup-blocked' || c === 'auth/cancelled-popup-request' || c === 'auth/popup-closed-by-user' || c === 'auth/operation-not-supported-in-this-environment'){
-        auth.signInWithRedirect(provider);
-      } else {
-        btn.disabled = false; say('Sign-in did not complete: ' + (e ? e.message : 'unknown error'), true);
-      }
-    });
-  });
-
-  auth.getRedirectResult().catch(function(e){ if(e){ say('Sign-in did not complete: ' + e.message, true); } });
-
-  /* ---- Passwordless email-link sign-in (for approved non-Google emails) ----
-     Requires the "Email link (passwordless sign-in)" provider to be enabled in the
-     Firebase console (Authentication > Sign-in method). The ALLOW roster still gates
-     who gets in - the link only proves the person controls that inbox. */
-  var emailInput = document.getElementById('gate-email');
-  var linkBtn = document.getElementById('gate-emaillink');
-  var LINK_KEY = 'cdf_emailForSignIn';
-  var acs = { url: location.origin + location.pathname, handleCodeInApp: true };
-  function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-
-  if(linkBtn && emailInput){
-    function sendLink(){
-      var email = (emailInput.value || '').trim().toLowerCase();
-      if(!validEmail(email)){ say('Enter a valid email to get a sign-in link.', true); emailInput.focus(); return; }
-      linkBtn.disabled = true; say('Sending your sign-in link...');
-      auth.sendSignInLinkToEmail(email, acs).then(function(){
-        try{ window.localStorage.setItem(LINK_KEY, email); }catch(e){}
-        linkBtn.disabled = false;
-        say('Link sent. Check <b>' + email + '</b> for a sign-in link from Col du Fantasy and open it on this device. If the address is not on the roster you will be told after you click it.');
-      }).catch(function(e){
-        linkBtn.disabled = false;
-        var c = e && e.code;
-        if(c === 'auth/operation-not-allowed'){ say('Email link sign-in is not switched on yet. Tell Allen to enable it in Firebase.', true); }
-        else { say('Could not send the link: ' + (e ? e.message : 'unknown error'), true); }
-      });
-    }
-    linkBtn.addEventListener('click', sendLink);
-    emailInput.addEventListener('keydown', function(ev){ if(ev.key === 'Enter'){ ev.preventDefault(); sendLink(); } });
-  }
-
-  // If this page was opened from an email sign-in link, finish the sign-in.
-  if(auth.isSignInWithEmailLink(location.href)){
-    var em = '';
-    try{ em = window.localStorage.getItem(LINK_KEY) || ''; }catch(e){}
-    if(!em){ em = (window.prompt('Confirm the email you requested the link for') || '').trim().toLowerCase(); }
-    if(em){
-      say('Finishing sign-in...');
-      auth.signInWithEmailLink(em, location.href).then(function(){
-        try{ window.localStorage.removeItem(LINK_KEY); }catch(e){}
-        if(window.history && history.replaceState){ history.replaceState(null, '', location.origin + location.pathname); }
-      }).catch(function(e){
-        say('That sign-in link did not work (' + (e ? e.message : 'expired or already used') + '). Request a fresh one.', true);
-      });
-    }
-  }
-
-  auth.onAuthStateChanged(function(user){
-    if(!user){ open(); btn.disabled = false; return; }
-    var email = (user.email || '').toLowerCase();
-    if(ALLOW.indexOf(email) >= 0){ pass(); return; }
-    open();
-    btn.style.display = 'none';
-    say('<b>' + email + '</b> is not on the pool roster yet. Ask Allen to add you, then sign in again.', true);
-    if(!document.getElementById('gate-signout')){
-      var so = document.createElement('button');
-      so.id = 'gate-signout'; so.className = 'gate-signout'; so.textContent = 'Try a different account';
-      so.onclick = function(){ auth.signOut().then(function(){ location.reload(); }); };
-      msg.parentNode.appendChild(so);
-    }
-  });
-})();
-
-/* Show the in-app Refresh button only when running as the installed app (standalone),
-   where the browser URL bar and its reload control are hidden. */
-(function(){
-  var b = document.getElementById('refreshBtn'); if(!b) return;
-  var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-  if(standalone) b.classList.add('show');
-  b.addEventListener('click', function(){ b.classList.add('spin'); setTimeout(function(){ location.reload(); }, 180); });
-})();
-</script>
-
-<script>
-/* ============================================================================
-   LIVE DRAFT ENGINE (Overview, top card)
-   Ported from the proven standalone draft-live.html. Reads the same Firebase
-   project already initialised by the login gate above (firebase.initializeApp
-   ran there), so this just grabs the singletons. Firestore-backed, realtime.
-
-   Launch gate: the draft is seeded "pending". Nobody can pick until Allen (AA,
-   leadoff) locks pick #1, which flips it "live". Snake order enforces turns;
-   taken riders come off the board; the Judge (JJ) can bump a straggler to the
-   back; the owner (AA) can enter a pick for whoever is on the clock. When all 8
-   are in it collapses to a thin bar until the next stage's draft is opened.
-
-   Fails safe: if Firestore is unavailable or the reader is not a roster member,
-   the card stays hidden and the rest of the board is untouched.
-   ============================================================================ */
-(function(){
-  if(!window.firebase || !firebase.firestore){ return; }  // board safe: no draft card
-  var mount = document.getElementById('draftMount');
-  if(!mount) return;
-
-  var db, auth, FV;
-  try{ db = firebase.firestore(); auth = firebase.auth(); FV = firebase.firestore.FieldValue; }
-  catch(e){ return; }
-
-  var OWNER_EMAIL = "allen@ascentpartnersltd.com";
-  var STAGE = "15";
-  var ROSTER = {
-    players:{ "allen@ascentpartnersltd.com":"AA", "jjohnsatlaw@gmail.com":"JJ", "jeffmbush@yahoo.com":"JB", "jason.pfetcher@gmail.com":"JP" },
-    judge:"JJ",
-    reviewers:["tara.bisel@gmail.com","afarver7@gmail.com","clintontrautmann@gmail.com"]
-  };
-  var ORDER = ["JB","JJ","JP","AA"];
-  var SNAKE = ORDER.concat(ORDER.slice().reverse());   // JB JJ JP AA AA JP JJ JB
-  var DRAFT_INIT = { n:15, route:"Champagnole > Plateau de Solaison", type:"Summit finish",
-    order:ORDER, snake:SNAKE, queue:SNAKE.slice(), picks:[], status:"pending", createdAt:FV.serverTimestamp() };
-  var PMETA = {AA:{n:"Allen",c:"#c9971a"},JJ:{n:"Jeff Johns",c:"#26347e"},JB:{n:"Jeff Bush",c:"#2f8f52"},JP:{n:"Jason",c:"#cf2530"}};
-  var RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/11/72252/0:0,400:400-0-0-70/38b77"},{"r":"P. Seixas","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/51/71734/0:0,400:400-0-0-70/54716"},{"r":"R. Evenepoel","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/21/71737/0:0,400:400-0-0-70/36350"},{"r":"T. Pidcock","t":"Pinarello Q36.5","c":"#009CA6","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/171/71794/0:0,400:400-0-0-70/526ee"},{"r":"T. Pogacar","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/1/71834/0:0,400:400-0-0-70/9a582"},{"r":"R. Gregoire","t":"Groupama-FDJ United","c":"#26429B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/181/71791/0:0,400:400-0-0-70/2236c"},{"r":"M. van der Poel","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/101/71756/0:0,400:400-0-0-70/bbd49"},{"r":"M. Vacek","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/37/71744/0:0,400:400-0-0-70/c5383"},{"r":"I. del Toro","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/2/71837/0:0,400:400-0-0-70/5d784"},{"r":"T. Johannessen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/125/71886/0:0,400:400-0-0-70/67518"},{"r":"J. Ayuso","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/31/71732/0:0,400:400-0-0-70/b2640"},{"r":"Q. Simmons","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/34/71864/0:0,400:400-0-0-70/267bf"},{"r":"M. Pedersen","t":"Lidl-Trek","c":"#001E62","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/33/71739/0:0,400:400-0-0-70/b9b9e"},{"r":"B. Healy","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/44/71874/0:0,400:400-0-0-70/8d88c"},{"r":"J. Philipsen","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/105/71879/0:0,400:400-0-0-70/47c2e"},{"r":"S. Waerenskjold","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"O. Kooij","t":"Decathlon CMA CGM Team","c":"#0082C3","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/55/71846/0:0,400:400-0-0-70/14a75"},{"r":"B. Girmay","t":"NSN Cycling Team","c":"#F7A600","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/131/71889/0:0,400:400-0-0-70/d6cec"},{"r":"J. Abrahamsen","t":"Uno-X Mobility","c":"#FF5C39","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/122/71884/0:0,400:400-0-0-70/9e49c"},{"r":"T. Traaen","t":"Uno-X Mobility","c":"#FF5C39"},{"r":"B. O'Connor","t":"Team Jayco AlUla","c":"#00A94F","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/111/71760/0:0,400:400-0-0-70/8fc03"},{"r":"S. Quinn","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/45/71736/0:0,400:400-0-0-70/86d77"},{"r":"M. Kanter","t":"XDS Astana Team","c":"#00A9CE","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/64/71733/0:0,400:400-0-0-70/093a7"},{"r":"T. Merlier","t":"Soudal Quick-Step","c":"#0033A0","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/91/71752/0:0,400:400-0-0-70/70dcd"},{"r":"M. Fretin","t":"Cofidis","c":"#E2001A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/165/71781/0:0,400:400-0-0-70/be306"},{"r":"H. Artz","t":"Lotto-Intermarché","c":"#A6093D","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/152/71830/0:0,400:400-0-0-70/dc4b5"},{"r":"F. Lipowitz","t":"Red Bull-BORA-hansgrohe","c":"#223971","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/25/71731/0:0,400:400-0-0-70/ce3e1"},{"r":"A. Yates","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/8/71870/0:0,400:400-0-0-70/231b7"},{"r":"J. Jegat","t":"TotalEnergies","c":"#F04E23","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/201/71812/0:0,400:400-0-0-70/334e1"},{"r":"R. Pluimers","t":"Tudor Pro Cycling","c":"#2B2B2B","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/195/71811/0:0,400:400-0-0-70/b1dd4"},{"r":"P. Bauhaus","t":"Bahrain Victorious","c":"#C8102E","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/72/71860/0:0,400:400-0-0-70/da949"},{"r":"B. McNulty","t":"UAE Team Emirates XRG","c":"#d4111e","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/4/71836/0:0,400:400-0-0-70/8efa9"},{"r":"A. Baudin","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/43/71742/0:0,400:400-0-0-70/f78a8"},{"r":"R. Debruyne","t":"Alpecin-Premier Tech","c":"#6B0F1A","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/102/71878/0:0,400:400-0-0-70/ccddb"},{"r":"R. Carapaz","t":"EF Education-EasyPost","c":"#FF0098","p":"https://img.aso.fr/core_app/img-cycling-tdf-png/41/71725/0:0,400:400-0-0-70/7396a"}];
-
-  // Team colours, identical to the Allegiances tab so a pick's ring matches its team bar there.
-  var TEAM_COLOR={"Alpecin-Premier Tech":"#6B0F1A","Bahrain Victorious":"#C8102E","Caja Rural-Seguros RGA":"#1E8449","Cofidis":"#E2001A","Decathlon CMA CGM Team":"#0082C3","EF Education-EasyPost":"#FF0098","Groupama-FDJ United":"#26429B","Lidl-Trek":"#001E62","Lotto-Intermarché":"#A6093D","Movistar Team":"#009DDC","Netcompany INEOS":"#A50021","NSN Cycling Team":"#F7A600","Pinarello Q36.5":"#009CA6","Red Bull-BORA-hansgrohe":"#223971","Soudal Quick-Step":"#0033A0","Team Jayco AlUla":"#00A94F","Team Picnic PostNL":"#FF6900","TotalEnergies":"#F04E23","Tudor Pro Cycling":"#2B2B2B","UAE Team Emirates XRG":"#d4111e","Uno-X Mobility":"#FF5C39","Visma-Lease a Bike":"#E3C400","XDS Astana Team":"#00A9CE"};
-  var teamColorOf = function(pk){ return pk.color || TEAM_COLOR[pk.team] || '#888'; };
-
-  var init = function(r){ return r.replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); };
-  var esc = function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
-
-  var myEmail=null, myCode=null, isOwner=false, isJudge=false, isReviewer=false, draft=null, unsub=null, chosen=null;
-  var ICON = '<svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg>';
-
-  auth.onAuthStateChanged(function(user){
-    if(!user){ if(unsub){unsub();unsub=null;} hide(); return; }
-    myEmail = (user.email||'').toLowerCase();
-    isOwner = (myEmail===OWNER_EMAIL);
-    myCode = ROSTER.players[myEmail] || null;
-    isJudge = (myCode===ROSTER.judge);
-    isReviewer = ROSTER.reviewers.indexOf(myEmail) >= 0;
-    if(!(isOwner || myCode || isReviewer)){ hide(); return; }   // not a roster member: stay hidden
-    seedIfNeeded().then(subscribe).catch(function(e){ hide(); });
-  });
-
-  function hide(){ mount.style.display='none'; mount.innerHTML=''; }
-
-  function seedIfNeeded(){
-    if(!isOwner) return Promise.resolve();
-    var r = db.doc('config/roster');
-    return r.get().then(function(rs){
-      if(!rs.exists) return r.set(ROSTER);
-    }).then(function(){
-      var dref = db.doc('drafts/'+STAGE);
-      return dref.get().then(function(snap){
-        if(!snap.exists){ return dref.set(DRAFT_INIT); }
-        var d = snap.data();
-        // A leftover empty test doc (no picks, not already pending) resets to a clean launch gate.
-        if((d.picks||[]).length===0 && d.status!=='pending'){ return dref.set(DRAFT_INIT); }
-      });
-    });
-  }
-
-  function subscribe(){
-    if(unsub) unsub();
-    unsub = db.doc('drafts/'+STAGE).onSnapshot(function(snap){
-      if(!snap.exists){ hide(); return; }   // owner seeds it; others just wait
-      draft = snap.data(); render();
-    }, function(err){ hide(); });   // permission / offline: board stays clean
-  }
-
-  function head(sub, badge){
-    return '<div class="dh"><div class="dh-l"><div class="dh-ico">'+ICON+'</div>'+
-      '<div><div class="dh-t">Stage '+STAGE+' draft</div><div class="dh-s">'+sub+'</div></div></div>'+(badge||'')+'</div>';
-  }
-  function riderAv(rider, pending, clock, player){
-    if(pending) return '<span class="tav pending '+(clock?'clock':'')+'"><span class="fb" style="color:'+PMETA[player].c+'">'+player+'</span></span>';
-    var col = rider.c || '#888';
-    var ring = 'box-shadow:0 0 0 2.5px '+col+';';   // team-colour ring, matches the Allegiances tab
-    var fb = '<span class="fb" style="background:'+col+'">'+init(rider.r)+'</span>';
-    var img = rider.p ? '<img class="ph" src="'+esc(rider.p)+'" onerror="this.remove()">' : '';
-    return '<span class="tav" style="'+ring+'">'+fb+img+'</span>';
-  }
-
-  function render(){
-    mount.style.display='block';
-    var picks = draft.picks||[], queue = draft.queue||[];
-    var clockCode = queue[0]||null;
-    var status = draft.status||'pending';
-    var done = status==='complete' || queue.length===0;
-    var pending = status==='pending' && picks.length===0;
-
-    if(done){ renderMini(picks); return; }
-
-    // ticker: 8 nodes, filled picks then pending queue slots
-    var nodes='';
-    for(var i=0;i<8;i++){
-      if(i===4) nodes+='<div class="tgap"></div>';
-      if(i<picks.length){
-        var pk=picks[i];
-        nodes+='<div class="tnode">'+riderAv({r:pk.rider,t:pk.team,c:teamColorOf(pk),p:pk.photo},false)+
-          '<div class="tcap"><b style="color:'+PMETA[pk.player].c+'">#'+(i+1)+'</b>'+pk.player+'</div>'+
-          '<div class="tname">'+esc(pk.rider)+'</div></div>';
-      } else {
-        var qi=i-picks.length, player=queue[qi], clk=(qi===0 && !pending);
-        nodes+='<div class="tnode">'+riderAv(null,true,clk,player)+
-          '<div class="tcap"><b style="color:'+PMETA[player].c+'">#'+(i+1)+'</b>'+player+'</div></div>';
-      }
-    }
-
-    var badge;
-    if(pending) badge='<span class="dh-badge badge-pending">Not started</span>';
-    else badge='<span class="dh-badge badge-clock">'+PMETA[clockCode].n+' on the clock<span id="drClockTimer" style="font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.02em"></span></span>';
-
-    var sub = pending ? 'Snake draft &middot; opens on '+PMETA[ORDER[0]].n+'\'s first pick' : 'Snake draft &middot; live';
-    var action='';
-
-    if(pending){
-      // Launch gate. The leadoff (ORDER[0], rotates each stage) opens it; the owner can enter for them.
-      var leadoff = ORDER[0];
-      if(myCode===leadoff){
-        action='<div class="action"><div class="a-h">You lead off &middot; pick #1<small>Locking your first rider opens the draft for everyone. Nothing is live until you do.</small></div>'+
-          searchRow('Launch the draft')+'</div>';
-      } else if(isOwner){
-        action='<div class="action"><div class="a-h">'+PMETA[leadoff].n+' leads off &middot; pick #1<small>Admin: you can lock their opening rider for them and launch the draft.</small></div>'+
-          searchRow('Enter for '+PMETA[leadoff].n)+'</div>';
-      } else {
-        action='<div class="action"><div class="pendline"><b>The draft opens when '+PMETA[leadoff].n+' makes the first pick.</b> You\'ll see your turn here the moment it\'s live.</div></div>';
-      }
-    } else if(clockCode===myCode){
-      action='<div class="action"><div class="a-h">You are on the clock &middot; pick #'+(picks.length+1)+'</div>'+searchRow('Lock pick')+'</div>';
-    } else {
-      var mine=[];
-      queue.forEach(function(c,idx){ if(c===myCode) mine.push(idx); });
-      var nextTxt = myCode ? (mine.length ? 'Your next turn is pick #'+(picks.length+mine[0]+1)+'.' : 'Both your picks are in.') : 'You are watching.';
-      action='<div class="action"><div class="waitline"><b>'+PMETA[clockCode].n+' is on the clock.</b> '+nextTxt+'</div></div>';
-    }
-
-    // Owner admin entry: when someone else is on the clock, AA can enter for them.
-    var admin='';
-    if(isOwner && !pending && clockCode && clockCode!==myCode){
-      admin='<div class="admin"><div class="ad-h">Admin &middot; enter for the player on the clock</div>'+
-        '<div class="ad-b">'+PMETA[clockCode].n+' is up (pick #'+(picks.length+1)+'). You can lock their rider for them.</div>'+
-        searchRow('Enter for '+PMETA[clockCode].n)+'</div>';
-    }
-
-    // Judge bump
-    var judge='';
-    if(isJudge && !pending && clockCode && clockCode!==myCode){
-      judge='<div class="judge"><div class="j-h">Judge control</div><div class="j-b">Waiting on <b>'+PMETA[clockCode].n+'</b> (pick #'+(picks.length+1)+'). Bump them to the back of the order?</div>'+
-        '<button class="j-skip" id="drBump" type="button">Bump '+PMETA[clockCode].n+' to the back</button></div>';
-    }
-
-    var seed = (isOwner && pending) ? '<div class="seedbar">Draft armed for Stage '+STAGE+'. It goes live the instant you lock pick #1.</div>' : '';
-
-    mount.innerHTML='<div class="draft">'+head(sub,badge)+'<div class="ticker">'+nodes+'</div>'+action+admin+judge+seed+'</div>';
-
-    // Wire the one active search: self-turn, launch, or admin (only one shows at a time).
-    var forCode = null;
-    if(pending && myCode===ORDER[0]) forCode = myCode;
-    else if(pending && isOwner) forCode = ORDER[0];   // admin launch for the leadoff
-    else if(clockCode===myCode) forCode = myCode;
-    else if(isOwner && clockCode && clockCode!==myCode) forCode = clockCode;   // admin
-    if(forCode) wireSearch(forCode);
-
-    var b=document.getElementById('drBump'); if(b) b.addEventListener('click', doBump);
-    tickClock();
-  }
-
-  // Live pick clock: elapsed since the current turn began (last lock). Display only; scoring uses server stamps.
-  function fmtDur(ms){ if(ms<0) ms=0; var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60); s=s%60; var p=function(n){return (n<10?'0':'')+n;}; return h?(h+':'+p(m)+':'+p(s)):(m+':'+p(s)); }
-  function tickClock(){
-    var el=document.getElementById('drClockTimer'); if(!el||!draft) return;
-    var queue=draft.queue||[], picks=draft.picks||[];
-    if(draft.status==='complete'||!queue.length){ el.textContent=''; return; }
-    var la=draft.lockAt||{}, start=la[String(picks.length)];   // this turn began when the last pick locked
-    var ms=(start&&start.toMillis)?start.toMillis():null;
-    if(ms==null){   // draft predates the clock or the turn's stamp is missing: use the latest recorded lock, else draft open
-      Object.keys(la).forEach(function(k){ var v=la[k]; if(v&&v.toMillis){ var t=v.toMillis(); if(ms==null||t>ms) ms=t; }});
-      if(ms==null && draft.createdAt && draft.createdAt.toMillis) ms=draft.createdAt.toMillis();
-    }
-    if(ms==null){ el.textContent=''; return; }
-    el.textContent=' · '+fmtDur(Date.now()-ms);
-  }
-  setInterval(tickClock, 1000);
-
-  function renderMini(picks){
-    mount.style.display='block';
-    var avs='';
-    var show = picks.slice(0,8);
-    show.forEach(function(pk){
-      var col = teamColorOf(pk);
-      var img = pk.photo ? '<img src="'+esc(pk.photo)+'" onerror="this.remove()">' : '';
-      avs+='<span class="mb-av" style="border-color:'+col+'" title="'+esc(pk.rider)+' ('+pk.player+')">'+img+(img?'':'<span class="mfb" style="background:'+col+'">'+pk.player+'</span>')+'</span>';
-    });
-    mount.innerHTML='<div class="draft mini"><div class="minibar">'+
-      '<div class="mb-t"><span class="mb-ico">'+ICON+'</span>Stage '+STAGE+' draft locked</div>'+
-      '<span class="dh-badge badge-done">All '+picks.length+' in</span>'+
-      '<span class="mb-avs">'+avs+'</span>'+
-      '<span class="mb-more">Picks post to the board at stage start</span>'+
-      '</div></div>';
-  }
-
-  function searchRow(lockLabel){
-    return '<div class="searchrow"><input id="drS" placeholder="Search a rider still on the board..." autocomplete="off">'+
-      '<button class="lockbtn" id="drLock" disabled>'+lockLabel+'</button><div class="ac" id="drAc"></div></div>';
-  }
-
-  function wireSearch(forCode){
-    var input=document.getElementById('drS'), ac=document.getElementById('drAc'), lock=document.getElementById('drLock');
-    if(!input||!ac||!lock) return;
-    var taken={}; (draft.picks||[]).forEach(function(p){ taken[p.rider]=1; });
-    chosen=null;
-    var lockLabel = lock.textContent;
-    input.addEventListener('input',function(){
-      chosen=null; lock.disabled=true;
-      var q=input.value.trim().toLowerCase();
-      if(!q){ ac.classList.remove('open'); return; }
-      var ms=RIDERS.filter(function(r){ return !taken[r.r] && (r.r.toLowerCase().indexOf(q)>=0 || r.t.toLowerCase().indexOf(q)>=0); }).slice(0,8);
-      ac.innerHTML = ms.length ? ms.map(function(r,i){
-        return '<div class="ac-item" data-i="'+i+'"><img class="ac-av" src="'+esc(r.p||'')+'" onerror="this.style.visibility=\'hidden\'"><span class="ac-rn">'+esc(r.r)+'</span><span class="ac-rt">'+esc(r.t)+'</span></div>';
-      }).join('') : '<div class="ac-item" style="color:var(--mute)">No match (this list carries 35 riders; full field comes next)</div>';
-      ac.classList.add('open');
-      ac.querySelectorAll('.ac-item[data-i]').forEach(function(it){
-        it.addEventListener('mousedown',function(e){ e.preventDefault(); chosen=ms[+it.dataset.i]; input.value=chosen.r+'  ('+chosen.t+')'; ac.classList.remove('open'); lock.disabled=false; });
-      });
-    });
-    input.addEventListener('blur',function(){ setTimeout(function(){ ac.classList.remove('open'); },150); });
-    lock.addEventListener('click',function(){ submitPick(forCode, lockLabel); });
-  }
-
-  function submitPick(forCode, lockLabel){
-    if(!chosen) return;
-    var code = forCode || myCode;
-    var lock=document.getElementById('drLock');
-    if(lock){ lock.disabled=true; lock.textContent='Saving...'; }
-    var ref=db.doc('drafts/'+STAGE);
-    var picked=chosen;
-    db.runTransaction(function(tx){
-      return tx.get(ref).then(function(s){
-        var d=s.data();
-        if(d.status==='complete') throw new Error('draft closed');
-        if(d.queue[0]!==code) throw new Error('not your turn');
-        if((d.picks||[]).some(function(p){return p.rider===picked.r;})) throw new Error('already taken');
-        var pnum=(d.picks||[]).length+1;
-        var pick={n:pnum, player:code, rider:picked.r, team:picked.t, photo:picked.p||'', color:picked.c||'', by:myEmail, admin: code!==myCode};
-        var queue=d.queue.slice(1);
-        var upd={picks:(d.picks||[]).concat([pick]), queue:queue, status: queue.length?'live':'complete'};
-        upd['lockAt.'+pnum]=FV.serverTimestamp();   // server clock: pick pnum locked. dur(k)=lockAt[k]-lockAt[k-1]
-        tx.update(ref,upd);
-      });
-    }).catch(function(e){
-      alert('Could not lock pick: '+(e.message||e));
-      var l=document.getElementById('drLock'); if(l){ l.disabled=false; l.textContent=lockLabel||'Lock pick'; }
-    });
-  }
-
-  function doBump(){
-    var ref=db.doc('drafts/'+STAGE);
-    db.runTransaction(function(tx){
-      return tx.get(ref).then(function(s){
-        var d=s.data();
-        if(!d.queue.length) return;
-        var q=d.queue.slice(); q.push(q.shift());
-        tx.update(ref,{queue:q, bumpedAt:FV.serverTimestamp()});
-      });
-    }).catch(function(e){ alert('Bump failed: '+(e.message||e)); });
-  }
-})();
-</script>
-
-<script>
 /* Allegiances tab: which 2026 team each pick belongs to. Computes from STAGES. */
 (function(){
   const TEAMS23=["Alpecin-Premier Tech","Bahrain Victorious","Caja Rural-Seguros RGA","Cofidis","Decathlon CMA CGM Team","EF Education-EasyPost","Groupama-FDJ United","Lidl-Trek","Lotto-Intermarché","Movistar Team","Netcompany INEOS","NSN Cycling Team","Pinarello Q36.5","Red Bull-BORA-hansgrohe","Soudal Quick-Step","Team Jayco AlUla","Team Picnic PostNL","TotalEnergies","Tudor Pro Cycling","UAE Team Emirates XRG","Uno-X Mobility","Visma-Lease a Bike","XDS Astana Team"];
@@ -2576,7 +2258,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     "J. Vingegaard":"Visma-Lease a Bike","P. Seixas":"Decathlon CMA CGM Team","R. Evenepoel":"Red Bull-BORA-hansgrohe","T. Pidcock":"Pinarello Q36.5","T. Pogacar":"UAE Team Emirates XRG","R. Gregoire":"Groupama-FDJ United","M. van der Poel":"Alpecin-Premier Tech","M. Vacek":"Lidl-Trek","I. del Toro":"UAE Team Emirates XRG","T. Johannessen":"Uno-X Mobility","J. Ayuso":"Lidl-Trek","Q. Simmons":"Lidl-Trek","M. Pedersen":"Lidl-Trek","B. Healy":"EF Education-EasyPost","J. Philipsen":"Alpecin-Premier Tech","S. Waerenskjold":"Uno-X Mobility","O. Kooij":"Decathlon CMA CGM Team","B. Girmay":"NSN Cycling Team","J. Abrahamsen":"Uno-X Mobility","T. Traaen":"Uno-X Mobility","B. O'Connor":"Team Jayco AlUla","S. Quinn":"EF Education-EasyPost","M. Kanter":"XDS Astana Team","T. Merlier":"Soudal Quick-Step","M. Fretin":"Cofidis","H. Artz":"Lotto-Intermarché","F. Lipowitz":"Red Bull-BORA-hansgrohe","A. Yates":"UAE Team Emirates XRG","J. Jegat":"TotalEnergies","R. Pluimers":"Tudor Pro Cycling","P. Bauhaus":"Bahrain Victorious","B. McNulty":"UAE Team Emirates XRG","A. Baudin":"EF Education-EasyPost","R. Debruyne":"Alpecin-Premier Tech","R. Carapaz":"EF Education-EasyPost"
   };
   const TEAM_COLOR={"Alpecin-Premier Tech":"#6B0F1A","Bahrain Victorious":"#C8102E","Caja Rural-Seguros RGA":"#1E8449","Cofidis":"#E2001A","Decathlon CMA CGM Team":"#0082C3","EF Education-EasyPost":"#FF0098","Groupama-FDJ United":"#26429B","Lidl-Trek":"#001E62","Lotto-Intermarché":"#A6093D","Movistar Team":"#009DDC","Netcompany INEOS":"#A50021","NSN Cycling Team":"#F7A600","Pinarello Q36.5":"#009CA6","Red Bull-BORA-hansgrohe":"#223971","Soudal Quick-Step":"#0033A0","Team Jayco AlUla":"#00A94F","Team Picnic PostNL":"#FF6900","TotalEnergies":"#F04E23","Tudor Pro Cycling":"#2B2B2B","UAE Team Emirates XRG":"#d4111e","Uno-X Mobility":"#FF5C39","Visma-Lease a Bike":"#E3C400","XDS Astana Team":"#00A9CE"};
-  const PL=['AA','JJ','JB','JP'];
+  const PL=(CDF.seats||CDF.order).slice();
   function teamOf(n){ if(!n) return null; if(TEAM_ALIAS[n]) return TEAM_ALIAS[n]; if(TEAMS23.indexOf(n)>=0) return n; if(RIDER_TEAM[n]) return RIDER_TEAM[n]; return null; }
   const counts={}; PL.forEach(p=>counts[p]={});
   const unmapped={};
@@ -2624,12 +2306,13 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const btn=document.getElementById('seeTableBtn');
   if(btn&&wrap){ btn.addEventListener('click',()=>{ if(wrap.hasAttribute('hidden')){wrap.removeAttribute('hidden');btn.textContent='Hide data table';} else {wrap.setAttribute('hidden','');btn.textContent='See data table';} }); }
 })();
-</script>
-<script>
+
+;
+
 /* Hits & Misses: best/worst picks and rider value, computed from STAGES (rider picks, Stage 2 on). */
 (function(){
-  const PL=['AA','JJ','JB','JP'];
-  const COL={AA:'#c0392b',JJ:'#2c6e8f',JB:'#8a929c',JP:'#b8862f'};
+  const PL=(CDF.seats||CDF.order).slice();
+  const COL=(function(){var _p=['#c0392b','#2c6e8f','#8a929c','#b8862f'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>TABLE[f]||0;
   function ord(n){ const s=['th','st','nd','rd'],v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
@@ -2671,15 +2354,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     return `<div class="hm-row"><span class="hm-dot" style="background:${COL[p]}"></span><b>${p}</b>&nbsp;alone had&nbsp;<b>${r.rider}</b><span class="hm-badge">best ${ord(r.best)}</span><span class="hm-badge alt">${r.value} pts</span></div>`;
   }).join('');
 })();
-</script>
 
-<script>
+;
+
 /* What-if scoring on the Stats page: today's sum of placings vs a points-with-floor model, side by side. */
 (function(){
   const todayEl=document.getElementById('wiToday'), ptsEl=document.getElementById('wiPts'), noteEl=document.getElementById('wiNote');
   if(!todayEl||!ptsEl) return;
-  const PL=['AA','JJ','JB','JP'];
-  const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
+  const PL=(CDF.seats||CDF.order).slice();
+  const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>(typeof f==='number'?(TABLE[f]||0):0);
   const S=(typeof STAGES!=='undefined')?STAGES:[];
@@ -2713,9 +2396,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     noteEl.innerHTML=msg;
   }
 })();
-</script>
 
-<script>
+;
+
 /* Next-stage weather widget (Stats tab). Live forecast from Open-Meteo (free, no key,
    CORS-open) for the WEATHER finish town. Falls back to a link if the fetch fails. */
 (function(){
@@ -2746,9 +2429,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       +`<div class="wx-stats"><div class="wx-stat">Rain chance<b>${rain==null?'-':rain+'%'}</b></div><div class="wx-stat">Wind<b>${wind} mph</b></div></div>`;
   }).catch(()=>{ body.innerHTML='<span class="wx-muted">The live forecast could not load right now. The full Tour forecast is linked below.</span>'; });
 })();
-</script>
 
-<script>
+;
+
 /* Next two stages card (Stats tab, column 2). Stage 1 = UPCOMING, stage 2 = NEXT2. */
 (function(){
   const el=document.getElementById('nsBody'); if(!el) return;
@@ -2779,33 +2462,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   if(N2) html+=block(N2,'',N2.line||'');
   el.innerHTML=html;
 })();
-</script>
 
-<style>
-  .pt-host{position:relative}
-  .pt-btn{position:absolute;top:9px;right:9px;font-family:'Montserrat',sans-serif;font-weight:800;
-    font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);
-    border:1px solid var(--line2);border-radius:999px;padding:3px 9px 2px;cursor:pointer;line-height:1;
-    transition:background .15s,color .15s,border-color .15s;z-index:3;white-space:nowrap}
-  .pt-btn:hover{border-color:var(--gold-d);background:#fff}
-  .pt-btn.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
-  /* reserve space so a card title/subtitle never runs under the toggle pill (was overlapping on mobile) */
-  .pt-host > .ct, .pt-host > .mh, .pt-host > .eyebrow{padding-right:94px}
-  /* per-stage-card toggle: pill sits in its own right-aligned row, so it never overlaps the table header */
-  .stage-scoring{position:relative}
-  .sc-head{display:flex;justify-content:flex-end;margin:10px 0 -4px}
-  .sc-head .pt-btn{position:static}
-  .sc-view.sc-points{display:none}
-  .stage-scoring[data-view="points"] .sc-view.sc-place{display:none}
-  .stage-scoring[data-view="points"] .sc-view.sc-points{display:block}
-</style>
-<script>
+;
+
 /* ===== SEE POINTS / SEE PLACE: per-card toggle to a top-15 fantasy-points scale ===== */
 (function(){
   const PTABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const P=f=>(typeof f==='number'?(PTABLE[f]||0):0);
-  const PL=['AA','JJ','JB','JP'];
-  const COL={AA:'#e8b31e',JJ:'#2d6cdf',JB:'#1a8a3a',JP:'#c0392b'};
+  const PL=(CDF.seats||CDF.order).slice();
+  const COL=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
 
   /* ---- points aggregates, computed straight from STAGES over the same completed set ---- */
   // cumulative fantasy points (every scored pick, all completed stages), higher is better
@@ -2975,17 +2640,17 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     [{el:q(bTrend,'.mh'), points:`Fantasy Points race, stage by stage`},
      {el:q(bTrend,'.msub'), points:`Cumulative fantasy points, higher line is ahead. Stage 9 was void`}], 'Placement');
 })();
-</script>
 
-<script>
+;
+
 /* ===== "Who's in the break?" live widget (calls the BREAK_WORKER proxy) ===== */
 (function(){
   var CARD=document.getElementById('breakWidget');
   if(!CARD || typeof BREAK_WORKER==='undefined' || !BREAK_WORKER){ return; } // hidden until configured
   CARD.style.display='';
   var BTN=document.getElementById('bwBtn'), BODY=document.getElementById('bwBody');
-  var COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
-  var PL=['AA','JJ','JB','JP'];
+  var COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  var PL=(CDF.seats||CDF.order).slice();
 
   function norm(s){return (s||'').toUpperCase().replace(/[^A-Z]/g,'');}
   function surname(pick){return norm(String(pick).replace(/^[A-Za-z]\.\s*/,''));}
@@ -3136,15 +2801,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     doFetch();
   });
 })();
-</script>
 
-<script>
+;
+
 /* ===== Draft-order tilt: does the pick rotation advantage anyone by stage type? ===== */
 (function(){
   const box=document.getElementById('tiltBox');
   if(!box || typeof RACE==='undefined') return;
-  const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
-  const PLY=['AA','JJ','JB','JP'];
+  const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const PLY=(CDF.seats||CDF.order).slice();
 
   // Stage-type weight buckets (how concentrated the obvious best pick is). Tested in order.
   const WEIGHTS=[
@@ -3160,11 +2825,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
   // Void-aware draft order: AA led Stage 1, cycle AA>JB>JJ>JP, void stages take no draft (no advance).
   function seasonOrder(){
-    let line=['AA','JB','JJ','JP']; const ord={};
+    // pool board: orders anchor to the group's live order at the current
+    // stage (CDF.order), rotating forward/back by stage offset
+    const base=CDF.order.slice(), m=base.length;
+    const anchor=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?Number(UPCOMING.n):1;
+    const ord={};
     RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
       if(st.voidPool){ ord[st.n]=null; return; }
-      ord[st.n]=line.slice();
-      line=line.slice(1).concat(line.slice(0,1));
+      const off=(((st.n-anchor)%m)+m)%m;
+      ord[st.n]=base.slice(off).concat(base.slice(0,off));
     });
     return ord;
   }
@@ -3233,50 +2902,33 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   }));
   render();
 })();
+
+};
 </script>
+
+<style>
+  .pt-host{position:relative}
+  .pt-btn{position:absolute;top:9px;right:9px;font-family:'Montserrat',sans-serif;font-weight:800;
+    font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);
+    border:1px solid var(--line2);border-radius:999px;padding:3px 9px 2px;cursor:pointer;line-height:1;
+    transition:background .15s,color .15s,border-color .15s;z-index:3;white-space:nowrap}
+  .pt-btn:hover{border-color:var(--gold-d);background:#fff}
+  .pt-btn.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
+  /* reserve space so a card title/subtitle never runs under the toggle pill (was overlapping on mobile) */
+  .pt-host > .ct, .pt-host > .mh, .pt-host > .eyebrow{padding-right:94px}
+  /* per-stage-card toggle: pill sits in its own right-aligned row, so it never overlaps the table header */
+  .stage-scoring{position:relative}
+  .sc-head{display:flex;justify-content:flex-end;margin:10px 0 -4px}
+  .sc-head .pt-btn{position:static}
+  .sc-view.sc-points{display:none}
+  .stage-scoring[data-view="points"] .sc-view.sc-place{display:none}
+  .stage-scoring[data-view="points"] .sc-view.sc-points{display:block}
+</style>
 <style>
   #cdfBuild{position:fixed;left:8px;bottom:6px;z-index:6;pointer-events:none;
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-1349 UTC</div>
-<script>
-/* Draft clock award (Stats tab): reads every draft doc, computes average time on the clock per pick.
-   Rule: count a pick only when the previous pick was someone else (skips the untimed leadoff and the
-   back-to-back turn pick). Rank by average. Fills in from the first draft run with the clock on. */
-(function(){
-  var box=document.getElementById('clockAwardBox'); if(!box) return;
-  var body=document.getElementById('clockAwardBody'); if(!body) return;
-  var db2; try{ db2=firebase.firestore(); }catch(e){ return; }
-  var E=function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
-  var nameOf=function(c){ return (typeof PLAYERS!=='undefined'&&PLAYERS[c]&&PLAYERS[c].name)?PLAYERS[c].name:c; };
-  var fmt=function(ms){ if(ms<0)ms=0; var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60); s=s%60; var p=function(n){return (n<10?'0':'')+n;}; return h?(h+':'+p(m)+':'+p(s)):(m+':'+p(s)); };
-  var maxStage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:21;
-  var gets=[]; for(var n=1;n<=maxStage;n++){ gets.push(db2.doc('drafts/'+n).get().catch(function(){return null;})); }
-  Promise.all(gets).then(function(snaps){
-    var agg={};
-    snaps.forEach(function(s){
-      if(!s||!s.exists) return; var d=s.data()||{}; var picks=d.picks||[], la=d.lockAt||{};
-      for(var k=2;k<=picks.length;k++){
-        var a=la[String(k)], b=la[String(k-1)];
-        if(!a||!a.toMillis||!b||!b.toMillis) continue;
-        if(!picks[k-1]||!picks[k-2]||picks[k-1].player===picks[k-2].player) continue;
-        var who=picks[k-1].player; if(!who) continue;
-        if(!agg[who]) agg[who]={ms:0,n:0};
-        agg[who].ms+=Math.max(0,a.toMillis()-b.toMillis()); agg[who].n++;
-      }
-    });
-    var rows=Object.keys(agg).map(function(c){return {c:c,avg:agg[c].ms/agg[c].n,n:agg[c].n};}).filter(function(r){return r.n>0;}).sort(function(x,y){return x.avg-y.avg;});
-    if(!rows.length) return;
-    var fast=rows[0], slow=rows[rows.length-1], mx=slow.avg||1;
-    var pills='<div class="ca-pills"><span class="ca-pill fast"><b>Quickest</b> '+E(nameOf(fast.c))+' &middot; '+fmt(fast.avg)+'</span>'
-      +(rows.length>1?'<span class="ca-pill slow"><b>Slowest</b> '+E(nameOf(slow.c))+' &middot; '+fmt(slow.avg)+'</span>':'')+'</div>';
-    var ladder='<div class="ca-ladder">'+rows.map(function(r,i){
-      return '<div class="ca-row"><span class="ca-pos">'+(i+1)+'</span><span class="ca-name">'+E(nameOf(r.c))+'</span><span class="ca-bar"><i style="width:'+Math.round(100*r.avg/mx)+'%"></i></span><span class="ca-t">'+fmt(r.avg)+'</span></div>';
-    }).join('')+'</div>';
-    body.innerHTML=pills+ladder;
-  }).catch(function(){});
-})();
-</script>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1320</div>
 </body>
 </html>
