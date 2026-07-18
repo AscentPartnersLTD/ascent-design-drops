@@ -956,6 +956,20 @@ async function loadPool(id){
   PMETA={}; ORDER.forEach((c,i)=>{ PMETA[c]={n:(pool.names&&pool.names[c])||c,c:PALETTE[i%PALETTE.length]}; });
   myCode=(pool.members||{})[myEmail]||null; isJudge=(myCode&&myCode===JUDGE);
 }
+/* Shared race intel for the upcoming stage (same for every pool). Update per stage until the
+   boards are unified (Phase 2); mirrors the master's UPCOMING route/type/km/intel. */
+const SHARED_UPCOMING = {
+  14: { route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
+    intel:{
+      summary:"A short, savage Vosges mountain day, seven climbs and 3,800 m of climbing that ends on the Col du Haag before a 6 km run-in to Le Markstein; the first real GC summit test since the Pyrenees.",
+      facts:[
+        "155.3 km with 3,800 m of climbing packed into seven categorized ascents",
+        "Over the Grand Ballon and Ballon d'Alsace early, then a relentless lumpy finale",
+        "Final climb is the Col du Haag, 11.2 km at 7.3 percent, cresting 5.9 km from the line",
+        "Suits the climbers and GC contenders, though a strong break could also survive on this terrain"
+      ]
+    } }
+};
 async function buildCDF(){
   const players={}; ORDER.forEach(c=>players[c]={name:(pool.names&&pool.names[c])||c});
   const riderProfile={}; ORDER.forEach(c=>riderProfile[c]={pin:'',avatar:''});
@@ -964,7 +978,8 @@ async function buildCDF(){
   try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data(); stages.push(Object.assign({n:Number(d.id)},v)); }); }catch(e){}
   stages.sort((a,b)=>a.n-b.n);
   const upPicks={}; ORDER.forEach(c=>upPicks[c]=[]);
-  const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:'', type:'', km:0, intel:{summary:'',facts:[]}, picks:upPicks };
+  const su=(SHARED_UPCOMING&&SHARED_UPCOMING[Number(STAGE)])||{};
+  const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:su.route||'', type:su.type||'', km:su.km||0, intel:su.intel||{summary:'',facts:[]}, picks:upPicks };
   const official={ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
   return { players, order:ORDER.slice(), riderProfile, personaLedger:{order:ORDER.slice(),by:{},seen:{}}, official, stages, upcoming };
 }
