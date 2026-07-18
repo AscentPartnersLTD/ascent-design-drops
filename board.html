@@ -601,8 +601,8 @@
       <div class="charts">
         <div class="chart"><div class="ct">Placement <small>sum of both picks' finishes &middot; lower is better</small></div><div class="bars" id="barsPlace"></div></div>
         <div class="chart"><div class="ct">Rank <small>the day's picks ranked 1 to 8 by finish &middot; lower is better</small></div><div class="bars" id="barsRank"></div></div>
-        <div class="hl-tile"><div class="big">29/36</div><div><div class="t">Collective podium hit rate</div><div class="b">The pool has drafted 29 of 36 podium spots across the 12 scored stages, at least 2 every day and all 3 on six of them. Plus 61 of 120 top-10 slots.</div></div></div>
-        <div class="hl-tile"><div class="big">22/125/128</div><div><div class="t">The MVDP tax</div><div class="b">Van der Poel picked 3 times (2 by JP) for those finishes, then won Stage 9, the one day the pool was voided. 275 in the placement tally, no payoff.</div></div></div>
+        <div class="hl-tile"><div class="big" style="font-size:22px">Soon</div><div><div class="t">Pool records</div><div class="b">Podium hit rate and the season's milestones fill in here as stages are scored.</div></div></div>
+        
       </div>
     </div>
 
@@ -2021,26 +2021,11 @@ document.getElementById('resultsTable').innerHTML =
   }).join('')+`</tbody>`;
 
 /* stats */
-const stats=[
-  {k:"Placement leader",v:OURS.placement[placeLeader],d:`${placeLeader}, lowest total (primary standing). Next: ${placeOrder.slice(1).map(k=>k+' '+OURS.placement[k]).join(', ')}.`},
-  {k:"Rank leader",v:OURS.rank[rankLeader],ink:true,d:`${rankLeader}, lowest rank total. ${rankOrder.slice(1).map(k=>k+' '+OURS.rank[k]).join(', ')} behind.`},
-  {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`},
-  {k:"The MVDP tax",v:"275 PTS",ink:true,d:"Picked 3 times (2 by JP): 22nd, 125th, 128th. Then he won the voided Stage 9, of course."},
-  {k:"The reinstatement",v:"119TH > 3RD",small:true,d:"Philipsen's Nevers relegation was overturned on appeal. The official result restores his 3rd, dropping JP's Stage 11 from 121 to 5."},
-  {k:"Collective worst day",v:"ST 13",small:true,d:"Dole to Belfort. The favorites let the break ride, and with JJ's pair missing the move the four combined for 334, the pool's heaviest day of the race."},
-  {k:"Biggest single burial",v:"128th",small:true,d:"JP's MVDP on the Stage 5 sprint. Did he fall asleep in the peloton?"},
-  {k:"Notable GC pick",v:"REMCO",small:true,ink:true,d:"Picked five times (three by AA, two by JP): 3, 8, 57, 4, 2. The 57 was the Foix breakaway day."},
-  {k:"Stage lost to hydration",v:"ST 9",small:true,ink:true,d:"Heat-shortened, then DNS for the whole pool after the World Cup watch party."}
-];
+const stats=[{k:'Stats and notes',v:'',d:'This fills in with the pool\'s highlights and records as stages are scored.'}];
 document.getElementById('statgrid').innerHTML=stats.map(s=>
   `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
 
-const arch=[
-  {k:"AA",lead:true,t:"The new leader",b:"Pidcock's 3rd out of the Ballon d'Alsace break moved AA to the front of both boards, placement 365 and rank 96, and earned a second Sélection la plus Combative. Still the most stage winners drafted at four: Pedersen, Merlier, Pogacar, Waerenskjold. The aggressive board finally cashed in."},
-  {k:"JB",t:"Quiet in second",b:"Second on placement at 377, though last on rank at 122. A split UAE card at Belfort, McNulty 5th up the road against del Toro back in the GC group, is the shape of his season: name-brand picks that stay in steady touch without a signature day."},
-  {k:"JJ",t:"Panache, and a costly day",b:"Loulou now, and a hard one. The eleven-stage leader watched Baudin and Debruyne miss the winning move at Belfort and slid to third on placement at 441, though he still holds second on rank at 106. The aggression that built the lead is the same aggression that cost him the day it did not land."},
-  {k:"JP",t:"The MVDP believer",b:"Still last on placement at 573, 275 of it the MVDP tax, but the picks read closer than that: Pogacar and Carapaz simply had no stage on a day the favorites let the break ride. Third on rank at 108."}
-];
+const arch=[{k:'',t:'Rider archetypes',b:'These build up as the pool rides through the race and the picks tell a story.'}];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
   `<div class="arch ${a.lead?'lead':''}"><div class="who">${a.k}</div><div><div class="t">${a.t}</div><div class="b">${a.b}</div></div></div>`).join('');
 
@@ -2662,6 +2647,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0252</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0300</div>
 </body>
 </html>
