@@ -1122,7 +1122,8 @@ async function buildCDF(){
   const official=pool.official||{ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
   const ledger=pool.personaLedger||{order:ORDER.slice(),by:{},seen:{}};
   const rp=pool.riderProfile||riderProfile;
-  return { players, order:ORDER.slice(), riderProfile:rp, personaLedger:ledger, official, stages, upcoming, editorial:pool.editorial||null };
+  const seats=(pool.seats&&pool.seats.length)?pool.seats.slice():ORDER.slice().sort();
+  return { players, order:ORDER.slice(), seats, riderProfile:rp, personaLedger:ledger, official, stages, upcoming, editorial:pool.editorial||null };
 }
 /* ---------------- draft engine (per pool) ---------------- */
 function draftRef(){ return db.doc('pools/'+poolId+'/drafts/'+STAGE); }
@@ -1171,7 +1172,7 @@ function renderDraft(){
   const sub = pending?`Snake draft · opens on ${PMETA[leadoff].n}'s first pick`:(done?'Snake draft · complete':'Snake draft · live');
   let action='';
   if(done){ action=`<div class="action"><div class="allin"><div class="big">All picks are in.</div><div class="sm">Standings post once the stage is scored.</div></div></div>`; }
-  else if(pending){ if(clock===myCode){ action=`<div class="action"><div class="a-h">You lead off · pick #1<small>Locking your first rider opens the draft for everyone.</small></div>${searchRow('Launch the draft')}</div>`; } else if(isOwner){ action=`<div class="action"><div class="a-h">${PMETA[leadoff].n} leads off · pick #1<small>Operator: you can lock their opening rider for them and launch the draft.</small></div>${searchRow('Enter for '+PMETA[leadoff].n)}</div>`; } else { action=`<div class="action"><div class="pendline"><b>The draft opens when ${PMETA[leadoff].n} makes the first pick.</b> Your turn shows here the moment it is live.</div></div>`; } }
+  else if(pending){ if(clock===myCode){ action=`<div class="action"><div class="a-h">You lead off · pick #1<small>Locking your first rider opens the draft for everyone.</small></div>${searchRow('Launch the draft')}</div>`; } else if(isOwner){ action=`<div class="action"><div class="a-h">${PMETA[leadoff].n} leads off · pick #1<small>Admin: you can lock their opening rider for them and launch the draft.</small></div>${searchRow('Enter for '+PMETA[leadoff].n)}<div class="seedbar">Draft armed for Stage ${esc(STAGE)}. It goes live the instant you lock pick #1.</div></div>`; } else { action=`<div class="action"><div class="pendline"><b>The draft opens when ${PMETA[leadoff].n} makes the first pick.</b> Your turn shows here the moment it is live.</div></div>`; } }
   else if(clock===myCode){ action=`<div class="action"><div class="a-h">You are on the clock · pick #${picks.length+1}</div>${searchRow('Lock pick')}</div>`; }
   else { const mine=[]; queue.forEach((c,idx)=>{ if(c===myCode) mine.push(idx); }); const nextTxt=myCode?(mine.length?`Your next turn is pick #${picks.length+mine[0]+1}.`:'Both your picks are in.'):'You are watching.'; action=`<div class="action"><div class="waitline"><b>${PMETA[clock].n} is on the clock.</b> ${nextTxt}</div></div>`; }
   let admin=''; if(isOwner&&!pending&&clock&&clock!==myCode){ admin=`<div class="admin"><div class="ad-h">Operator · enter for the player on the clock</div><div class="ad-b">${PMETA[clock].n} is up (pick #${picks.length+1}).</div>${searchRow('Enter for '+PMETA[clock].n)}</div>`; }
@@ -1985,7 +1986,7 @@ function stageCard(st){
     body = `<div class="note"><span class="lab">Commissaire's note</span>${st.note}</div>`;
   } else {
     // per-player day total: prefer confirmed st.days, else compute from complete picks
-    const codes=CDF.order.slice();
+    const codes=(CDF.seats||CDF.order).slice();
     // one table per view: 'place' = sum of finishes (low wins, the system of record),
     // 'points' = top-15 fantasy points (high wins, the what-if lens). Placement math is untouched.
     function scoreTable(mode){
@@ -2073,7 +2074,7 @@ document.getElementById('stages').addEventListener('click',e=>{
 
 /* ===== The Numbers: four metrics ===== */
 (function(){
-  const players=CDF.order.slice();
+  const players=(CDF.seats||CDF.order).slice();
   const colors=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const picks={}; players.forEach(p=>picks[p]=[]);
   STAGES.forEach(st=>{
@@ -2249,7 +2250,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     "J. Vingegaard":"Visma-Lease a Bike","P. Seixas":"Decathlon CMA CGM Team","R. Evenepoel":"Red Bull-BORA-hansgrohe","T. Pidcock":"Pinarello Q36.5","T. Pogacar":"UAE Team Emirates XRG","R. Gregoire":"Groupama-FDJ United","M. van der Poel":"Alpecin-Premier Tech","M. Vacek":"Lidl-Trek","I. del Toro":"UAE Team Emirates XRG","T. Johannessen":"Uno-X Mobility","J. Ayuso":"Lidl-Trek","Q. Simmons":"Lidl-Trek","M. Pedersen":"Lidl-Trek","B. Healy":"EF Education-EasyPost","J. Philipsen":"Alpecin-Premier Tech","S. Waerenskjold":"Uno-X Mobility","O. Kooij":"Decathlon CMA CGM Team","B. Girmay":"NSN Cycling Team","J. Abrahamsen":"Uno-X Mobility","T. Traaen":"Uno-X Mobility","B. O'Connor":"Team Jayco AlUla","S. Quinn":"EF Education-EasyPost","M. Kanter":"XDS Astana Team","T. Merlier":"Soudal Quick-Step","M. Fretin":"Cofidis","H. Artz":"Lotto-Intermarché","F. Lipowitz":"Red Bull-BORA-hansgrohe","A. Yates":"UAE Team Emirates XRG","J. Jegat":"TotalEnergies","R. Pluimers":"Tudor Pro Cycling","P. Bauhaus":"Bahrain Victorious","B. McNulty":"UAE Team Emirates XRG","A. Baudin":"EF Education-EasyPost","R. Debruyne":"Alpecin-Premier Tech","R. Carapaz":"EF Education-EasyPost"
   };
   const TEAM_COLOR={"Alpecin-Premier Tech":"#6B0F1A","Bahrain Victorious":"#C8102E","Caja Rural-Seguros RGA":"#1E8449","Cofidis":"#E2001A","Decathlon CMA CGM Team":"#0082C3","EF Education-EasyPost":"#FF0098","Groupama-FDJ United":"#26429B","Lidl-Trek":"#001E62","Lotto-Intermarché":"#A6093D","Movistar Team":"#009DDC","Netcompany INEOS":"#A50021","NSN Cycling Team":"#F7A600","Pinarello Q36.5":"#009CA6","Red Bull-BORA-hansgrohe":"#223971","Soudal Quick-Step":"#0033A0","Team Jayco AlUla":"#00A94F","Team Picnic PostNL":"#FF6900","TotalEnergies":"#F04E23","Tudor Pro Cycling":"#2B2B2B","UAE Team Emirates XRG":"#d4111e","Uno-X Mobility":"#FF5C39","Visma-Lease a Bike":"#E3C400","XDS Astana Team":"#00A9CE"};
-  const PL=CDF.order.slice();
+  const PL=(CDF.seats||CDF.order).slice();
   function teamOf(n){ if(!n) return null; if(TEAM_ALIAS[n]) return TEAM_ALIAS[n]; if(TEAMS23.indexOf(n)>=0) return n; if(RIDER_TEAM[n]) return RIDER_TEAM[n]; return null; }
   const counts={}; PL.forEach(p=>counts[p]={});
   const unmapped={};
@@ -2302,7 +2303,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
 /* Hits & Misses: best/worst picks and rider value, computed from STAGES (rider picks, Stage 2 on). */
 (function(){
-  const PL=CDF.order.slice();
+  const PL=(CDF.seats||CDF.order).slice();
   const COL=(function(){var _p=['#c0392b','#2c6e8f','#8a929c','#b8862f'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>TABLE[f]||0;
@@ -2352,7 +2353,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 (function(){
   const todayEl=document.getElementById('wiToday'), ptsEl=document.getElementById('wiPts'), noteEl=document.getElementById('wiNote');
   if(!todayEl||!ptsEl) return;
-  const PL=CDF.order.slice();
+  const PL=(CDF.seats||CDF.order).slice();
   const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>(typeof f==='number'?(TABLE[f]||0):0);
@@ -2460,7 +2461,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 (function(){
   const PTABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const P=f=>(typeof f==='number'?(PTABLE[f]||0):0);
-  const PL=CDF.order.slice();
+  const PL=(CDF.seats||CDF.order).slice();
   const COL=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
 
   /* ---- points aggregates, computed straight from STAGES over the same completed set ---- */
@@ -2641,7 +2642,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   CARD.style.display='';
   var BTN=document.getElementById('bwBtn'), BODY=document.getElementById('bwBody');
   var COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
-  var PL=CDF.order.slice();
+  var PL=(CDF.seats||CDF.order).slice();
 
   function norm(s){return (s||'').toUpperCase().replace(/[^A-Z]/g,'');}
   function surname(pick){return norm(String(pick).replace(/^[A-Za-z]\.\s*/,''));}
@@ -2800,7 +2801,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const box=document.getElementById('tiltBox');
   if(!box || typeof RACE==='undefined') return;
   const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
-  const PLY=CDF.order.slice();
+  const PLY=(CDF.seats||CDF.order).slice();
 
   // Stage-type weight buckets (how concentrated the obvious best pick is). Tested in order.
   const WEIGHTS=[
@@ -2920,6 +2921,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1841</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1846</div>
 </body>
 </html>
