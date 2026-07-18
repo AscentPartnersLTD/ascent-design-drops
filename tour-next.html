@@ -980,7 +980,9 @@ auth.onAuthStateChanged(async user=>{
         const frag=document.createElement('div'); frag.innerHTML=html;
         while(frag.firstChild) parent.insertBefore(frag.firstChild, first);
         first.remove();
-      } } }catch(e){ console.error('hl-tiles editorial error',e); }
+      } }
+      if(CDF.editorial&&CDF.editorial.tiltFoot){ const tf=document.querySelector('.tilt-foot'); if(tf) tf.textContent=CDF.editorial.tiltFoot; }
+    }catch(e){ console.error('hl-tiles editorial error',e); }
     try{ fillClockAward(); }catch(e){ console.error('clock award error',e); }
     var _s=document.querySelector('.mast-t .s'); if(_s) _s.textContent=(pool.subtitle||((pool.name||'Fantasy pool')+' - Cycling'));
     document.title=pool.pageTitle||('Col du Fantasy - '+(pool.name||'Pool'));
@@ -1103,9 +1105,10 @@ function fillClockAward(){
 }
 
 async function buildCDF(){
-  const players={}; ORDER.forEach(c=>players[c]={name:(pool.names&&pool.names[c])||c});
-  const riderProfile={}; ORDER.forEach(c=>riderProfile[c]={pin:'',avatar:''});
-  const zero={}; ORDER.forEach(c=>zero[c]=0);
+  const seatList=(pool.seats&&pool.seats.length)?pool.seats.slice():ORDER.slice().sort();
+  const players={}; seatList.forEach(c=>players[c]={name:(pool.names&&pool.names[c])||c});
+  const riderProfile={}; seatList.forEach(c=>riderProfile[c]={pin:'',avatar:''});
+  const zero={}; seatList.forEach(c=>zero[c]=0);
   let stages=[];
   try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data();
     // Firestore cannot store nested arrays, so stage docs carry picks as maps
@@ -1122,7 +1125,7 @@ async function buildCDF(){
   const official=pool.official||{ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
   const ledger=pool.personaLedger||{order:ORDER.slice(),by:{},seen:{}};
   const rp=pool.riderProfile||riderProfile;
-  const seats=(pool.seats&&pool.seats.length)?pool.seats.slice():ORDER.slice().sort();
+  const seats=seatList.slice();
   return { players, order:ORDER.slice(), seats, riderProfile:rp, personaLedger:ledger, official, stages, upcoming, editorial:pool.editorial||null };
 }
 /* ---------------- draft engine (per pool) ---------------- */
@@ -2921,6 +2924,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1846</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1850</div>
 </body>
 </html>
