@@ -414,6 +414,7 @@
   .gate-msg{margin-top:18px;font-size:13px;min-height:18px;line-height:1.5;color:#cfcabd}
   .gate-msg.err{color:#f2b0a8}
   .gate-msg b{color:#fff}
+  .gate-msg a{color:#d4af37;text-decoration:underline;font-weight:700}
   .gate-foot{margin-top:30px;font-size:11px;color:#7d786d;line-height:1.55}
   .gate-signout{margin-top:16px;background:none;border:1px solid rgba(255,255,255,.22);color:#b7b2a6;border-radius:9px;padding:9px 16px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer}
   .gate-signout:hover{border-color:rgba(255,255,255,.4);color:#fff}
@@ -963,7 +964,7 @@ const $=id=>document.getElementById(id);
 let myEmail=null,isOwner=false,poolId=null,pool=null,STAGE=null,ORDER=[],SNAKE=[],PMETA={},JUDGE=null,myCode=null,isJudge=false,draft=null,unsub=null,chosen=null;
 const DEFAULT_POOL='col-du-fantasy';
 const paramPool=new URLSearchParams(location.search).get('pool')||DEFAULT_POOL||null;
-function showGate(msg,err){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){m.textContent=msg; m.className=(err?'err':'');}}} }
+function showGate(msg,err,asHtml){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){ if(asHtml){m.innerHTML=msg;}else{m.textContent=msg;} m.className='gate-msg'+(err?' err':'');}}} }
 
 auth.onAuthStateChanged(async user=>{
   if(!user){ showGate(''); return; }
@@ -1034,7 +1035,7 @@ if(auth.isSignInWithEmailLink(location.href)){
 
 async function resolvePool(){
   if(paramPool) return paramPool;
-  if(isOwner){ const all=await db.collection('pools').get(); if(all.size===1) return all.docs[0].id; if(all.size===0){ showGate('No pools yet. Create one in the operator console.'); return null;} showGate('Operator: '+all.docs.map(d=>'<a href="?pool='+d.id+'">'+(d.data().name||d.id)+'</a>').join(' · ')); return null; }
+  if(isOwner){ const all=await db.collection('pools').get(); if(all.size===1) return all.docs[0].id; if(all.size===0){ showGate('No pools yet. Create one in the operator console.'); return null;} showGate('Operator - pick a pool:<br>'+all.docs.map(d=>'<a href="?pool='+encodeURIComponent(d.id)+'">'+String(d.data().name||d.id).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))+'</a>').join(' &middot; '),false,true); return null; }
   const idx=await db.doc('userPools/'+myEmail).get(); const ids=idx.exists?(idx.data().pools||[]):[];
   for(const id of ids){ try{ const s=await db.doc('pools/'+id).get(); if(s.exists) return id; }catch(e){} }
   showGate('You are not in a pool yet. Ask Allen to add you, then sign in again.'); return null;
@@ -2929,6 +2930,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1320</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1935</div>
 </body>
 </html>
