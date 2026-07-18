@@ -1055,9 +1055,25 @@ function riderAv(rider,pending,clock,player){ if(pending) return `<span class="t
 function fmtDur(ms){ if(ms<0) ms=0; let s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
 function tickClock(){ const el=$('drClockTimer'); if(!el||!draft) return; const picks=draft.picks||[], queue=draft.queue||[]; if(draft.status==='complete'||!queue.length){ el.textContent=''; return; } const la=draft.lockAt||{}, start=la[String(picks.length)]; let ms=(start&&start.toMillis)?start.toMillis():null; if(ms==null){ Object.keys(la).forEach(k=>{ const v=la[k]; if(v&&v.toMillis){ const t=v.toMillis(); if(ms==null||t>ms) ms=t; } }); if(ms==null && draft.createdAt && draft.createdAt.toMillis) ms=draft.createdAt.toMillis(); } if(ms==null){ el.textContent=''; return; } el.textContent=' · '+fmtDur(Date.now()-ms); }
 setInterval(tickClock,1000);
+function renderMini(picks){
+  // draft complete: the widget shrinks to a compact bar (same behavior as the primary board)
+  let avs='';
+  picks.slice(0,SNAKE.length).forEach(pk=>{
+    const col=pk.color||'#888';
+    const img=pk.photo?`<img src="${esc(pk.photo)}" onerror="this.remove()">`:'';
+    avs+=`<span class="mb-av" style="border-color:${col}" title="${esc(pk.rider)} (${pk.player})">${img}${img?'':`<span class="mfb" style="background:${col}">${pk.player}</span>`}</span>`;
+  });
+  $('draftMount').innerHTML=`<div class="draft mini"><div class="minibar">`+
+    `<div class="mb-t"><span class="mb-ico"><svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg></span>Stage ${esc(STAGE)} draft locked</div>`+
+    `<span class="dh-badge badge-done">All ${picks.length} in</span>`+
+    `<span class="mb-avs">${avs}</span>`+
+    `<span class="mb-more">Picks are live on the stage card</span>`+
+    `</div></div>`;
+}
 function renderDraft(){
   const picks=draft.picks||[], queue=draft.queue||[]; const clock=queue[0]||null; const status=draft.status||'pending';
   const done=status==='complete'||queue.length===0; const pending=status==='pending'&&picks.length===0; const leadoff=ORDER[0];
+  if(done && picks.length){ renderMini(picks); return; }
   let nodes='';
   for(let i=0;i<SNAKE.length;i++){ if(i===ORDER.length) nodes+='<div class="tgap"></div>';
     if(i<picks.length){ const pk=picks[i]; nodes+=`<div class="tnode">${riderAv({r:pk.rider,c:pk.color||'#888',p:pk.photo},false)}<div class="tcap"><b style="color:${PMETA[pk.player].c}">#${i+1}</b>${pk.player}</div><div class="tname">${esc(pk.rider)}</div></div>`; }
@@ -2760,6 +2776,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1617</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1624</div>
 </body>
 </html>
