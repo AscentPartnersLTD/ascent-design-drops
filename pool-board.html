@@ -561,7 +561,7 @@ let myCode=null, isJudge=false, draft=null, unsub=null, chosen=null;
 const paramPool=new URLSearchParams(location.search).get('pool');
 
 const EMPTY={
-  ledger:['Stage ledger','Every stage’s picks and finishes will land here as the race is scored.'],
+  ledger:['Stage ledger','Every stage\'s picks and finishes will land here as the race is scored.'],
   stats:['Stats and notes','Trends, signature riders, and the number-crunching show up once you have scored stages.'],
   teams:['Allegiances','The teams your picks belong to tally here the moment the first round of picks is in.'],
   hits:['Hits and misses','Your best calls and the ones that got away, filled in stage by stage.'],
@@ -624,7 +624,7 @@ async function loadPool(id){
 function showBoard(){
   boot(''); $('board').style.display='block';
   // masthead title + subline reflect the pool
-  const h=document.querySelector('#board .mast-t .s'); if(h) h.textContent=(pool.name||'Fantasy pool')+' – Cycling';
+  const h=document.querySelector('#board .mast-t .s'); if(h) h.textContent=(pool.name||'Fantasy pool')+' - Cycling';
   const hero=$('heroLead'); if(hero) hero.textContent='';
   // today's order strip
   const seats=ORDER.map((c,i)=>`<span class="pb-seat" data-code="${c}"><span class="dot" style="background:${PMETA[c].c}"></span>${c}</span>`).join('');
@@ -671,7 +671,7 @@ function board(title,sub,map,low){
 }
 function renderScore(r){
   const scored=r.completed.length;
-  const leader = scored ? [...ORDER].sort((a,b)=>(r.place[a]||0)-(r.place[b]||0))[0] : '—';
+  const leader = scored ? [...ORDER].sort((a,b)=>(r.place[a]||0)-(r.place[b]||0))[0] : 'TBD';
   $('pbStats').innerHTML=[
     ['Members', ORDER.length],
     ['Stages scored', scored],
