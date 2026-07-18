@@ -919,21 +919,6 @@ let myEmail=null,isOwner=false,poolId=null,pool=null,STAGE=null,ORDER=[],SNAKE=[
 const paramPool=new URLSearchParams(location.search).get('pool');
 function showGate(msg,err){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){m.textContent=msg; m.className=(err?'err':'');}}} }
 
-(function(){var st=document.createElement('style');st.textContent="#stages .pf-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);padding:15px 17px;margin:0 0 14px}#stages .pf-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}#stages .pf-n{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold-d)}#stages .pf-route{font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;color:var(--ink);margin-top:2px}#stages .pf-type{font-size:12.5px;color:var(--mute);margin-top:2px}#stages .pf-win{text-align:right}#stages .pf-winlab{font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}#stages .pf-winname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;color:var(--ink)}#stages .pf-prof{width:100%;border-radius:10px;margin:12px 0;display:block;background:var(--paper2)}#stages .pf-top5{border-top:1px solid var(--line);padding-top:11px}#stages .pf-t5lab{font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}#stages .pf-row{display:flex;align-items:center;gap:10px;padding:4px 0}#stages .pf-pos{width:20px;height:20px;border-radius:6px;background:var(--paper2);font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--ink2);flex:none}#stages .pf-row:first-child .pf-pos{background:var(--gold);color:#fff}#stages .pf-name{font-size:13.5px;color:var(--ink)}";document.head.appendChild(st);})();
-function renderStageCards(){
-  var race=window.CDF_RACE||[], top5=window.CDF_TOP5||{};
-  var el=$('stages'); if(!el) return;
-  var done=race.filter(function(r){return r.win && !r.upcoming;});
-  if(!done.length) return;
-  el.innerHTML=done.slice().reverse().map(function(r){
-    var t5=top5[r.n]||[];
-    var rows=t5.map(function(nm,i){return '<div class="pf-row"><span class="pf-pos">'+(i+1)+'</span><span class="pf-name">'+esc(nm)+'</span></div>';}).join('');
-    var prof='https://cdn.cyclingstage.com/images/tour-de-france/2026/stage-'+r.n+'-profile.jpg';
-    var img='<img class="pf-prof" loading="lazy" src="'+prof+'" alt="Stage '+r.n+' profile" onerror="this.style.display=\'none\'">';
-    var five=t5.length?'<div class="pf-top5"><div class="pf-t5lab">Top 5 finishers</div>'+rows+'</div>':'';
-    return '<div class="pf-card"><div class="pf-head"><div><div class="pf-n">Stage '+r.n+'</div><div class="pf-route">'+esc(r.route)+'</div><div class="pf-type">'+esc(r.type)+'</div></div><div class="pf-win"><div class="pf-winlab">Winner</div><div class="pf-winname">'+esc(r.win)+'</div></div></div>'+img+five+'</div>';
-  }).join('');
-}
 auth.onAuthStateChanged(async user=>{
   if(!user){ showGate(''); return; }
   myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
@@ -951,7 +936,6 @@ auth.onAuthStateChanged(async user=>{
       var _ins=document.querySelector('#callouts .insight .txt');
       if(_ins) _ins.innerHTML='The boards are level to start. The story fills in as the race is scored.';
     }
-    try{ renderStageCards(); }catch(e){ console.error('stage cards',e); }
     subscribe();     // live draft into #draftMount
   }catch(e){ console.error(e); showGate('Error: '+(e.message||e), true); }
 });
@@ -2678,8 +2662,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   render();
 })();
 
-;try{window.CDF_RACE=RACE;window.CDF_TOP5=(typeof RACE_TOP5!=='undefined'?RACE_TOP5:{});}catch(e){}
-
 };
 </script>
 
@@ -2688,6 +2670,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0326</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0339</div>
 </body>
 </html>
