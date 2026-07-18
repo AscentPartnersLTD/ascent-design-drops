@@ -695,6 +695,28 @@
           <div id="wxBody" class="wx-body"><span class="wx-muted">Loading the forecast...</span></div>
           <a class="wx-link" href="https://www.weatheronline.co.uk/service/text/Tour-de-France.htm" target="_blank" rel="noopener noreferrer">Full Tour de France forecast</a>
         </div>
+        <div class="metricbox" id="clockAwardBox" style="margin-top:14px">
+          <style>
+            #clockAwardBox .ca-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+            #clockAwardBox .ca-pill{display:inline-flex;align-items:center;gap:7px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;padding:8px 13px;border-radius:999px;line-height:1.15}
+            #clockAwardBox .ca-pill b{font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:10px}
+            #clockAwardBox .ca-pill.fast{background:linear-gradient(100deg,#e8b31e,#f4d160);color:#4a3705}
+            #clockAwardBox .ca-pill.slow{background:linear-gradient(100deg,#b21f2b,#e0402c);color:#fff}
+            #clockAwardBox .ca-ladder{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+            #clockAwardBox .ca-row{display:grid;grid-template-columns:18px 1fr 84px auto;align-items:center;gap:9px;padding:5px 0}
+            #clockAwardBox .ca-row+.ca-row{border-top:1px solid var(--line)}
+            #clockAwardBox .ca-pos{width:18px;height:18px;border-radius:5px;background:var(--paper2);font-family:'Montserrat',sans-serif;font-weight:800;font-size:10px;display:flex;align-items:center;justify-content:center;color:var(--ink2)}
+            #clockAwardBox .ca-row:first-child .ca-pos{background:var(--gold);color:#fff}
+            #clockAwardBox .ca-name{font-size:12.5px;color:var(--ink)}
+            #clockAwardBox .ca-bar{height:6px;border-radius:99px;background:#eee7d6;overflow:hidden}
+            #clockAwardBox .ca-bar i{display:block;height:100%;background:linear-gradient(90deg,#e8b31e,#cf2530)}
+            #clockAwardBox .ca-t{font-family:'Montserrat',sans-serif;font-variant-numeric:tabular-nums;font-weight:800;font-size:12.5px;color:var(--ink);text-align:right}
+            #clockAwardBox .ca-muted{color:var(--mute);font-size:12.5px}
+          </style>
+          <div class="mh">The draft clock</div>
+          <div class="msub">Average time on the clock per pick. The leadoff and the back-to-back turn pick do not count.</div>
+          <div id="clockAwardBody"><span class="ca-muted">Fills in once a draft runs with the clock on.</span></div>
+        </div>
       </div>
       <div>
         <div class="metricbox" id="avgBox"><div class="mh">Average finish per pick</div><div class="msub">Rider picks only, Stage 2 on. Lower is sharper</div><div id="mAvg"></div></div>
@@ -972,25 +994,6 @@ const RACE = [
   { n:20, date:"Jul 25", route:"Alpe d'Huez (queen)",      type:"Queen stage",       win:"", upcoming:true, extra:"Galibier + Sarenne, 5,600 m" },
   { n:21, date:"Jul 26", route:"Paris > Champs-Elysees",   type:"Finale / Montmartre",win:"", upcoming:true, extra:"Three Montmartre climbs" }
 ];
-
-/* Official top 5 finishers per scored stage (shared race fact, same for every pool).
-   Stage 1 is the team time trial, so those are teams. Sources: cyclingstage.com,
-   cyclingflash.com, pezcyclingnews.com, cyclinguptodate.com (July 2026). */
-const RACE_TOP5 = {
-  1:["Team Visma-Lease a Bike","Netcompany-INEOS","UAE Team Emirates XRG","Lidl-Trek","Red Bull-BORA-hansgrohe"],
-  2:["I. del Toro","T. Pogacar","R. Evenepoel","J. Vingegaard","M. Skjelmose"],
-  3:["T. Pogacar","J. Vingegaard","R. Carapaz","P. Seixas","T. Johannessen"],
-  4:["M. Pedersen","Q. Simmons","R. Garcia Pierna","M. Frigo","R. Debruyne"],
-  5:["O. Kooij","M. Kanter","T. Merlier","H. Artz","J. Philipsen"],
-  6:["T. Pogacar","J. Vingegaard","I. del Toro","R. Evenepoel","P. Seixas"],
-  7:["T. Merlier","S. Waerenskjold","B. Girmay","M. Kanter","J. Philipsen"],
-  8:["T. Merlier","B. Girmay","O. Kooij","J. Philipsen","P. Bittner"],
-  9:["M. van der Poel","T. Johannessen","T. Pidcock","A. Baudin","F. Ganna"],
-  10:["T. Pogacar","R. Evenepoel","P. Seixas","F. Lipowitz","J. Ayuso"],
-  11:["S. Waerenskjold","O. Kooij","J. Philipsen","M. Fretin","H. Artz"],
-  12:["T. Merlier","O. Kooij","J. Philipsen","B. Girmay","M. Fretin"],
-  13:["M. Schmid","H. Tejada","T. Pidcock","M. Van Gils","B. McNulty"]
-};
 
 /* Pool picks + finishes where known. null = not posted. */
 const STAGES = [
@@ -2429,14 +2432,19 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   }
 
   // Live pick clock: elapsed since the current turn began (last lock). Display only; scoring uses server stamps.
-  function fmtDur(ms){ if(ms<0) ms=0; var s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
+  function fmtDur(ms){ if(ms<0) ms=0; var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60); s=s%60; var p=function(n){return (n<10?'0':'')+n;}; return h?(h+':'+p(m)+':'+p(s)):(m+':'+p(s)); }
   function tickClock(){
     var el=document.getElementById('drClockTimer'); if(!el||!draft) return;
-    var picks=draft.picks||[], queue=draft.queue||[];
+    var queue=draft.queue||[], picks=draft.picks||[];
     if(draft.status==='complete'||!queue.length){ el.textContent=''; return; }
-    var la=draft.lockAt||{}, start=la[String(picks.length)];   // pick #(picks.length) lock = this turn's start
-    if(!start||!start.toMillis){ el.textContent=''; return; }  // pick #1 launch is untimed
-    el.textContent=' · '+fmtDur(Date.now()-start.toMillis());
+    var la=draft.lockAt||{}, start=la[String(picks.length)];   // this turn began when the last pick locked
+    var ms=(start&&start.toMillis)?start.toMillis():null;
+    if(ms==null){   // draft predates the clock or the turn's stamp is missing: use the latest recorded lock, else draft open
+      Object.keys(la).forEach(function(k){ var v=la[k]; if(v&&v.toMillis){ var t=v.toMillis(); if(ms==null||t>ms) ms=t; }});
+      if(ms==null && draft.createdAt && draft.createdAt.toMillis) ms=draft.createdAt.toMillis();
+    }
+    if(ms==null){ el.textContent=''; return; }
+    el.textContent=' · '+fmtDur(Date.now()-ms);
   }
   setInterval(tickClock, 1000);
 
@@ -3148,6 +3156,44 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-0803 UTC</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-1110 UTC</div>
+<script>
+/* Draft clock award (Stats tab): reads every draft doc, computes average time on the clock per pick.
+   Rule: count a pick only when the previous pick was someone else (skips the untimed leadoff and the
+   back-to-back turn pick). Rank by average. Fills in from the first draft run with the clock on. */
+(function(){
+  var box=document.getElementById('clockAwardBox'); if(!box) return;
+  var body=document.getElementById('clockAwardBody'); if(!body) return;
+  var db2; try{ db2=firebase.firestore(); }catch(e){ return; }
+  var E=function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var nameOf=function(c){ return (typeof PLAYERS!=='undefined'&&PLAYERS[c]&&PLAYERS[c].name)?PLAYERS[c].name:c; };
+  var fmt=function(ms){ if(ms<0)ms=0; var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60); s=s%60; var p=function(n){return (n<10?'0':'')+n;}; return h?(h+':'+p(m)+':'+p(s)):(m+':'+p(s)); };
+  var maxStage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:21;
+  var gets=[]; for(var n=1;n<=maxStage;n++){ gets.push(db2.doc('drafts/'+n).get().catch(function(){return null;})); }
+  Promise.all(gets).then(function(snaps){
+    var agg={};
+    snaps.forEach(function(s){
+      if(!s||!s.exists) return; var d=s.data()||{}; var picks=d.picks||[], la=d.lockAt||{};
+      for(var k=2;k<=picks.length;k++){
+        var a=la[String(k)], b=la[String(k-1)];
+        if(!a||!a.toMillis||!b||!b.toMillis) continue;
+        if(!picks[k-1]||!picks[k-2]||picks[k-1].player===picks[k-2].player) continue;
+        var who=picks[k-1].player; if(!who) continue;
+        if(!agg[who]) agg[who]={ms:0,n:0};
+        agg[who].ms+=Math.max(0,a.toMillis()-b.toMillis()); agg[who].n++;
+      }
+    });
+    var rows=Object.keys(agg).map(function(c){return {c:c,avg:agg[c].ms/agg[c].n,n:agg[c].n};}).filter(function(r){return r.n>0;}).sort(function(x,y){return x.avg-y.avg;});
+    if(!rows.length) return;
+    var fast=rows[0], slow=rows[rows.length-1], mx=slow.avg||1;
+    var pills='<div class="ca-pills"><span class="ca-pill fast"><b>Quickest</b> '+E(nameOf(fast.c))+' &middot; '+fmt(fast.avg)+'</span>'
+      +(rows.length>1?'<span class="ca-pill slow"><b>Slowest</b> '+E(nameOf(slow.c))+' &middot; '+fmt(slow.avg)+'</span>':'')+'</div>';
+    var ladder='<div class="ca-ladder">'+rows.map(function(r,i){
+      return '<div class="ca-row"><span class="ca-pos">'+(i+1)+'</span><span class="ca-name">'+E(nameOf(r.c))+'</span><span class="ca-bar"><i style="width:'+Math.round(100*r.avg/mx)+'%"></i></span><span class="ca-t">'+fmt(r.avg)+'</span></div>';
+    }).join('')+'</div>';
+    body.innerHTML=pills+ladder;
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>
