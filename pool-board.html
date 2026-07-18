@@ -462,6 +462,21 @@
   .pb-empty{background:var(--card);border:1px dashed var(--line2);border-radius:14px;padding:34px 22px;text-align:center;color:var(--mute);margin:0 0 20px}
   .pb-empty .e-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:var(--ink2)}
   .pb-empty .e-b{font-size:13.5px;margin-top:7px;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.5}
+  .pb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 22px}
+  .pb-stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
+  .pb-stat .v{font-family:'Montserrat',sans-serif;font-weight:900;font-size:26px;color:var(--ink);line-height:1}
+  .pb-stat .k{font-size:11px;color:var(--mute);margin-top:6px;font-family:'Montserrat',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .pb-stand{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .pb-board{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--sh)}
+  .pb-board .bt{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px}
+  .pb-board .bs{font-size:10px;color:var(--mute);margin:2px 0 11px;text-transform:uppercase;letter-spacing:.03em;font-family:'Montserrat',sans-serif;font-weight:700}
+  .pb-row{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:9px;margin-top:9px}
+  .pb-code{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:#fff;border-radius:7px;text-align:center;padding:5px 0}
+  .pb-track{height:8px;background:var(--paper2);border-radius:999px;overflow:hidden}
+  .pb-fill{height:100%;border-radius:999px;transition:width .3s}
+  .pb-val{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;min-width:26px;text-align:right}
+  .pb-note{font-size:12px;color:var(--mute);text-align:center;margin:14px 0 0;line-height:1.5}
+  @media(max-width:640px){.pb-stats,.pb-stand{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -505,8 +520,10 @@
       <section class="tab on" id="tab-overview">
         <div id="draftMount"></div>
         <div class="pb-order" id="pbOrder"></div>
+        <div class="pb-stats" id="pbStats"></div>
         <h2 class="eyebrow mt">Standings</h2>
-        <div class="pb-empty" id="pbStandings"></div>
+        <div class="pb-stand" id="pbStandings"></div>
+        <div class="pb-note" id="pbStandNote"></div>
       </section>
       <section class="tab" id="tab-ledger"><div class="pb-empty" data-empty="ledger"></div></section>
       <section class="tab" id="tab-stats"><div class="pb-empty" data-empty="stats"></div></section>
@@ -612,8 +629,8 @@ function showBoard(){
   // today's order strip
   const seats=ORDER.map((c,i)=>`<span class="pb-seat" data-code="${c}"><span class="dot" style="background:${PMETA[c].c}"></span>${c}</span>`).join('');
   $('pbOrder').innerHTML=`<span class="lb">Draft order</span>${seats}`;
-  // standings empty state
-  $('pbStandings').innerHTML=`<div class="e-h">No stages scored yet</div><div class="e-b">Standings start the moment Stage ${esc(STAGE)} is scored. Placement, Rank, and Fantasy Points will all populate here.</div>`;
+  // stat tiles + live standings board (zeros until stages are scored)
+  loadScore().then(renderScore).catch(()=>{});
   // other tabs empty states
   document.querySelectorAll('.pb-empty[data-empty]').forEach(el=>{ const k=el.dataset.empty; if(EMPTY[k]) el.innerHTML=`<div class="e-h">${esc(EMPTY[k][0])}</div><div class="e-b">${esc(EMPTY[k][1])}</div>`; });
   // tab switching
@@ -622,6 +639,50 @@ function showBoard(){
     document.querySelectorAll('section.tab').forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); $('tab-'+b.dataset.tab).classList.add('on');
   }));
+}
+
+/* ---------------- scoring (same engine, verified) ---------------- */
+const SC_PT={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
+function pointsFor(f){ return SC_PT[f]||0; }
+function computeStandings(data){
+  const players=data.players.slice(), voidSet={}; (data.void||[]).forEach(n=>voidSet[String(n)]=1);
+  const place={},rank={},points={}; players.forEach(p=>{place[p]=0;rank[p]=0;points[p]=0;});
+  const nos=Object.keys(data.stages).map(Number).sort((a,b)=>a-b); const completed=[];
+  nos.forEach(n=>{ if(voidSet[String(n)]) return; const st=data.stages[String(n)];
+    const has=players.some(p=>(st[p]||[]).some(pr=>pr[1]!=null)); if(!has) return; completed.push(n);
+    players.forEach(p=>(st[p]||[]).forEach(pr=>{ if(pr[1]!=null){ place[p]+=pr[1]; points[p]+=pointsFor(pr[1]); }}));
+    const allp=[]; players.forEach(p=>(st[p]||[]).forEach(pr=>{ if(pr[1]!=null) allp.push({fin:pr[1],p}); }));
+    allp.sort((a,b)=>a.fin-b.fin); let seen=0,rk=0,prev=null;
+    allp.forEach(row=>{ seen++; if(prev===null||row.fin>prev) rk=seen; rank[row.p]+=rk; prev=row.fin; });
+  });
+  return {completed,place,rank,points};
+}
+async function loadScore(){
+  let stages={};
+  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ stages[d.id]=(d.data().picks)||{}; }); }catch(e){}
+  return computeStandings({players:ORDER, void:(pool.void||[]), stages});
+}
+function board(title,sub,map,low){
+  const entries=ORDER.map(c=>[c,map[c]||0]); entries.sort((a,b)=>low?a[1]-b[1]:b[1]-a[1]);
+  const max=Math.max(1,...entries.map(e=>e[1]));
+  const rows=entries.map(e=>{ const w=e[1]?Math.max(6,Math.round(e[1]/max*100)):0;
+    return `<div class="pb-row"><span class="pb-code" style="background:${PMETA[e[0]].c}">${e[0]}</span><span class="pb-track"><span class="pb-fill" style="width:${w}%;background:${PMETA[e[0]].c}"></span></span><span class="pb-val">${e[1]}</span></div>`; }).join('');
+  return `<div class="pb-board"><div class="bt">${esc(title)}</div><div class="bs">${sub}</div>${rows}</div>`;
+}
+function renderScore(r){
+  const scored=r.completed.length;
+  const leader = scored ? [...ORDER].sort((a,b)=>(r.place[a]||0)-(r.place[b]||0))[0] : '—';
+  $('pbStats').innerHTML=[
+    ['Members', ORDER.length],
+    ['Stages scored', scored],
+    ['Leader', leader]
+  ].map(s=>`<div class="pb-stat"><div class="v">${esc(s[1])}</div><div class="k">${esc(s[0])}</div></div>`).join('');
+  $('pbStandings').innerHTML =
+    board('Placement','sum of finishes · low leads', r.place, true)+
+    board('Rank','picks ranked · low leads', r.rank, true)+
+    board('Fantasy Points','top-15 scale · high leads', r.points, false);
+  $('pbStandNote').textContent = scored
+    ? '' : `Everyone starts level. The board fills the moment Stage ${STAGE} is scored.`;
 }
 
 /* ---------------- draft engine (per pool) ---------------- */
