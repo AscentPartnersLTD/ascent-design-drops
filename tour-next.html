@@ -958,7 +958,7 @@ const init=r=>r.replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(w
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id);
 let myEmail=null,isOwner=false,poolId=null,pool=null,STAGE=null,ORDER=[],SNAKE=[],PMETA={},JUDGE=null,myCode=null,isJudge=false,draft=null,unsub=null,chosen=null;
-const DEFAULT_POOL='';
+const DEFAULT_POOL='col-du-fantasy';
 const paramPool=new URLSearchParams(location.search).get('pool')||DEFAULT_POOL||null;
 function showGate(msg,err){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){m.textContent=msg; m.className=(err?'err':'');}}} }
 
