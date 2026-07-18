@@ -930,6 +930,8 @@ auth.onAuthStateChanged(async user=>{
     document.documentElement.classList.remove('gated'); document.body.classList.remove('gated');
     var g=$('gate'); if(g) g.style.display='none';
     try{ window.__runBoard(CDF); }catch(e){ console.error('runBoard error',e); }
+    var _s=document.querySelector('.mast-t .s'); if(_s) _s.textContent=(pool.name||'Fantasy pool')+' - Cycling';
+    document.title='Col du Fantasy - '+(pool.name||'Pool');
     subscribe();     // live draft into #draftMount
   }catch(e){ console.error(e); showGate('Error: '+(e.message||e), true); }
 });
@@ -1871,7 +1873,7 @@ document.getElementById('stages').addEventListener('click',e=>{
 
 /* ===== The Numbers: four metrics ===== */
 (function(){
-  const players=['AA','JJ','JB','JP'];
+  const players=CDF.order.slice();
   const colors={AA:'#e8b31e',JJ:'#2d6cdf',JB:'#1a8a3a',JP:'#c0392b'};
   const picks={}; players.forEach(p=>picks[p]=[]);
   STAGES.forEach(st=>{
@@ -2060,7 +2062,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     "J. Vingegaard":"Visma-Lease a Bike","P. Seixas":"Decathlon CMA CGM Team","R. Evenepoel":"Red Bull-BORA-hansgrohe","T. Pidcock":"Pinarello Q36.5","T. Pogacar":"UAE Team Emirates XRG","R. Gregoire":"Groupama-FDJ United","M. van der Poel":"Alpecin-Premier Tech","M. Vacek":"Lidl-Trek","I. del Toro":"UAE Team Emirates XRG","T. Johannessen":"Uno-X Mobility","J. Ayuso":"Lidl-Trek","Q. Simmons":"Lidl-Trek","M. Pedersen":"Lidl-Trek","B. Healy":"EF Education-EasyPost","J. Philipsen":"Alpecin-Premier Tech","S. Waerenskjold":"Uno-X Mobility","O. Kooij":"Decathlon CMA CGM Team","B. Girmay":"NSN Cycling Team","J. Abrahamsen":"Uno-X Mobility","T. Traaen":"Uno-X Mobility","B. O'Connor":"Team Jayco AlUla","S. Quinn":"EF Education-EasyPost","M. Kanter":"XDS Astana Team","T. Merlier":"Soudal Quick-Step","M. Fretin":"Cofidis","H. Artz":"Lotto-Intermarché","F. Lipowitz":"Red Bull-BORA-hansgrohe","A. Yates":"UAE Team Emirates XRG","J. Jegat":"TotalEnergies","R. Pluimers":"Tudor Pro Cycling","P. Bauhaus":"Bahrain Victorious","B. McNulty":"UAE Team Emirates XRG","A. Baudin":"EF Education-EasyPost","R. Debruyne":"Alpecin-Premier Tech","R. Carapaz":"EF Education-EasyPost"
   };
   const TEAM_COLOR={"Alpecin-Premier Tech":"#6B0F1A","Bahrain Victorious":"#C8102E","Caja Rural-Seguros RGA":"#1E8449","Cofidis":"#E2001A","Decathlon CMA CGM Team":"#0082C3","EF Education-EasyPost":"#FF0098","Groupama-FDJ United":"#26429B","Lidl-Trek":"#001E62","Lotto-Intermarché":"#A6093D","Movistar Team":"#009DDC","Netcompany INEOS":"#A50021","NSN Cycling Team":"#F7A600","Pinarello Q36.5":"#009CA6","Red Bull-BORA-hansgrohe":"#223971","Soudal Quick-Step":"#0033A0","Team Jayco AlUla":"#00A94F","Team Picnic PostNL":"#FF6900","TotalEnergies":"#F04E23","Tudor Pro Cycling":"#2B2B2B","UAE Team Emirates XRG":"#d4111e","Uno-X Mobility":"#FF5C39","Visma-Lease a Bike":"#E3C400","XDS Astana Team":"#00A9CE"};
-  const PL=['AA','JJ','JB','JP'];
+  const PL=CDF.order.slice();
   function teamOf(n){ if(!n) return null; if(TEAM_ALIAS[n]) return TEAM_ALIAS[n]; if(TEAMS23.indexOf(n)>=0) return n; if(RIDER_TEAM[n]) return RIDER_TEAM[n]; return null; }
   const counts={}; PL.forEach(p=>counts[p]={});
   const unmapped={};
@@ -2113,7 +2115,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
 /* Hits & Misses: best/worst picks and rider value, computed from STAGES (rider picks, Stage 2 on). */
 (function(){
-  const PL=['AA','JJ','JB','JP'];
+  const PL=CDF.order.slice();
   const COL={AA:'#c0392b',JJ:'#2c6e8f',JB:'#8a929c',JP:'#b8862f'};
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>TABLE[f]||0;
@@ -2163,7 +2165,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 (function(){
   const todayEl=document.getElementById('wiToday'), ptsEl=document.getElementById('wiPts'), noteEl=document.getElementById('wiNote');
   if(!todayEl||!ptsEl) return;
-  const PL=['AA','JJ','JB','JP'];
+  const PL=CDF.order.slice();
   const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>(typeof f==='number'?(TABLE[f]||0):0);
@@ -2271,7 +2273,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 (function(){
   const PTABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const P=f=>(typeof f==='number'?(PTABLE[f]||0):0);
-  const PL=['AA','JJ','JB','JP'];
+  const PL=CDF.order.slice();
   const COL={AA:'#e8b31e',JJ:'#2d6cdf',JB:'#1a8a3a',JP:'#c0392b'};
 
   /* ---- points aggregates, computed straight from STAGES over the same completed set ---- */
@@ -2452,7 +2454,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   CARD.style.display='';
   var BTN=document.getElementById('bwBtn'), BODY=document.getElementById('bwBody');
   var COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
-  var PL=['AA','JJ','JB','JP'];
+  var PL=CDF.order.slice();
 
   function norm(s){return (s||'').toUpperCase().replace(/[^A-Z]/g,'');}
   function surname(pick){return norm(String(pick).replace(/^[A-Za-z]\.\s*/,''));}
@@ -2562,7 +2564,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const box=document.getElementById('tiltBox');
   if(!box || typeof RACE==='undefined') return;
   const COL={AA:'#e8b31e',JJ:'#26347e',JB:'#3aa564',JP:'#cf2530'};
-  const PLY=['AA','JJ','JB','JP'];
+  const PLY=CDF.order.slice();
 
   // Stage-type weight buckets (how concentrated the obvious best pick is). Tested in order.
   const WEIGHTS=[
@@ -2578,7 +2580,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
   // Void-aware draft order: AA led Stage 1, cycle AA>JB>JJ>JP, void stages take no draft (no advance).
   function seasonOrder(){
-    let line=['AA','JB','JJ','JP']; const ord={};
+    let line=CDF.order.slice(); const ord={};
     RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
       if(st.voidPool){ ord[st.n]=null; return; }
       ord[st.n]=line.slice();
@@ -2660,6 +2662,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">__CDF_BUILD__</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0249</div>
 </body>
 </html>
