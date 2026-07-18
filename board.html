@@ -1169,6 +1169,13 @@ function renderMini(picks){
 function renderDraft(){
   const picks=draft.picks||[], queue=draft.queue||[]; const clock=queue[0]||null; const status=draft.status||'pending';
   const done=status==='complete'||queue.length===0; const pending=status==='pending'&&picks.length===0; const leadoff=ORDER[0];
+  // Draft-completion ping (2026-07-18): the moment the final slot fills, whoever
+  // is viewing tells the col-break Worker, which queues the post-draft step for
+  // Claude's hourly watcher. Fire-and-forget, once per page load, idempotent on
+  // the Worker side (first write wins). No pick data leaves beyond code+rider.
+  if(done && picks.length>0 && !window.__cdfDonePing){ window.__cdfDonePing=1;
+    try{ fetch('https://col-break.allen-19a.workers.dev/done?pool='+encodeURIComponent(poolId)+'&stage='+encodeURIComponent(STAGE),{method:'POST',keepalive:true,body:JSON.stringify({picks:picks.map(p=>({n:p.n,player:p.player,rider:p.rider}))})}).catch(function(){}); }catch(e){}
+  }
   if(done && picks.length){ renderMini(picks); return; }
   let nodes='';
   for(let i=0;i<SNAKE.length;i++){ if(i===ORDER.length) nodes+='<div class="tgap"></div>';
@@ -2927,6 +2934,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1935</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-2040</div>
 </body>
 </html>
