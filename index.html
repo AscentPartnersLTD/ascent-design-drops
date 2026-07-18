@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><!-- build:20260715-143742 stage11 JJ=Girmay+Bauhaus -->
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3108,5 +3108,11 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   render();
 })();
 </script>
+<style>
+  #cdfBuild{position:fixed;left:8px;bottom:6px;z-index:6;pointer-events:none;
+    font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
+  body.gated #cdfBuild{display:none}
+</style>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-0000 UTC</div>
 </body>
 </html>
