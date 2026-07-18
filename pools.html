@@ -237,6 +237,9 @@ function riderAv(rider,pending,clock,player){
   const img=rider.p?`<img class="ph" src="${esc(rider.p)}" onerror="this.remove()">`:'';
   return `<span class="tav" style="box-shadow:0 0 0 2.5px ${col}">${fb}${img}</span>`;
 }
+function fmtDur(ms){ if(ms<0) ms=0; let s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
+function tickClock(){ const el=$('drClockTimer'); if(!el||!draft) return; const picks=draft.picks||[], queue=draft.queue||[]; if(draft.status==='complete'||!queue.length){ el.textContent=''; return; } const la=draft.lockAt||{}, start=la[String(picks.length)]; if(!start||!start.toMillis){ el.textContent=''; return; } el.textContent=' · '+fmtDur(Date.now()-start.toMillis()); }
+setInterval(tickClock,1000);
 function render(){
   const picks=draft.picks||[], queue=draft.queue||[];
   const clockCode=queue[0]||null;
@@ -260,7 +263,7 @@ function render(){
   let badge;
   if(pending) badge='<span class="dh-badge badge-pending">Not started</span>';
   else if(done) badge=`<span class="dh-badge badge-done">All ${picks.length} in</span>`;
-  else badge=`<span class="dh-badge badge-clock">${PMETA[clockCode].n} on the clock</span>`;
+  else badge=`<span class="dh-badge badge-clock">${PMETA[clockCode].n} on the clock<span id="drClockTimer" style="font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.02em"></span></span>`;
 
   const sub = pending ? `Snake draft &middot; opens on ${PMETA[leadoff].n}'s first pick` : (done?'Snake draft &middot; complete':'Snake draft &middot; live');
   let action='';
@@ -300,6 +303,7 @@ function render(){
   else if(isOwner && !pending && clockCode && clockCode!==myCode) forCode=clockCode;
   if(forCode) wireSearch(forCode);
   const b=$('bump'); if(b) b.addEventListener('click',doBump);
+  tickClock();
 }
 
 function searchRow(lockLabel){
@@ -333,9 +337,12 @@ async function submitPick(forCode,label){
       if(d.status==='complete') throw new Error('draft closed');
       if(d.queue[0]!==code) throw new Error('not your turn');
       if((d.picks||[]).some(p=>p.rider===picked.r)) throw new Error('already taken');
-      const pick={n:(d.picks||[]).length+1,player:code,rider:picked.r,team:picked.t,photo:picked.p||'',color:picked.c||'',by:myEmail,admin:code!==myCode};
+      const pnum=(d.picks||[]).length+1;
+      const pick={n:pnum,player:code,rider:picked.r,team:picked.t,photo:picked.p||'',color:picked.c||'',by:myEmail,admin:code!==myCode};
       const queue=d.queue.slice(1);
-      tx.update(ref,{picks:(d.picks||[]).concat([pick]),queue,status:queue.length?'live':'complete'});
+      const upd={picks:(d.picks||[]).concat([pick]),queue,status:queue.length?'live':'complete'};
+      upd['lockAt.'+pnum]=FV.serverTimestamp();
+      tx.update(ref,upd);
     });
   }catch(e){ alert('Could not lock pick: '+(e.message||e)); const l=$('lock'); if(l){l.disabled=false;l.textContent=label||'Lock pick';} }
 }
