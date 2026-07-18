@@ -592,6 +592,7 @@
         .break-card .bw-pick{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:6px 11px}
         .break-card .bw-pick b{font-family:'Montserrat',sans-serif;font-weight:900;font-size:11px;letter-spacing:.02em}
         .break-card .bw-gname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+        .break-card .bw-gname.bw-glead{font-size:22px;font-weight:900;line-height:1}
         .break-card .bw-ggap{font-family:'Montserrat',sans-serif;font-weight:700;font-size:10.5px;color:var(--mute);white-space:nowrap}
         .break-card .bw-gcount{font-size:11px;color:var(--mute);white-space:nowrap}
         .break-card .bw-jers{display:inline-flex;gap:4px;align-items:center}
@@ -2716,8 +2717,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
         return '<span class="bw-name'+(mine?' ours':'')+'">'+esc(rn)+'</span>';
       }).join('');
       var gapTxt = idx===0 ? (g.kmToGo?g.kmToGo+' km to go':'front') : '+'+gapStr(g.gap);
+      var lead=(idx===0&&hasBreak);
       return '<div class="bw-grp">'
-        +'<div class="bw-div"><span class="bw-gname">'+esc(g.label)+'</span>'
+        +'<div class="bw-div"><span class="bw-gname'+(lead?' bw-glead':'')+'">'+esc(g.label)+'</span>'
         +jerseyChips(g,jerseys)
         +'<button class="bw-gbtn" type="button" data-bwg="'+idx+'">Show all riders &gt;</button>'
         +'<span class="bw-rule"></span>'
@@ -2905,6 +2907,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1816</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1823</div>
 </body>
 </html>
