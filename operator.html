@@ -217,6 +217,7 @@ $('createBtn').addEventListener('click',async()=>{
     const ref=db.doc('pools/'+id);
     if((await ref.get()).exists){ $('createBtn').disabled=false; return set('A pool with ID "'+id+'" already exists.'); }
     await ref.set(doc);
+    try{ const b=db.batch(); members.forEach(m=>b.set(db.doc('userPools/'+m.email),{pools:FV.arrayUnion(id)},{merge:true})); await b.commit(); }catch(e){}
     set('Created "'+name+'". Members can sign in on the board now.',true);
     $('pName').value=''; $('pId').value=''; idEdited=false; $('members').innerHTML=''; addMemberRow($('members'),$('pJudge')); addMemberRow($('members'),$('pJudge'));
   }catch(e){ set('Could not create: '+(e.message||e)); }
@@ -293,6 +294,14 @@ function editCard(p){
     d.querySelector('.save').disabled=true; set('Saving...',true);
     try{
       await db.doc('pools/'+p.id).update({ name, startStage, judge, members:membersMap, memberEmails:members.map(m=>m.email), order:members.map(m=>m.code) });
+      // keep each member's routing index in sync (add current, drop removed)
+      try{
+        const oldEmails=Object.keys(p.members||{}), newEmails=members.map(m=>m.email);
+        const b=db.batch();
+        newEmails.forEach(e=>b.set(db.doc('userPools/'+e),{pools:FV.arrayUnion(p.id)},{merge:true}));
+        oldEmails.filter(e=>!newEmails.includes(e)).forEach(e=>b.set(db.doc('userPools/'+e),{pools:FV.arrayRemove(p.id)},{merge:true}));
+        await b.commit();
+      }catch(e){}
       editingId=null;  // snapshot will re-render the display card
     }catch(e){ set('Could not save: '+(e.message||e)); d.querySelector('.save').disabled=false; }
   });
@@ -300,8 +309,11 @@ function editCard(p){
 }
 
 async function doDelete(id){
-  try{ await db.doc('pools/'+id).delete(); }
-  catch(e){ alert('Delete failed: '+(e.message||e)); }
+  try{
+    let ems=[]; try{ const s=await db.doc('pools/'+id).get(); if(s.exists) ems=Object.keys(s.data().members||{}); }catch(e){}
+    await db.doc('pools/'+id).delete();
+    if(ems.length){ const b=db.batch(); ems.forEach(e=>b.set(db.doc('userPools/'+e),{pools:FV.arrayRemove(id)},{merge:true})); await b.commit(); }
+  }catch(e){ alert('Delete failed: '+(e.message||e)); }
 }
 
 /* ---------- auth ---------- */
