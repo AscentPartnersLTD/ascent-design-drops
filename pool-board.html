@@ -520,7 +520,9 @@
       <section class="tab on" id="tab-overview">
         <div id="draftMount"></div>
         <div class="pb-order" id="pbOrder"></div>
-        <div class="pb-stats" id="pbStats"></div>
+        <h2 class="eyebrow">Palmares</h2>
+        <p class="palmares-note">Each manager's card. Personas and honors fill in as the race is scored.</p>
+        <div class="palmares" id="pbPalmares"></div>
         <h2 class="eyebrow mt">Standings</h2>
         <div class="pb-stand" id="pbStandings"></div>
         <div class="pb-note" id="pbStandNote"></div>
@@ -629,8 +631,8 @@ function showBoard(){
   // today's order strip
   const seats=ORDER.map((c,i)=>`<span class="pb-seat" data-code="${c}"><span class="dot" style="background:${PMETA[c].c}"></span>${c}</span>`).join('');
   $('pbOrder').innerHTML=`<span class="lb">Draft order</span>${seats}`;
-  // stat tiles + live standings board (zeros until stages are scored)
-  loadScore().then(renderScore).catch(()=>{});
+  // palmares cards + live standings board (zeros until stages are scored)
+  loadScore().then(r=>{ renderPalmares(r); renderScore(r); }).catch(()=>{});
   // other tabs empty states
   document.querySelectorAll('.pb-empty[data-empty]').forEach(el=>{ const k=el.dataset.empty; if(EMPTY[k]) el.innerHTML=`<div class="e-h">${esc(EMPTY[k][0])}</div><div class="e-b">${esc(EMPTY[k][1])}</div>`; });
   // tab switching
@@ -639,6 +641,45 @@ function showBoard(){
     document.querySelectorAll('section.tab').forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); $('tab-'+b.dataset.tab).classList.add('on');
   }));
+}
+
+/* ---------------- palmares cards (your exact card, empty until scored) ---------------- */
+const jerseySVG='<svg viewBox="0 0 48 48" class="pc-jersey" aria-hidden="true"><path d="M17 8l-8 4-4 9 5 3 2-3v16h24V21l2 3 5-3-4-9-8-4-4 4-4 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 8a4 4 0 008 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const selIC='<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6"/><path d="M18 18L6 6"/><path d="M4.5 15.5L8 19"/><path d="M19.5 15.5L16 19"/></g><g fill="currentColor"><circle cx="5" cy="20" r="1.4"/><circle cx="19" cy="20" r="1.4"/></g></svg>';
+const prixIC='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5.4l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 19q-4.2-3.8-3.2-9.6"/><path d="M15 19q4.2-3.8 3.2-9.6"/></g></svg>';
+const winIC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v3h4v3a5 5 0 01-5 5h-.4A5 5 0 0113 16.9V19h3v2H8v-2h3v-2.1A5 5 0 019.4 14H9a5 5 0 01-5-5V6h3zM7 8H6v1a3 3 0 002 2.8zM18 8v3.8A3 3 0 0020 9V8z" fill="currentColor"/></svg>';
+function ordinal(n){ if(!n) return '-'; const s=['th','st','nd','rd'],v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function nameFor(code){ return ((pool.names||{})[code])||''; }
+function renderPalmares(r){
+  const el=$('pbPalmares'); if(!el) return;
+  const scored=r.completed.length;
+  const order = scored ? [...ORDER].sort((a,b)=>(r.place[a]||0)-(r.place[b]||0)) : ORDER.slice();
+  const rankOrder = scored ? [...ORDER].sort((a,b)=>(r.rank[a]||0)-(r.rank[b]||0)) : ORDER.slice();
+  el.innerHTML = order.map((k,i)=>{
+    const lead = scored && i===0;
+    const placePos = scored ? i+1 : 0;
+    const rankPos = scored ? rankOrder.indexOf(k)+1 : 0;
+    const nm = nameFor(k);
+    return `<div class="pcard${lead?' lead':''}">
+      <div class="pc-top">
+        <div class="pc-av empty">${jerseySVG}</div>
+        <div class="pc-id">
+          <div class="pc-code">${k}${lead?'<span class="pc-crown">'+winIC+'</span>':''}</div>
+          ${nm?`<div class="pc-name">${esc(nm)}</div>`:''}
+          <div class="pc-persona ph">persona to come</div>
+        </div>
+      </div>
+      <div class="pc-standings">
+        <span class="pc-stat"><em>${ordinal(placePos)}</em><span class="pl-lab">Placement</span><b>${r.place[k]||0}</b></span>
+        <span class="pc-stat"><em>${ordinal(rankPos)}</em><span class="pl-lab">Rank</span><b>${r.rank[k]||0}</b></span>
+      </div>
+      <div class="pc-medals">
+        <span class="medal sel zero">${selIC}<b>0</b><span>Selection</span></span>
+        <span class="medal prix zero">${prixIC}<b>0</b><span>Prix</span></span>
+        <span class="medal win zero">${winIC}<b>0</b><span>Wins</span></span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ---------------- scoring (same engine, verified) ---------------- */
@@ -671,12 +712,6 @@ function board(title,sub,map,low){
 }
 function renderScore(r){
   const scored=r.completed.length;
-  const leader = scored ? [...ORDER].sort((a,b)=>(r.place[a]||0)-(r.place[b]||0))[0] : 'TBD';
-  $('pbStats').innerHTML=[
-    ['Members', ORDER.length],
-    ['Stages scored', scored],
-    ['Leader', leader]
-  ].map(s=>`<div class="pb-stat"><div class="v">${esc(s[1])}</div><div class="k">${esc(s[0])}</div></div>`).join('');
   $('pbStandings').innerHTML =
     board('Placement','sum of finishes · low leads', r.place, true)+
     board('Rank','picks ranked · low leads', r.rank, true)+
