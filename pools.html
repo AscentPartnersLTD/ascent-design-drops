@@ -141,6 +141,10 @@ auth.onAuthStateChanged(async user=>{
     const id = await resolvePool();
     if(!id) return;               // resolvePool rendered its own message
     await loadPool(id);
+    // Self-register into my routing index so plain /pools auto-routes me next time.
+    // Safe: a person can only write their own index, and it grants no pool access
+    // (pool reads stay gated by membership); it just remembers where to send me.
+    if(myCode){ db.doc('userPools/'+myEmail).set({pools:FV.arrayUnion(poolId)},{merge:true}).catch(function(){}); }
     subscribe();
   }catch(e){ boot('Error: '+(e.message||e)); }
 });
