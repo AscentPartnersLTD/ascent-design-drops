@@ -1110,7 +1110,9 @@ async function buildCDF(){
   const riderProfile={}; seatList.forEach(c=>riderProfile[c]={pin:'',avatar:''});
   const zero={}; seatList.forEach(c=>zero[c]=0);
   let stages=[];
-  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data();
+  try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{
+    if(!/^\d+$/.test(d.id)) return; // only numeric doc ids are stages; ignore scratch/meta docs
+    const v=d.data();
     // Firestore cannot store nested arrays, so stage docs carry picks as maps
     // ({r:"T. Pogacar",f:1}); convert to the [rider,finish] pairs runBoard expects.
     if(v.picks) Object.keys(v.picks).forEach(k=>{ v.picks[k]=(v.picks[k]||[]).map(p=>Array.isArray(p)?p:[p.r,(p.f===undefined?null:p.f)]); });
@@ -1333,7 +1335,7 @@ const NEED_PICK = [];
 const orderBy = obj => Object.keys(obj).sort((a,b)=>obj[a]-obj[b]); // ascending = better
 
 /* Our cumulative, computed from the stage data across every completed stage (void stage skipped, today held off). */
-const PL4 = CDF.order;
+const PL4 = (CDF.seats||CDF.order);
 const COMPLETED = STAGES.filter(s=>!s.voidStage && s.days).map(s=>s.n).sort((a,b)=>a-b);
 const OURS = { through: COMPLETED.length?Math.max(...COMPLETED):0, placement:{}, rank:{} };
 PL4.forEach(p=>{OURS.placement[p]=0;OURS.rank[p]=0;});
@@ -2924,6 +2926,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1850</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1320</div>
 </body>
 </html>
