@@ -1880,7 +1880,7 @@ function stageCard(st){
     body = `<div class="note"><span class="lab">Commissaire's note</span>${st.note}</div>`;
   } else {
     // per-player day total: prefer confirmed st.days, else compute from complete picks
-    const codes=['AA','JP','JB','JJ'];
+    const codes=CDF.order.slice();
     // one table per view: 'place' = sum of finishes (low wins, the system of record),
     // 'points' = top-15 fantasy points (high wins, the what-if lens). Placement math is untouched.
     function scoreTable(mode){
@@ -2738,10 +2738,28 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 </script>
 
 <style>
+  .pt-host{position:relative}
+  .pt-btn{position:absolute;top:9px;right:9px;font-family:'Montserrat',sans-serif;font-weight:800;
+    font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-d);background:var(--paper);
+    border:1px solid var(--line2);border-radius:999px;padding:3px 9px 2px;cursor:pointer;line-height:1;
+    transition:background .15s,color .15s,border-color .15s;z-index:3;white-space:nowrap}
+  .pt-btn:hover{border-color:var(--gold-d);background:#fff}
+  .pt-btn.on{background:var(--gold-d);color:#fff;border-color:var(--gold-d)}
+  /* reserve space so a card title/subtitle never runs under the toggle pill (was overlapping on mobile) */
+  .pt-host > .ct, .pt-host > .mh, .pt-host > .eyebrow{padding-right:94px}
+  /* per-stage-card toggle: pill sits in its own right-aligned row, so it never overlaps the table header */
+  .stage-scoring{position:relative}
+  .sc-head{display:flex;justify-content:flex-end;margin:10px 0 -4px}
+  .sc-head .pt-btn{position:static}
+  .sc-view.sc-points{display:none}
+  .stage-scoring[data-view="points"] .sc-view.sc-place{display:none}
+  .stage-scoring[data-view="points"] .sc-view.sc-points{display:block}
+</style>
+<style>
   #cdfBuild{position:fixed;left:8px;bottom:6px;z-index:6;pointer-events:none;
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1546</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1617</div>
 </body>
 </html>
