@@ -1146,7 +1146,13 @@ const UPCOMING = {
       "Suits the climbers and GC contenders, though a strong break could also survive on this terrain"
     ]
   },
-  picks:{ AA:[], JB:[], JJ:[], JP:[] }
+  picks:{ AA:["T. Pogacar","J. Ayuso"], JB:["I. del Toro","R. Carapaz"], JJ:["F. Lipowitz","R. Evenepoel"], JP:["J. Vingegaard","P. Seixas"] },
+  reads:{
+    AA:"Pogacar is the safest anchor on any summit and should be first or second up the Col du Haag; the open question is whether Ayuso holds the elite group when the pace lifts or slips a few places late.",
+    JB:"Del Toro has climbed with the best all Tour and Carapaz is a real breakaway threat on this terrain; the risk is Carapaz riding an early move that gets pulled back and leaving one deep finish.",
+    JJ:"Two genuine GC men who both belong in the front group; Evenepoel is the one to watch, since a pure uphill finish is where he can concede a handful of seconds and places to the pure climbers.",
+    JP:"Vingegaard is the one rider who can actually take time on Pogacar uphill, and Seixas has been quietly excellent; the downside is that this is the hardest GC test since the Pyrenees and Seixas is still young."
+  }
 };
 
 /* Next-stage weather. The widget on the Stats tab fetches a live forecast from
@@ -3156,7 +3162,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-1132 UTC</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-1349 UTC</div>
 <script>
 /* Draft clock award (Stats tab): reads every draft doc, computes average time on the clock per pick.
    Rule: count a pick only when the previous pick was someone else (skips the untimed leadoff and the
