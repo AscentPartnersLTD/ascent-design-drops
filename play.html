@@ -206,7 +206,13 @@ function subscribe(){
       if(isOwner || myCode){ try{ await draftRef().set(draftInit()); }catch(e){ $('draftCard').innerHTML=warn('Could not open the draft: '+esc(e.message)); } return; }
       $('draftCard').innerHTML='<div class="allin"><div class="sm">The draft has not been opened yet.</div></div>'; return;
     }
-    draft=snap.data(); render();
+    draft=snap.data();
+    // If the roster changed while the draft is still pending (no picks yet), re-sync
+    // the draft to the new order so a late-added member is included cleanly.
+    if(draft.status==='pending' && (draft.picks||[]).length===0 && JSON.stringify(draft.order||[])!==JSON.stringify(ORDER)){
+      if(isOwner || myCode){ try{ await draftRef().set(draftInit()); }catch(e){} return; }
+    }
+    render();
   }, err=>{ $('draftCard').innerHTML=warn('Permission error: '+esc(err.message)+'. Are you a member of this pool?'); });
 }
 function warn(t){ return '<div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div>'; }
