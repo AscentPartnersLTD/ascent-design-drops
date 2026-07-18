@@ -1013,6 +1013,9 @@ async function buildCDF(){
   try{ const snap=await db.collection('pools/'+poolId+'/stages').get(); snap.forEach(d=>{ const v=d.data(); stages.push(Object.assign({n:Number(d.id)},v)); }); }catch(e){}
   stages.sort((a,b)=>a.n-b.n);
   const upPicks={}; ORDER.forEach(c=>upPicks[c]=[]);
+  // pull the live draft's picks so the stage card and Allegiances reflect the round the moment it is drafted
+  try{ const dsnap=await db.doc('pools/'+poolId+'/drafts/'+STAGE).get();
+    if(dsnap.exists){ (dsnap.data().picks||[]).forEach(p=>{ if(p&&p.player&&p.rider&&upPicks[p.player]) upPicks[p.player].push(p.rider); }); } }catch(e){}
   const su=(SHARED_UPCOMING&&SHARED_UPCOMING[Number(STAGE)])||{};
   const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:su.route||'', type:su.type||'', km:su.km||0, intel:su.intel||{summary:'',facts:[]}, picks:upPicks };
   const official={ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
