@@ -985,6 +985,9 @@ function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" 
 function highlightSeat(){ const clock=(draft&&draft.queue&&draft.queue[0])||null; document.querySelectorAll('.pb-seat').forEach(s=>s.classList.toggle('on', s.dataset.code===clock)); }
 function head(sub,badge){ return `<div class="dh"><div class="dh-l"><div class="dh-ico"><svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg></div><div><div class="dh-t">Stage ${esc(STAGE)} draft</div><div class="dh-s">${sub}</div></div></div>${badge||''}</div>`; }
 function riderAv(rider,pending,clock,player){ if(pending) return `<span class="tav pending ${clock?'clock':''}"><span class="fb" style="color:${PMETA[player].c}">${player}</span></span>`; const col=rider.c||'#888'; const fb=`<span class="fb" style="background:${col}">${init(rider.r)}</span>`; const img=rider.p?`<img class="ph" src="${esc(rider.p)}" onerror="this.remove()">`:''; return `<span class="tav" style="box-shadow:0 0 0 2.5px ${col}">${fb}${img}</span>`; }
+function fmtDur(ms){ if(ms<0) ms=0; let s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
+function tickClock(){ const el=$('drClockTimer'); if(!el||!draft) return; const picks=draft.picks||[], queue=draft.queue||[]; if(draft.status==='complete'||!queue.length){ el.textContent=''; return; } const la=draft.lockAt||{}, start=la[String(picks.length)]; if(!start||!start.toMillis){ el.textContent=''; return; } el.textContent=' · '+fmtDur(Date.now()-start.toMillis()); }
+setInterval(tickClock,1000);
 function renderDraft(){
   const picks=draft.picks||[], queue=draft.queue||[]; const clock=queue[0]||null; const status=draft.status||'pending';
   const done=status==='complete'||queue.length===0; const pending=status==='pending'&&picks.length===0; const leadoff=ORDER[0];
@@ -992,7 +995,7 @@ function renderDraft(){
   for(let i=0;i<SNAKE.length;i++){ if(i===ORDER.length) nodes+='<div class="tgap"></div>';
     if(i<picks.length){ const pk=picks[i]; nodes+=`<div class="tnode">${riderAv({r:pk.rider,c:pk.color||'#888',p:pk.photo},false)}<div class="tcap"><b style="color:${PMETA[pk.player].c}">#${i+1}</b>${pk.player}</div><div class="tname">${esc(pk.rider)}</div></div>`; }
     else { const qi=i-picks.length, player=queue[qi], clk=(qi===0&&!pending); nodes+=`<div class="tnode">${riderAv(null,true,clk,player)}<div class="tcap"><b style="color:${PMETA[player].c}">#${i+1}</b>${player}</div></div>`; } }
-  let badge = pending?'<span class="dh-badge badge-pending">Not started</span>':(done?`<span class="dh-badge badge-done">All ${picks.length} in</span>`:`<span class="dh-badge badge-clock">${PMETA[clock].n} on the clock</span>`);
+  let badge = pending?'<span class="dh-badge badge-pending">Not started</span>':(done?`<span class="dh-badge badge-done">All ${picks.length} in</span>`:`<span class="dh-badge badge-clock">${PMETA[clock].n} on the clock<span id="drClockTimer" style="font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.02em"></span></span>`);
   const sub = pending?`Snake draft · opens on ${PMETA[leadoff].n}'s first pick`:(done?'Snake draft · complete':'Snake draft · live');
   let action='';
   if(done){ action=`<div class="action"><div class="allin"><div class="big">All picks are in.</div><div class="sm">Standings post once the stage is scored.</div></div></div>`; }
@@ -1005,13 +1008,14 @@ function renderDraft(){
   let forCode=null; if((pending||!pending)&&clock===myCode) forCode=myCode; else if(isOwner&&!pending&&clock&&clock!==myCode) forCode=clock;
   if(forCode) wireSearch(forCode);
   const b=$('bump'); if(b) b.addEventListener('click',doBump);
+  tickClock();
 }
 function searchRow(label){ return `<div class="searchrow"><input id="s" placeholder="Search a rider still on the board..." autocomplete="off"><button class="lockbtn" id="lock" disabled>${esc(label)}</button><div class="ac" id="ac"></div></div>`; }
 function wireSearch(forCode){ const input=$('s'),ac=$('ac'),lock=$('lock'); if(!input) return; const taken=new Set((draft.picks||[]).map(p=>p.rider)); chosen=null; const label=lock.textContent;
   input.addEventListener('input',()=>{ chosen=null; lock.disabled=true; const q=input.value.trim().toLowerCase(); if(!q){ac.classList.remove('open');return;} const ms=RIDERS.filter(r=>!taken.has(r.r)&&(r.r.toLowerCase().includes(q)||r.t.toLowerCase().includes(q))).slice(0,8); ac.innerHTML=ms.length?ms.map((r,i)=>`<div class="ac-item" data-i="${i}"><img class="ac-av" src="${esc(r.p||'')}" onerror="this.style.visibility='hidden'"><span class="ac-rn">${esc(r.r)}</span><span class="ac-rt">${esc(r.t)}</span></div>`).join(''):'<div class="ac-item" style="color:var(--mute)">No match (35 riders now; full field next)</div>'; ac.classList.add('open'); ac.querySelectorAll('.ac-item[data-i]').forEach(it=>it.addEventListener('mousedown',e=>{e.preventDefault();chosen=ms[+it.dataset.i];input.value=chosen.r+'  ('+chosen.t+')';ac.classList.remove('open');lock.disabled=false;})); });
   input.addEventListener('blur',()=>setTimeout(()=>ac.classList.remove('open'),150)); lock.addEventListener('click',()=>submitPick(forCode,label)); }
 async function submitPick(forCode,label){ if(!chosen) return; const code=forCode||myCode; const lock=$('lock'); if(lock){lock.disabled=true;lock.textContent='Saving...';} const ref=draftRef(); const picked=chosen;
-  try{ await db.runTransaction(async tx=>{ const d=(await tx.get(ref)).data(); if(d.status==='complete') throw new Error('draft closed'); if(d.queue[0]!==code) throw new Error('not your turn'); if((d.picks||[]).some(p=>p.rider===picked.r)) throw new Error('already taken'); const pick={n:(d.picks||[]).length+1,player:code,rider:picked.r,team:picked.t,photo:picked.p||'',color:picked.c||'',by:myEmail,admin:code!==myCode}; const queue=d.queue.slice(1); tx.update(ref,{picks:(d.picks||[]).concat([pick]),queue,status:queue.length?'live':'complete'}); }); }
+  try{ await db.runTransaction(async tx=>{ const d=(await tx.get(ref)).data(); if(d.status==='complete') throw new Error('draft closed'); if(d.queue[0]!==code) throw new Error('not your turn'); if((d.picks||[]).some(p=>p.rider===picked.r)) throw new Error('already taken'); const pnum=(d.picks||[]).length+1; const pick={n:pnum,player:code,rider:picked.r,team:picked.t,photo:picked.p||'',color:picked.c||'',by:myEmail,admin:code!==myCode}; const queue=d.queue.slice(1); const upd={picks:(d.picks||[]).concat([pick]),queue,status:queue.length?'live':'complete'}; upd['lockAt.'+pnum]=FV.serverTimestamp(); tx.update(ref,upd); }); }
   catch(e){ alert('Could not lock pick: '+(e.message||e)); const l=$('lock'); if(l){l.disabled=false;l.textContent=label||'Lock pick';} } }
 async function doBump(){ const ref=draftRef(); try{ await db.runTransaction(async tx=>{ const d=(await tx.get(ref)).data(); if(!d.queue.length) return; const q=d.queue.slice(); q.push(q.shift()); tx.update(ref,{queue:q,bumpedAt:FV.serverTimestamp()}); }); }catch(e){ alert('Bump failed: '+(e.message||e)); } }
 
@@ -2670,6 +2674,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0339</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-0803</div>
 </body>
 </html>
