@@ -973,6 +973,25 @@ const RACE = [
   { n:21, date:"Jul 26", route:"Paris > Champs-Elysees",   type:"Finale / Montmartre",win:"", upcoming:true, extra:"Three Montmartre climbs" }
 ];
 
+/* Official top 5 finishers per scored stage (shared race fact, same for every pool).
+   Stage 1 is the team time trial, so those are teams. Sources: cyclingstage.com,
+   cyclingflash.com, pezcyclingnews.com, cyclinguptodate.com (July 2026). */
+const RACE_TOP5 = {
+  1:["Team Visma-Lease a Bike","Netcompany-INEOS","UAE Team Emirates XRG","Lidl-Trek","Red Bull-BORA-hansgrohe"],
+  2:["I. del Toro","T. Pogacar","R. Evenepoel","J. Vingegaard","M. Skjelmose"],
+  3:["T. Pogacar","J. Vingegaard","R. Carapaz","P. Seixas","T. Johannessen"],
+  4:["M. Pedersen","Q. Simmons","R. Garcia Pierna","M. Frigo","R. Debruyne"],
+  5:["O. Kooij","M. Kanter","T. Merlier","H. Artz","J. Philipsen"],
+  6:["T. Pogacar","J. Vingegaard","I. del Toro","R. Evenepoel","P. Seixas"],
+  7:["T. Merlier","S. Waerenskjold","B. Girmay","M. Kanter","J. Philipsen"],
+  8:["T. Merlier","B. Girmay","O. Kooij","J. Philipsen","P. Bittner"],
+  9:["M. van der Poel","T. Johannessen","T. Pidcock","A. Baudin","F. Ganna"],
+  10:["T. Pogacar","R. Evenepoel","P. Seixas","F. Lipowitz","J. Ayuso"],
+  11:["S. Waerenskjold","O. Kooij","J. Philipsen","M. Fretin","H. Artz"],
+  12:["T. Merlier","O. Kooij","J. Philipsen","B. Girmay","M. Fretin"],
+  13:["M. Schmid","H. Tejada","T. Pidcock","M. Van Gils","B. McNulty"]
+};
+
 /* Pool picks + finishes where known. null = not posted. */
 const STAGES = [
   { n:1, route:"Barcelona TTT", type:"Team time trial", km:19.7, win:"Team Visma",
@@ -2357,7 +2376,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
     var badge;
     if(pending) badge='<span class="dh-badge badge-pending">Not started</span>';
-    else badge='<span class="dh-badge badge-clock">'+PMETA[clockCode].n+' on the clock</span>';
+    else badge='<span class="dh-badge badge-clock">'+PMETA[clockCode].n+' on the clock<span id="drClockTimer" style="font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.02em"></span></span>';
 
     var sub = pending ? 'Snake draft &middot; opens on Allen\'s first pick' : 'Snake draft &middot; live';
     var action='';
@@ -2406,7 +2425,20 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     if(forCode) wireSearch(forCode);
 
     var b=document.getElementById('drBump'); if(b) b.addEventListener('click', doBump);
+    tickClock();
   }
+
+  // Live pick clock: elapsed since the current turn began (last lock). Display only; scoring uses server stamps.
+  function fmtDur(ms){ if(ms<0) ms=0; var s=Math.floor(ms/1000), m=Math.floor(s/60); s=s%60; return m+':'+(s<10?'0':'')+s; }
+  function tickClock(){
+    var el=document.getElementById('drClockTimer'); if(!el||!draft) return;
+    var picks=draft.picks||[], queue=draft.queue||[];
+    if(draft.status==='complete'||!queue.length){ el.textContent=''; return; }
+    var la=draft.lockAt||{}, start=la[String(picks.length)];   // pick #(picks.length) lock = this turn's start
+    if(!start||!start.toMillis){ el.textContent=''; return; }  // pick #1 launch is untimed
+    el.textContent=' · '+fmtDur(Date.now()-start.toMillis());
+  }
+  setInterval(tickClock, 1000);
 
   function renderMini(picks){
     mount.style.display='block';
@@ -2466,9 +2498,12 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
         if(d.status==='complete') throw new Error('draft closed');
         if(d.queue[0]!==code) throw new Error('not your turn');
         if((d.picks||[]).some(function(p){return p.rider===picked.r;})) throw new Error('already taken');
-        var pick={n:(d.picks||[]).length+1, player:code, rider:picked.r, team:picked.t, photo:picked.p||'', color:picked.c||'', by:myEmail, admin: code!==myCode};
+        var pnum=(d.picks||[]).length+1;
+        var pick={n:pnum, player:code, rider:picked.r, team:picked.t, photo:picked.p||'', color:picked.c||'', by:myEmail, admin: code!==myCode};
         var queue=d.queue.slice(1);
-        tx.update(ref,{picks:(d.picks||[]).concat([pick]), queue:queue, status: queue.length?'live':'complete'});
+        var upd={picks:(d.picks||[]).concat([pick]), queue:queue, status: queue.length?'live':'complete'};
+        upd['lockAt.'+pnum]=FV.serverTimestamp();   // server clock: pick pnum locked. dur(k)=lockAt[k]-lockAt[k-1]
+        tx.update(ref,upd);
       });
     }).catch(function(e){
       alert('Could not lock pick: '+(e.message||e));
@@ -3113,6 +3148,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-0000 UTC</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">v2026.07.18-0803 UTC</div>
 </body>
 </html>
