@@ -209,8 +209,8 @@ $('createBtn').addEventListener('click',async()=>{
   if(err) return set(err);
 
   const membersMap={}; members.forEach(m=>membersMap[m.email]=m.code);
-  const doc={ name, operator:OWNER_EMAIL, judge, members:membersMap, order:members.map(m=>m.code),
-    startStage, flags:{}, createdAt:FV.serverTimestamp() };
+  const doc={ name, operator:OWNER_EMAIL, judge, members:membersMap, memberEmails:members.map(m=>m.email),
+    order:members.map(m=>m.code), startStage, flags:{}, createdAt:FV.serverTimestamp() };
 
   $('createBtn').disabled=true; set('Creating...',true);
   try{
@@ -292,7 +292,7 @@ function editCard(p){
     const membersMap={}; members.forEach(m=>membersMap[m.email]=m.code);
     d.querySelector('.save').disabled=true; set('Saving...',true);
     try{
-      await db.doc('pools/'+p.id).update({ name, startStage, judge, members:membersMap, order:members.map(m=>m.code) });
+      await db.doc('pools/'+p.id).update({ name, startStage, judge, members:membersMap, memberEmails:members.map(m=>m.email), order:members.map(m=>m.code) });
       editingId=null;  // snapshot will re-render the display card
     }catch(e){ set('Could not save: '+(e.message||e)); d.querySelector('.save').disabled=false; }
   });
