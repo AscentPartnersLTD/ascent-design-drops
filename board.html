@@ -1269,8 +1269,8 @@ const BREAK_WORKER = "https://col-break.allen-19a.workers.dev";  // deployed Clo
 /* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
    this base, so whoever leads off today drops to last tomorrow. To set a one-off order
    for a single stage (someone out, a manual call), add order:["..",".."] to UPCOMING. */
-const ORDER_BASE = ["JJ","JP","AA","JB"];
-const ORDER_ANCHOR_STAGE = 12;
+const ORDER_BASE = CDF.order.slice();
+const ORDER_ANCHOR_STAGE = Number(CDF.upcoming&&CDF.upcoming.n)||12;
 function todaysOrder(){
   if(UPCOMING.order && UPCOMING.order.length) return UPCOMING.order.slice();
   const b=ORDER_BASE, m=b.length, off=((((UPCOMING.n||ORDER_ANCHOR_STAGE)-ORDER_ANCHOR_STAGE)%m)+m)%m;
@@ -2735,11 +2735,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
   // Void-aware draft order: AA led Stage 1, cycle AA>JB>JJ>JP, void stages take no draft (no advance).
   function seasonOrder(){
-    let line=CDF.order.slice(); const ord={};
+    // pool board: orders anchor to the group's live order at the current
+    // stage (CDF.order), rotating forward/back by stage offset
+    const base=CDF.order.slice(), m=base.length;
+    const anchor=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?Number(UPCOMING.n):1;
+    const ord={};
     RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
       if(st.voidPool){ ord[st.n]=null; return; }
-      ord[st.n]=line.slice();
-      line=line.slice(1).concat(line.slice(0,1));
+      const off=(((st.n-anchor)%m)+m)%m;
+      ord[st.n]=base.slice(off).concat(base.slice(0,off));
     });
     return ord;
   }
@@ -2835,6 +2839,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1637</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-1655</div>
 </body>
 </html>
