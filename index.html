@@ -493,6 +493,11 @@
       .mer-callers{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1px;color:#B22234}
       .mer-bio{display:none;font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:6px}
       .mer-card.bios-open .mer-bio{display:block}
+      .mer-chip{display:flex;align-items:flex-start}
+      .mer-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;margin-right:10px;background:#efece3}
+      .mer-body{flex:1;min-width:0}
+      .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
+      .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
       /* Live draft card, scoped to #draftMount so it never touches the rest of the board */
       #draftMount{margin:0 0 20px}
@@ -1240,10 +1245,10 @@ async function loadPool(id){
    rights only - no effect on Placement or Rank. Regenerate this list from the
    official feed (nationality "usa") whenever the startlist changes. */
 const USA_RIDERS=[
- {r:"Q. Simmons",t:"Lidl-Trek",bio:"Born 2001 in Durango, Colorado. Former junior world road champion, mustachioed breakaway artist, and the official most combative rider of Stage 15."},
+ {r:"Q. Simmons",t:"Lidl-Trek",site:"https://www.simmonscyclingco.com/team/quinn-simmons",siteLabel:"simmonscyclingco.com",bio:"Born 2001 in Durango, Colorado. Former junior world road champion, mustachioed breakaway artist, and the official most combative rider of Stage 15."},
  {r:"S. Quinn",t:"EF Education-EasyPost",bio:"Born 2000. EF's punchy all-rounder - a rider for hilly days and long breakaways."},
  {r:"B. McNulty",t:"UAE Team Emirates XRG",bio:"Born 1998 in Phoenix, Arizona. Time-trial specialist and UAE's engine-room domestique - one to watch against the clock."},
- {r:"S. Kuss",t:"Visma-Lease a Bike",bio:"Born 1994 in Durango, Colorado. Winner of the 2023 Vuelta a Espa\u00f1a and the finest American climbing domestique of his generation."},
+ {r:"S. Kuss",t:"Visma-Lease a Bike",site:"https://seppkuss.cc/",siteLabel:"seppkuss.cc",bio:"Born 1994 in Durango, Colorado. Winner of the 2023 Vuelta a Espa\u00f1a and the finest American climbing domestique of his generation."},
  {r:"M. Jorgenson",t:"Visma-Lease a Bike",bio:"Born 1999 in Boise, Idaho. Two-time Paris-Nice winner; with Vingegaard gone, American eyes turn to him as Visma regroups."},
  {r:"M. Riccitello",t:"Decathlon CMA CGM Team",bio:"Born 2002 in Tucson, Arizona. The youngest of the six Americans, a pure climber built for the high mountains."}
 ];
@@ -1362,18 +1367,24 @@ function renderMerica(){
   if(!mm){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; mm=document.createElement('div'); mm.id='mericaMount'; dm.parentNode.insertBefore(mm, dm.nextSibling); }
   const picks=(draft&&draft.merica)||{};
   const mine=myCode?(picks[myCode]||null):null;
-  const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const chips=USA_RIDERS.map(u=>{
     const on=mine===u.r;
     const callers=ORDER.filter(c=>picks[c]===u.r);
-    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'"><div class="mer-line1"><b>'+esc(u.r)+'</b><span class="mer-team">'+esc(u.t)+'</span>'+(callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'')+'</div><div class="mer-bio">'+esc(u.bio)+'</div></div>';
+    const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null;
+    const photo=(RR&&RR.p)||'';
+    const bio=esc(u.bio)+(u.site?' <a class="mer-site" href="'+esc(u.site)+'" target="_blank" rel="noopener">'+esc(u.siteLabel||'website')+'</a>':'');
+    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'
+      +(photo?'<img class="mer-av" src="'+esc(photo)+'" alt="" onerror="this.style.display=\'none\'">':'')
+      +'<div class="mer-body"><div class="mer-line1"><b>'+esc(u.r)+'</b><span class="mer-team">'+esc(u.t)+'</span>'+(callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'')+'</div><div class="mer-bio">'+bio+'</div></div></div>';
   }).join('');
   const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider to change it any time before the stage is scored.'):'Tap a rider to make your call for this stage.'):'Watching only - pool seats make the calls.';
-  mm.innerHTML='<div class="mer-card'+(window.__merBios?' bios-open':'')+'"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA</div><div class="mer-s">Pick the top-finishing American of Stage '+esc(String(STAGE))+'. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div><button type="button" class="pt-btn mer-biobtn">'+(window.__merBios?'Hide bios':'Rider bios')+'</button></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div></div>';
+  mm.innerHTML='<div class="mer-card'+(window.__merBios?' bios-open':'')+'"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA</div><div class="mer-s">Pick the top-finishing American of Stage '+esc(String(STAGE))+'. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div><button type="button" class="pt-btn mer-biobtn">'+(window.__merBios?'Hide bios':'Rider bios')+'</button></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
   const bb=mm.querySelector('.mer-biobtn');
   if(bb) bb.addEventListener('click',()=>{ window.__merBios=!window.__merBios; renderMerica(); });
   mm.querySelectorAll('.mer-chip').forEach(ch=>{
-    ch.addEventListener('click', async ()=>{
+    ch.addEventListener('click', async (e)=>{
+      if(e.target&&e.target.closest&&e.target.closest('a')) return;
       if(!myCode||!draft) return;
       try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), ch.getAttribute('data-r')); }
       catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
@@ -2127,7 +2138,7 @@ const PERSONA_BY = (function(){
    profile-pic slot and the running medal count (awards add up across the season). */
 (function(){
   const el=document.getElementById('palmares'); if(!el) return;
-  const merIC='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const merIC='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const MER={}; PL4.forEach(function(p){MER[p]=0;});
   STAGES.forEach(function(s){ ((s.merica&&s.merica.correct)||[]).forEach(function(c){ if(MER[c]!=null) MER[c]++; }); });
   const jerseySVG='<svg viewBox="0 0 48 48" class="pc-jersey" aria-hidden="true"><path d="M17 8l-8 4-4 9 5 3 2-3v16h24V21l2 3 5-3-4-9-8-4-4 4-4 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 8a4 4 0 008 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
@@ -2283,7 +2294,7 @@ function stageCard(st){
           ?`<div class="verify-line"><span class="vflag">NEEDS VERIFY</span> ${st.verify}</div>`
           :`<div class="pending-line">Finishes pending: ${st.verify}</div>`):''}
        ${awardsRow(st)}
-       ${st.merica?`<div class="mer-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg><span><b>Captain 'Merica:</b> ${st.merica.top} (${ordinal(st.merica.f)})${st.merica.correct&&st.merica.correct.length?' - called by '+st.merica.correct.join(', '):' - nobody called it'}</span></div>`:''}
+       ${st.merica?`<div class="mer-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg><span><b>Captain 'Merica:</b> ${st.merica.top} (${ordinal(st.merica.f)})${st.merica.correct&&st.merica.correct.length?' - called by '+st.merica.correct.join(', '):' - nobody called it'}</span></div>`:''}
        <div class="note"><span class="lab">The read</span>${st.reads?codes.filter(k=>st.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${st.reads[k]}</div>`).join(''):st.note}</div>`;
   }
   const right = st.voidStage ? `<div class="dns-stamp">DNS</div>`
@@ -3182,6 +3193,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1330</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1430</div>
 </body>
 </html>
