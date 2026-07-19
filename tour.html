@@ -475,6 +475,25 @@
 
   <section class="tab on" id="tab-overview">
     <style>
+      /* Captain 'Merica side-game card (bragging rights only) */
+      #mericaMount{margin:0 0 20px}
+      .mer-card{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:16px 18px}
+      .mer-h{display:flex;align-items:flex-start;gap:12px}
+      .mer-h>svg{width:34px;height:34px;flex:none;color:#B22234;margin-top:2px}
+      .mer-t{font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:2px;font-size:14px}
+      .mer-s{font-size:12px;color:var(--mute);margin-top:3px;line-height:1.5;max-width:560px}
+      .mer-biobtn{margin-left:auto;flex:none}
+      .mer-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:13px}
+      .mer-chip{border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;transition:border-color .15s, background .15s, box-shadow .15s}
+      .mer-chip:hover{border-color:#B22234}
+      .mer-chip.on{border-color:#B22234;background:rgba(178,34,52,.07);box-shadow:inset 0 0 0 1px #B22234}
+      .mer-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+      .mer-line1 b{font-size:13px}
+      .mer-team{font-size:11px;color:var(--mute)}
+      .mer-callers{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1px;color:#B22234}
+      .mer-bio{display:none;font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:6px}
+      .mer-card.bios-open .mer-bio{display:block}
+      .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
       /* Live draft card, scoped to #draftMount so it never touches the rest of the board */
       #draftMount{margin:0 0 20px}
       #draftMount .draft{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:16px 18px}
@@ -1217,6 +1236,17 @@ async function loadPool(id){
 }
 /* Shared race intel for the upcoming stage (same for every pool). Update per stage until the
    boards are unified (Phase 2); mirrors the master's UPCOMING route/type/km/intel. */
+/* Captain 'Merica side game: the active American riders. Bonus bragging
+   rights only - no effect on Placement or Rank. Regenerate this list from the
+   official feed (nationality "usa") whenever the startlist changes. */
+const USA_RIDERS=[
+ {r:"Q. Simmons",t:"Lidl-Trek",bio:"Born 2001 in Durango, Colorado. Former junior world road champion, mustachioed breakaway artist, and the official most combative rider of Stage 15."},
+ {r:"S. Quinn",t:"EF Education-EasyPost",bio:"Born 2000. EF's punchy all-rounder - a rider for hilly days and long breakaways."},
+ {r:"B. McNulty",t:"UAE Team Emirates XRG",bio:"Born 1998 in Phoenix, Arizona. Time-trial specialist and UAE's engine-room domestique - one to watch against the clock."},
+ {r:"S. Kuss",t:"Visma-Lease a Bike",bio:"Born 1994 in Durango, Colorado. Winner of the 2023 Vuelta a Espa\u00f1a and the finest American climbing domestique of his generation."},
+ {r:"M. Jorgenson",t:"Visma-Lease a Bike",bio:"Born 1999 in Boise, Idaho. Two-time Paris-Nice winner; with Vingegaard gone, American eyes turn to him as Visma regroups."},
+ {r:"M. Riccitello",t:"Decathlon CMA CGM Team",bio:"Born 2002 in Tucson, Arizona. The youngest of the six Americans, a pure climber built for the high mountains."}
+];
 const SHARED_UPCOMING = {
   14: { route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
     intel:{
@@ -1323,9 +1353,33 @@ function subscribe(){
     if(draft.status==='pending'&&(draft.picks||[]).length===0&&JSON.stringify(draft.order||[])!==JSON.stringify(ORDER)){ if(isOwner||myCode){ try{ await draftRef().set(draftInit()); }catch(e){} return; } }
     renderDraft();
     highlightSeat();
+    try{ renderMerica(); }catch(e){ console.error('merica render',e); }
   }, err=>{ $('draftMount').innerHTML=warn('Permission error: '+esc(err.message)); });
 }
 function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div></div>'; }
+function renderMerica(){
+  let mm=document.getElementById('mericaMount');
+  if(!mm){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; mm=document.createElement('div'); mm.id='mericaMount'; dm.parentNode.insertBefore(mm, dm.nextSibling); }
+  const picks=(draft&&draft.merica)||{};
+  const mine=myCode?(picks[myCode]||null):null;
+  const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const chips=USA_RIDERS.map(u=>{
+    const on=mine===u.r;
+    const callers=ORDER.filter(c=>picks[c]===u.r);
+    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'"><div class="mer-line1"><b>'+esc(u.r)+'</b><span class="mer-team">'+esc(u.t)+'</span>'+(callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'')+'</div><div class="mer-bio">'+esc(u.bio)+'</div></div>';
+  }).join('');
+  const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider to change it any time before the stage is scored.'):'Tap a rider to make your call for this stage.'):'Watching only - pool seats make the calls.';
+  mm.innerHTML='<div class="mer-card'+(window.__merBios?' bios-open':'')+'"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA</div><div class="mer-s">Pick the top-finishing American of Stage '+esc(String(STAGE))+'. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div><button type="button" class="pt-btn mer-biobtn">'+(window.__merBios?'Hide bios':'Rider bios')+'</button></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div></div>';
+  const bb=mm.querySelector('.mer-biobtn');
+  if(bb) bb.addEventListener('click',()=>{ window.__merBios=!window.__merBios; renderMerica(); });
+  mm.querySelectorAll('.mer-chip').forEach(ch=>{
+    ch.addEventListener('click', async ()=>{
+      if(!myCode||!draft) return;
+      try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), ch.getAttribute('data-r')); }
+      catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
+    });
+  });
+}
 function highlightSeat(){ const clock=(draft&&draft.queue&&draft.queue[0])||null; document.querySelectorAll('.pb-seat').forEach(s=>s.classList.toggle('on', s.dataset.code===clock)); }
 function head(sub,badge){ return `<div class="dh"><div class="dh-l"><div class="dh-ico"><svg viewBox="0 0 40 40" fill="none"><path d="M4 31 L15 13 L21 22 L27 9 L36 31 Z" fill="#e8b31e"/><circle cx="27" cy="9" r="3.2" fill="#e8b31e"/></svg></div><div><div class="dh-t">Stage ${esc(STAGE)} draft</div><div class="dh-s">${sub}</div></div></div>${badge||''}</div>`; }
 function riderAv(rider,pending,clock,player){ if(pending) return `<span class="tav pending ${clock?'clock':''}"><span class="fb" style="color:${PMETA[player].c}">${player}</span></span>`; const col=rider.c||'#888'; const fb=`<span class="fb" style="background:${col}">${init(rider.r)}</span>`; const img=rider.p?`<img class="ph" src="${esc(rider.p)}" onerror="this.remove()">`:''; return `<span class="tav" style="box-shadow:0 0 0 2.5px ${col}">${fb}${img}</span>`; }
@@ -2073,6 +2127,9 @@ const PERSONA_BY = (function(){
    profile-pic slot and the running medal count (awards add up across the season). */
 (function(){
   const el=document.getElementById('palmares'); if(!el) return;
+  const merIC='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const MER={}; PL4.forEach(function(p){MER[p]=0;});
+  STAGES.forEach(function(s){ ((s.merica&&s.merica.correct)||[]).forEach(function(c){ if(MER[c]!=null) MER[c]++; }); });
   const jerseySVG='<svg viewBox="0 0 48 48" class="pc-jersey" aria-hidden="true"><path d="M17 8l-8 4-4 9 5 3 2-3v16h24V21l2 3 5-3-4-9-8-4-4 4-4 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 8a4 4 0 008 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
   const selIC='<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6"/><path d="M18 18L6 6"/><path d="M4.5 15.5L8 19"/><path d="M19.5 15.5L16 19"/></g><g fill="currentColor"><circle cx="5" cy="20" r="1.4"/><circle cx="19" cy="20" r="1.4"/></g></svg>';
   const prixIC='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5.4l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 19q-4.2-3.8-3.2-9.6"/><path d="M15 19q4.2-3.8 3.2-9.6"/><path d="M6.2 11.4q-2-1-3.3.7M6.7 14.4q-2-.9-3.3.9M8 17.4q-2 .1-3.1 2"/><path d="M17.8 11.4q2-1 3.3.7M17.3 14.4q2-.9 3.3.9M16 17.4q2 .1 3.1 2"/></g></svg>';
@@ -2110,6 +2167,7 @@ const PERSONA_BY = (function(){
         <span class="medal sel${sel?'':' zero'}">${selIC}<b>${sel}</b><span>Sélection</span></span>
         <span class="medal prix${prix?'':' zero'}">${prixIC}<b>${prix}</b><span>Prix</span></span>
         <span class="medal win${WINS_BY[k]?'':' zero'}">${winIC}<b>${WINS_BY[k]}</b><span>${WINS_BY[k]===1?'Win':'Wins'}</span></span>
+        <span class="medal mer${MER[k]?'':' zero'}">${merIC}<b>${MER[k]}</b><span>'Merica</span></span>
       </div>
       ${story?`<div class="pc-story">${story}</div>`:''}
     </div>`;
@@ -2225,6 +2283,7 @@ function stageCard(st){
           ?`<div class="verify-line"><span class="vflag">NEEDS VERIFY</span> ${st.verify}</div>`
           :`<div class="pending-line">Finishes pending: ${st.verify}</div>`):''}
        ${awardsRow(st)}
+       ${st.merica?`<div class="mer-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg><span><b>Captain 'Merica:</b> ${st.merica.top} (${ordinal(st.merica.f)})${st.merica.correct&&st.merica.correct.length?' - called by '+st.merica.correct.join(', '):' - nobody called it'}</span></div>`:''}
        <div class="note"><span class="lab">The read</span>${st.reads?codes.filter(k=>st.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${st.reads[k]}</div>`).join(''):st.note}</div>`;
   }
   const right = st.voidStage ? `<div class="dns-stamp">DNS</div>`
@@ -3123,6 +3182,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1210</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1330</div>
 </body>
 </html>
