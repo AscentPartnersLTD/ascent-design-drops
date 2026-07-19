@@ -510,6 +510,18 @@
       .mer-tag.obs{background:#7d786d}
       .mer-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
       .mer-bio{font-size:12px;color:var(--mute);line-height:1.55;margin-top:6px}
+      /* collapsed thin bar once the stage's draft is locked (mirrors the main picks minibar) */
+      .mer-mini{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:11px 15px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
+      .mer-mini .mm-t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:8px}
+      .mer-mini .mm-ico{width:26px;height:26px;border-radius:7px;background:var(--dark);display:flex;align-items:center;justify-content:center;flex:none;color:#B22234}
+      .mer-mini .mm-ico svg{width:16px;height:16px}
+      .mer-mini .mm-avs{display:flex;margin-left:auto}
+      .mer-mini .mm-av{width:26px;height:26px;border-radius:50%;margin-left:-7px;border:2px solid var(--card);position:relative;overflow:hidden;background:var(--line2);display:flex;align-items:center;justify-content:center}
+      .mer-mini .mm-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+      .mer-mini .mm-av .mfb{font-family:'Montserrat',sans-serif;font-weight:800;font-size:9px;color:#fff}
+      .mer-mini .mm-more{font-size:11.5px;color:var(--mute);margin-left:9px;font-family:'Montserrat',sans-serif;font-weight:700}
+      .mer-minbtn{margin-left:auto;flex:none;font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+      .mer-minbtn:hover{border-color:#B22234;color:#B22234}
       .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
       .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
@@ -1387,6 +1399,26 @@ function renderMerica(){
   const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const avOf=u=>{ const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null; const p=(RR&&RR.p)||''; return p?'<img class="mer-av" src="'+esc(p)+'" alt="" onerror="this.style.display=\'none\'">':''; };
   const callersOf=u=>{ const cs=ORDER.filter(c=>picks[c]===u.r); return cs.length?'<span class="mer-callers">'+cs.map(esc).join(' ')+'</span>':''; };
+  // Once the stage's draft is locked, the card collapses to a thin bar under the
+  // main picks minibar (Allen, 2026-07-19) so the Break Tracker stays above the
+  // fold. Tap to reopen; picks stay editable until EOS.
+  const stageOn=!!draft && ((draft.status==='complete') || ((draft.queue||[]).length===0 && (draft.picks||[]).length>0));
+  if(stageOn && !window.__merExpand){
+    const shieldMini='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+    const avs=ORDER.filter(c=>picks[c]).map(c=>{
+      const r=picks[c]; const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===r):null;
+      const img=(RR&&RR.p)?'<img src="'+esc(RR.p)+'" onerror="this.remove()">':'';
+      const col=(PMETA[c]&&PMETA[c].c)||'#888';
+      return '<span class="mm-av" style="border-color:'+col+'" title="'+esc(r)+' ('+esc(c)+')">'+img+(img?'':'<span class="mfb" style="background:'+col+'">'+esc(c)+'</span>')+'</span>';
+    }).join('');
+    const more=myCode?(mine?('Your call: '+esc(mine)+' - tap to view or change'):'Tap to make your call'):'Tap for picks and bios';
+    mm.innerHTML='<div class="mer-mini" role="button" aria-label="Open Captain \'Merica">'
+      +'<div class="mm-t"><span class="mm-ico">'+shieldMini+'</span>Captain \'Merica - Stage '+esc(String(STAGE))+'</div>'
+      +'<span class="mm-avs">'+avs+'</span>'
+      +'<span class="mm-more">'+more+'</span></div>';
+    mm.querySelector('.mer-mini').addEventListener('click',()=>{ window.__merExpand=true; renderMerica(); });
+    return;
+  }
   let topCard='';
   const fu=featured?USA_RIDERS.find(x=>x.r===featured):null;
   if(fu){
@@ -1401,7 +1433,10 @@ function renderMerica(){
       +'<span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersOf(u)+'</div>';
   }).join('');
   const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider below to switch any time before the stage is scored.'):'Tap a rider to make your call for this stage. Your pick moves up top with their story.'):'Watching only - pool seats make the calls. Tap a rider to read their bio.';
-  mm.innerHTML='<div class="mer-card"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div></div>'+topCard+'<div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
+  const minBtn=stageOn?'<button type="button" class="mer-minbtn">Minimize</button>':'';
+  mm.innerHTML='<div class="mer-card"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div>'+minBtn+'</div>'+topCard+'<div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
+  const mb=mm.querySelector('.mer-minbtn');
+  if(mb) mb.addEventListener('click',()=>{ window.__merExpand=false; renderMerica(); });
   mm.querySelectorAll('.mer-chip').forEach(ch=>{
     ch.addEventListener('click', async ()=>{
       const r=ch.getAttribute('data-r');
@@ -3214,6 +3249,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2135</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2144</div>
 </body>
 </html>
