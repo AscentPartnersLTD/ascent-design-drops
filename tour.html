@@ -426,6 +426,17 @@
 <button id="refreshBtn" class="refresh-fab" aria-label="Refresh the board" title="Refresh">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
 </button>
+<script>
+/* Refresh floater: shown when running as the installed app (no URL bar) and on
+   mobile/touch browsers, where reloading the board is otherwise a chore. */
+(function(){
+  var b=document.getElementById('refreshBtn'); if(!b||b.__wired) return; b.__wired=1;
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  var mobile=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches;
+  if(standalone||mobile) b.classList.add('show');
+  b.addEventListener('click',function(){ b.classList.add('spin'); setTimeout(function(){ location.reload(); },180); });
+})();
+</script>
 
 <div id="gate" class="gate" role="dialog" aria-label="Sign in">
   <div class="gate-card">
@@ -482,20 +493,26 @@
       .mer-h>svg{width:34px;height:34px;flex:none;color:#B22234;margin-top:2px}
       .mer-t{font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:2px;font-size:14px}
       .mer-s{font-size:12px;color:var(--mute);margin-top:3px;line-height:1.5;max-width:560px}
-      .mer-biobtn{margin-left:auto;flex:none}
-      .mer-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:13px}
-      .mer-chip{border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;transition:border-color .15s, background .15s, box-shadow .15s}
+      .mer-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:13px}
+      .mer-chip{border:1px solid var(--line);border-radius:10px;padding:12px 8px 10px;cursor:pointer;transition:border-color .15s, background .15s, box-shadow .15s;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
       .mer-chip:hover{border-color:#B22234}
       .mer-chip.on{border-color:#B22234;background:rgba(178,34,52,.07);box-shadow:inset 0 0 0 1px #B22234}
+      .mer-av{width:54px;height:54px;border-radius:50%;object-fit:cover;flex:none;background:#efece3;margin-bottom:5px}
+      .mer-name{font-size:12.5px;font-weight:700;line-height:1.25}
+      .mer-team{font-size:10.5px;color:var(--mute);line-height:1.35}
+      .mer-callers{font-size:10px;font-weight:800;letter-spacing:1px;color:#B22234;margin-top:3px}
+      .mer-chip.open{grid-column:1/-1;flex-direction:row;align-items:flex-start;text-align:left;gap:14px;padding:14px 16px;cursor:default}
+      .mer-chip.open .mer-av{width:76px;height:76px;margin-bottom:0}
+      .mer-open-body{flex:1;min-width:0}
+      .mer-chip.open .mer-name{font-size:15px}
+      .mer-chip.open .mer-team{font-size:11.5px}
       .mer-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-      .mer-line1 b{font-size:13px}
-      .mer-team{font-size:11px;color:var(--mute)}
-      .mer-callers{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1px;color:#B22234}
-      .mer-bio{display:none;font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:6px}
-      .mer-card.bios-open .mer-bio{display:block}
-      .mer-chip{display:flex;align-items:flex-start}
-      .mer-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;margin-right:10px;background:#efece3}
-      .mer-body{flex:1;min-width:0}
+      .mer-bio{font-size:12px;color:var(--mute);line-height:1.55;margin-top:6px}
+      .mer-actions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+      .mer-btn{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#B22234;background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;transition:border-color .15s, background .15s}
+      .mer-btn:hover{border-color:#B22234}
+      .mer-btn.primary{background:#B22234;color:#fff;border-color:#B22234}
+      .mer-btn:disabled{opacity:.65;cursor:default}
       .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
       .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
@@ -1363,33 +1380,42 @@ function subscribe(){
 }
 function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div></div>'; }
 function renderMerica(){
-  if(window.__merBios===undefined) window.__merBios=true;
   let mm=document.getElementById('mericaMount');
   if(!mm){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; mm=document.createElement('div'); mm.id='mericaMount'; dm.parentNode.insertBefore(mm, dm.nextSibling); }
   const picks=(draft&&draft.merica)||{};
   const mine=myCode?(picks[myCode]||null):null;
+  const open=window.__merOpen||null;
   const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const chips=USA_RIDERS.map(u=>{
     const on=mine===u.r;
     const callers=ORDER.filter(c=>picks[c]===u.r);
     const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null;
     const photo=(RR&&RR.p)||'';
-    const bio=esc(u.bio)+(u.site?' <a class="mer-site" href="'+esc(u.site)+'" target="_blank" rel="noopener">'+esc(u.siteLabel||'website')+'</a>':'');
-    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'
-      +(photo?'<img class="mer-av" src="'+esc(photo)+'" alt="" onerror="this.style.display=\'none\'">':'')
-      +'<div class="mer-body"><div class="mer-line1"><b>'+esc(u.r)+'</b><span class="mer-team">'+esc(u.t)+'</span>'+(callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'')+'</div><div class="mer-bio">'+bio+'</div></div></div>';
+    const av=photo?'<img class="mer-av" src="'+esc(photo)+'" alt="" onerror="this.style.display=\'none\'">':'';
+    const callersHtml=callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'';
+    if(open===u.r){
+      const bio=esc(u.bio)+(u.site?' <a class="mer-site" href="'+esc(u.site)+'" target="_blank" rel="noopener">'+esc(u.siteLabel||'website')+'</a>':'');
+      const pickBtn=myCode?(on?'<button type="button" class="mer-btn" disabled>Your pick for today</button>':'<button type="button" class="mer-btn primary mer-pick" data-r="'+esc(u.r)+'">Make this my pick</button>'):'';
+      return '<div class="mer-chip open'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'+av
+        +'<div class="mer-open-body"><div class="mer-line1"><span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersHtml+'</div>'
+        +'<div class="mer-bio">'+bio+'</div>'
+        +'<div class="mer-actions">'+pickBtn+'<button type="button" class="mer-btn mer-closebtn">Close bio</button></div></div></div>';
+    }
+    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'+av
+      +'<span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersHtml+'</div>';
   }).join('');
-  const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider to change it any time before the stage is scored.'):'Tap a rider to make your call for this stage.'):'Watching only - pool seats make the calls.';
-  mm.innerHTML='<div class="mer-card'+(window.__merBios?' bios-open':'')+'"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div><button type="button" class="pt-btn mer-biobtn">'+(window.__merBios?'Hide bios':'Rider bios')+'</button></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
-  const bb=mm.querySelector('.mer-biobtn');
-  if(bb) bb.addEventListener('click',()=>{ window.__merBios=!window.__merBios; renderMerica(); });
-  mm.querySelectorAll('.mer-chip').forEach(ch=>{
-    ch.addEventListener('click', async (e)=>{
-      if(e.target&&e.target.closest&&e.target.closest('a')) return;
-      if(!myCode||!draft) return;
-      try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), ch.getAttribute('data-r')); }
-      catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
-    });
+  const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider to read their bio and switch any time before the stage is scored.'):'Tap a rider to read their bio and make your call for this stage.'):'Watching only - pool seats make the calls. Tap a rider for their bio.';
+  mm.innerHTML='<div class="mer-card"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
+  mm.querySelectorAll('.mer-chip:not(.open)').forEach(ch=>{
+    ch.addEventListener('click',()=>{ window.__merOpen=ch.getAttribute('data-r'); renderMerica(); });
+  });
+  const cb=mm.querySelector('.mer-closebtn');
+  if(cb) cb.addEventListener('click',()=>{ window.__merOpen=null; renderMerica(); });
+  const pb=mm.querySelector('.mer-pick');
+  if(pb) pb.addEventListener('click', async ()=>{
+    if(!myCode||!draft) return;
+    try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), pb.getAttribute('data-r')); }
+    catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
   });
 }
 function highlightSeat(){ const clock=(draft&&draft.queue&&draft.queue[0])||null; document.querySelectorAll('.pb-seat').forEach(s=>s.classList.toggle('on', s.dataset.code===clock)); }
@@ -3194,6 +3220,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1520</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2111</div>
 </body>
 </html>
