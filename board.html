@@ -966,6 +966,23 @@ function showGate(msg,err,asHtml){ document.documentElement.classList.remove('ga
 auth.onAuthStateChanged(async user=>{
   if(!user){ showGate(''); return; }
   myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
+  // Roster heal (2026-07-19): idempotent repairs applied whenever the operator
+  // signs in, wherever that happens. Allen plays AA under a second email that
+  // the migration missed; this makes any future owner session self-repair the
+  // roster instead of depending on a specific device or manual write.
+  if(isOwner){ try{
+    const HEAL={ 'col-du-fantasy': {'allenlabbott@gmail.com':'AA'} };
+    for(const pid of Object.keys(HEAL)){
+      const ref=db.doc('pools/'+pid); const s=await ref.get(); if(!s.exists) continue;
+      const d=s.data(); const upd={}; let dirty=false;
+      for(const em of Object.keys(HEAL[pid])){
+        if(!(d.members||{})[em]){ upd['members.'+em]=HEAL[pid][em]; dirty=true; }
+        if(!(d.memberEmails||[]).includes(em)){ upd['memberEmails']=FV.arrayUnion(em); dirty=true; }
+        db.doc('userPools/'+em).set({pools:FV.arrayUnion(pid)},{merge:true}).catch(()=>{});
+      }
+      if(dirty) await ref.update(upd);
+    }
+  }catch(e){ console.error('roster heal',e); } }
   try{
     const id=await resolvePool(); if(!id){ return; }
     await loadPool(id);
@@ -992,7 +1009,11 @@ auth.onAuthStateChanged(async user=>{
       if(_ins) _ins.innerHTML='The boards are level to start. The story fills in as the race is scored.';
     }
     subscribe();     // live draft into #draftMount
-  }catch(e){ console.error(e); showGate('Error: '+(e.message||e), true); }
+  }catch(e){ console.error(e);
+    if(e && (e.code==='permission-denied' || /insufficient permissions/i.test(e.message||''))){
+      showGate('You signed in fine as '+myEmail+', but that email is not on this pool\'s roster yet. Ask Allen to add it (or sign in with the email that is on the roster).', true);
+    } else { showGate('Error: '+(e.message||e), true); }
+  }
 });
 document.addEventListener('click',e=>{
   const t=e.target && e.target.closest ? e.target.closest('#gbtn,#gate-google,#gate-emaillink') : null;
@@ -1011,6 +1032,16 @@ const acs={ url: location.origin+location.pathname+location.search, handleCodeIn
 function sendEmailLink(){
   const inp=$('gate-email'); const email=((inp&&inp.value)||'').trim().toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showGate('Enter a valid email to get a sign-in link.',true); if(inp)inp.focus(); return; }
+  // If this page was opened FROM a sign-in link on a device that did not
+  // request it, the button completes that sign-in instead of sending a new
+  // link (window.prompt is unreliable in installed PWAs, so this is the
+  // dialog-free path: type the email the link was sent to, tap the button).
+  if(window.__pendingLink){
+    showGate('Finishing sign-in...');
+    auth.signInWithEmailLink(email, window.__pendingLink).then(()=>{ window.__pendingLink=null; try{localStorage.removeItem(LINK_KEY);}catch(e){} if(history.replaceState) history.replaceState(null,'',location.origin+location.pathname+location.search); })
+      .catch(err=>showGate('That sign-in link did not work ('+(err?err.message:'expired or already used')+'). Request a fresh one below.',true));
+    return;
+  }
   const b=$('gate-emaillink'); if(b) b.disabled=true; showGate('Sending your sign-in link...');
   auth.sendSignInLinkToEmail(email,acs).then(()=>{
     try{ localStorage.setItem(LINK_KEY,email); }catch(e){}
@@ -1026,8 +1057,8 @@ function sendEmailLink(){
 }
 if(auth.isSignInWithEmailLink(location.href)){
   let em=''; try{ em=localStorage.getItem(LINK_KEY)||''; }catch(e){}
-  if(!em){ em=(prompt('Confirm the email you requested the link for')||'').trim().toLowerCase(); }
   if(em){ showGate('Finishing sign-in...'); auth.signInWithEmailLink(em,location.href).then(()=>{ try{localStorage.removeItem(LINK_KEY);}catch(e){} if(history.replaceState) history.replaceState(null,'',location.origin+location.pathname+location.search); }).catch(err=>showGate('That sign-in link did not work ('+(err?err.message:'expired or already used')+'). Request a fresh one.',true)); }
+  else { window.__pendingLink=location.href; showGate('Almost there: type the email this sign-in link was sent to in the box below, then tap "Email me a sign-in link" to finish signing in on this device.'); }
 }
 
 async function resolvePool(){
@@ -2934,6 +2965,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.18-2040</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-0815</div>
 </body>
 </html>
