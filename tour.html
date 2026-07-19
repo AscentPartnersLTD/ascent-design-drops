@@ -2938,7 +2938,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     // picks the feed does not place right now stay visible under their own line
     var missing=rows.filter(function(r){return r.cls==='out';});
     var missingHtml=missing.length
-      ? '<div class="bw-grp"><div class="bw-div"><span class="bw-gname">Not on the feed yet</span><span class="bw-rule"></span></div>'
+      ? '<div class="bw-grp"><div class="bw-div"><span class="bw-gname">Off the back</span><span class="bw-rule"></span></div>'
         +'<div class="bw-gours">'+missing.map(function(r){
           return '<span class="bw-pick"><b style="color:'+COL[r.pp.p]+'">'+r.pp.p+'</b>'+esc(r.pp.rider)+'</span>';
         }).join('')+'</div></div>'
@@ -2950,7 +2950,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       +(meta?'<div class="bw-meta">'+meta+'</div>':'')
       +ladder
       +missingHtml
-      +'<div class="bw-foot">Live from the official race feed. Jersey cards mark where the classification leaders are riding. Hit Refresh for a new snapshot.</div>';
+      +'<div class="bw-foot">Live from the official race feed, which only tracks the race-relevant groups - riders dropped into an untracked grupetto sit under Off the back until the feed picks their group up again. Jersey cards mark where the classification leaders are riding. Hit Refresh for a new snapshot.</div>';
 
     BODY.querySelectorAll('.bw-gbtn').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -3112,6 +3112,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1005</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-1100</div>
 </body>
 </html>
