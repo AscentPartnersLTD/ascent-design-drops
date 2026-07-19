@@ -515,8 +515,11 @@
       .mer-mini .mm-t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:8px}
       .mer-mini .mm-ico{width:26px;height:26px;border-radius:7px;background:var(--dark);display:flex;align-items:center;justify-content:center;flex:none;color:#B22234}
       .mer-mini .mm-ico svg{width:16px;height:16px}
-      .mer-mini .mm-avs{display:flex;margin-left:auto}
-      .mer-mini .mm-av{width:26px;height:26px;border-radius:50%;margin-left:-7px;border:2px solid var(--card);position:relative;overflow:hidden;background:var(--line2);display:flex;align-items:center;justify-content:center}
+      .mer-mini .mm-picks{display:flex;align-items:center;margin-left:auto;flex-wrap:wrap;gap:4px 13px}
+      .mer-mini .mm-pick{display:flex;align-items:center;gap:6px}
+      .mer-mini .mm-pick b{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10px;letter-spacing:.06em}
+      .mer-mini .mm-nm{font-size:11.5px;font-weight:700;color:var(--ink)}
+      .mer-mini .mm-av{width:26px;height:26px;border-radius:50%;border:2px solid var(--card);position:relative;overflow:hidden;background:var(--line2);display:flex;align-items:center;justify-content:center;flex:none}
       .mer-mini .mm-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
       .mer-mini .mm-av .mfb{font-family:'Montserrat',sans-serif;font-weight:800;font-size:9px;color:#fff}
       .mer-mini .mm-more{font-size:11.5px;color:var(--mute);margin-left:9px;font-family:'Montserrat',sans-serif;font-weight:700}
@@ -1398,23 +1401,26 @@ function renderMerica(){
   const featured=myCode?mine:(window.__merOpen||null);
   const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const avOf=u=>{ const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null; const p=(RR&&RR.p)||''; return p?'<img class="mer-av" src="'+esc(p)+'" alt="" onerror="this.style.display=\'none\'">':''; };
-  const callersOf=u=>{ const cs=ORDER.filter(c=>picks[c]===u.r); return cs.length?'<span class="mer-callers">'+cs.map(esc).join(' ')+'</span>':''; };
   // Once the stage's draft is locked, the card collapses to a thin bar under the
   // main picks minibar (Allen, 2026-07-19) so the Break Tracker stays above the
   // fold. Tap to reopen; picks stay editable until EOS.
   const stageOn=!!draft && ((draft.status==='complete') || ((draft.queue||[]).length===0 && (draft.picks||[]).length>0));
+  // Who called whom stays HIDDEN until the draft locks (Allen, 2026-07-19) -
+  // everyone picks blind, then the reveal happens on the collapsed bar.
+  const callersOf=u=>{ if(!stageOn) return ''; const cs=ORDER.filter(c=>picks[c]===u.r); return cs.length?'<span class="mer-callers">'+cs.map(esc).join(' ')+'</span>':''; };
   if(stageOn && !window.__merExpand){
     const shieldMini='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
-    const avs=ORDER.filter(c=>picks[c]).map(c=>{
+    const entries=ORDER.filter(c=>picks[c]).map(c=>{
       const r=picks[c]; const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===r):null;
       const img=(RR&&RR.p)?'<img src="'+esc(RR.p)+'" onerror="this.remove()">':'';
       const col=(PMETA[c]&&PMETA[c].c)||'#888';
-      return '<span class="mm-av" style="border-color:'+col+'" title="'+esc(r)+' ('+esc(c)+')">'+img+(img?'':'<span class="mfb" style="background:'+col+'">'+esc(c)+'</span>')+'</span>';
+      const last=r.replace(/^[A-Z]\.\s*/,'');
+      return '<span class="mm-pick" title="'+esc(c)+' picked '+esc(r)+'"><b style="color:'+col+'">'+esc(c)+'</b><span class="mm-av" style="border-color:'+col+'">'+img+(img?'':'<span class="mfb" style="background:'+col+'">'+esc(c)+'</span>')+'</span><span class="mm-nm">'+esc(last)+'</span></span>';
     }).join('');
-    const more=myCode?(mine?('Your call: '+esc(mine)+' - tap to view or change'):'Tap to make your call'):'Tap for picks and bios';
+    const more=myCode&&!mine?'Tap to make your call':'Tap to view or change';
     mm.innerHTML='<div class="mer-mini" role="button" aria-label="Open Captain \'Merica">'
       +'<div class="mm-t"><span class="mm-ico">'+shieldMini+'</span>Captain \'Merica - Stage '+esc(String(STAGE))+'</div>'
-      +'<span class="mm-avs">'+avs+'</span>'
+      +'<span class="mm-picks">'+entries+'</span>'
       +'<span class="mm-more">'+more+'</span></div>';
     mm.querySelector('.mer-mini').addEventListener('click',()=>{ window.__merExpand=true; renderMerica(); });
     return;
@@ -3249,6 +3255,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2144</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2245</div>
 </body>
 </html>
