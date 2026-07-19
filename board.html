@@ -498,18 +498,15 @@
       .mer-name{font-size:12.5px;font-weight:700;line-height:1.25}
       .mer-team{font-size:10.5px;color:var(--mute);line-height:1.35}
       .mer-callers{font-size:10px;font-weight:800;letter-spacing:1px;color:#B22234;margin-top:3px}
-      .mer-chip.open{grid-column:1/-1;flex-direction:row;align-items:flex-start;text-align:left;gap:14px;padding:14px 16px;cursor:default}
-      .mer-chip.open .mer-av{width:76px;height:76px;margin-bottom:0}
+      .mer-top{border:1px solid #B22234;background:rgba(178,34,52,.06);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;text-align:left;gap:14px;margin-top:13px}
+      .mer-top .mer-av{width:76px;height:76px;margin-bottom:0;flex:none}
       .mer-open-body{flex:1;min-width:0}
-      .mer-chip.open .mer-name{font-size:15px}
-      .mer-chip.open .mer-team{font-size:11.5px}
+      .mer-top .mer-name{font-size:15px}
+      .mer-top .mer-team{font-size:11.5px}
+      .mer-tag{margin-left:auto;flex:none;font-size:9.5px;font-weight:800;letter-spacing:1.2px;color:#fff;background:#B22234;border-radius:999px;padding:4px 10px;text-transform:uppercase;white-space:nowrap}
+      .mer-tag.obs{background:#7d786d}
       .mer-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
       .mer-bio{font-size:12px;color:var(--mute);line-height:1.55;margin-top:6px}
-      .mer-actions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
-      .mer-btn{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#B22234;background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;transition:border-color .15s, background .15s}
-      .mer-btn:hover{border-color:#B22234}
-      .mer-btn.primary{background:#B22234;color:#fff;border-color:#B22234}
-      .mer-btn:disabled{opacity:.65;cursor:default}
       .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
       .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
@@ -1259,12 +1256,12 @@ async function loadPool(id){
    rights only - no effect on Placement or Rank. Regenerate this list from the
    official feed (nationality "usa") whenever the startlist changes. */
 const USA_RIDERS=[
- {r:"Q. Simmons",t:"Lidl-Trek",site:"https://www.simmonscyclingco.com/team/quinn-simmons",siteLabel:"simmonscyclingco.com",bio:"Born 2001 in Durango, Colorado. Former junior world road champion, mustachioed breakaway artist, and the official most combative rider of Stage 15."},
- {r:"S. Quinn",t:"EF Education-EasyPost",bio:"Born 2000. EF's punchy all-rounder - a rider for hilly days and long breakaways."},
- {r:"B. McNulty",t:"UAE Team Emirates XRG",bio:"Born 1998 in Phoenix, Arizona. Time-trial specialist and UAE's engine-room domestique - one to watch against the clock."},
- {r:"S. Kuss",t:"Visma-Lease a Bike",site:"https://seppkuss.cc/",siteLabel:"seppkuss.cc",bio:"Born 1994 in Durango, Colorado. Winner of the 2023 Vuelta a Espa\u00f1a and the finest American climbing domestique of his generation."},
- {r:"M. Jorgenson",t:"Visma-Lease a Bike",bio:"Born 1999 in Boise, Idaho. Two-time Paris-Nice winner; with Vingegaard gone, American eyes turn to him as Visma regroups."},
- {r:"M. Riccitello",t:"Decathlon CMA CGM Team",bio:"Born 2002 in Tucson, Arizona. The youngest of the six Americans, a pure climber built for the high mountains."}
+ {r:"Q. Simmons",t:"Lidl-Trek",site:"https://www.simmonscyclingco.com/team/quinn-simmons",siteLabel:"simmonscyclingco.com",bio:"Born 2001 in Durango, Colorado. Junior world road champion at 18, two-time US national road champion (2023 and 2025), and a 2025 stage winner at both the Tour de Suisse and the Volta a Catalunya. The mustachioed breakaway artist has a taste for this race's combativity award: one at the 2022 Tour, and another on Stage 15 of this one."},
+ {r:"S. Quinn",t:"EF Education-EasyPost",bio:"Born 2000 in Los Angeles. Beat McNulty in a two-man sprint to win the 2024 US national road title and took back-to-back combativity awards at the 2025 Vuelta with long aggressive breakaways. Off the bike he produces electronic music, brings a MIDI keyboard to grand tours, and has tracks on Spotify."},
+ {r:"B. McNulty",t:"UAE Team Emirates XRG",bio:"Born 1998 in Phoenix, Arizona. Junior world time trial champion in 2016, repeat US time trial champion, and a grand tour stage winner at the 2023 Giro and the 2024 Vuelta, where he won the opening time trial. Won the 2025 Tour de Pologne overall; the obvious American to watch when the race goes against the clock."},
+ {r:"S. Kuss",t:"Visma-Lease a Bike",site:"https://seppkuss.cc/",siteLabel:"seppkuss.cc",bio:"Born 1994 in Durango, Colorado. Won the 2023 Vuelta a Espa\u00f1a, the first American grand tour victory in a decade, in a season where he finished all three grand tours. The Eagle of Durango has stage wins at the Tour and the Vuelta and has carried teammates to six grand tour titles as the sport's premier climbing domestique."},
+ {r:"M. Jorgenson",t:"Visma-Lease a Bike",bio:"Born 1999, raised in Boise, Idaho. Back-to-back winner of Paris-Nice in 2024 and 2025, the first American to take it since 2006, and winner of the 2024 Dwars door Vlaanderen cobbled classic. Eighth overall at the 2024 Tour; with Vingegaard out, the 6-foot-3 all-rounder now carries Visma's hopes in this race."},
+ {r:"M. Riccitello",t:"Decathlon CMA CGM Team",bio:"Born 2002 in Tucson, Arizona, the youngest of the six. Broke through with fifth overall and the best young rider jersey at the 2025 Vuelta, then opened 2026 by winning the Tour de la Provence for his new French team. A pure climber built for the high mountains."}
 ];
 const SHARED_UPCOMING = {
   14: { route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
@@ -1381,38 +1378,35 @@ function renderMerica(){
   if(!mm){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; mm=document.createElement('div'); mm.id='mericaMount'; dm.parentNode.insertBefore(mm, dm.nextSibling); }
   const picks=(draft&&draft.merica)||{};
   const mine=myCode?(picks[myCode]||null):null;
-  const open=window.__merOpen||null;
+  // The featured rider in the wide top slot: your current pick (seats), or the
+  // last rider an observer tapped (local bio browsing, nothing written).
+  const featured=myCode?mine:(window.__merOpen||null);
   const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
-  const chips=USA_RIDERS.map(u=>{
-    const on=mine===u.r;
-    const callers=ORDER.filter(c=>picks[c]===u.r);
-    const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null;
-    const photo=(RR&&RR.p)||'';
-    const av=photo?'<img class="mer-av" src="'+esc(photo)+'" alt="" onerror="this.style.display=\'none\'">':'';
-    const callersHtml=callers.length?'<span class="mer-callers">'+callers.map(esc).join(' ')+'</span>':'';
-    if(open===u.r){
-      const bio=esc(u.bio)+(u.site?' <a class="mer-site" href="'+esc(u.site)+'" target="_blank" rel="noopener">'+esc(u.siteLabel||'website')+'</a>':'');
-      const pickBtn=myCode?(on?'<button type="button" class="mer-btn" disabled>Your pick for today</button>':'<button type="button" class="mer-btn primary mer-pick" data-r="'+esc(u.r)+'">Make this my pick</button>'):'';
-      return '<div class="mer-chip open'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'+av
-        +'<div class="mer-open-body"><div class="mer-line1"><span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersHtml+'</div>'
-        +'<div class="mer-bio">'+bio+'</div>'
-        +'<div class="mer-actions">'+pickBtn+'<button type="button" class="mer-btn mer-closebtn">Close bio</button></div></div></div>';
-    }
-    return '<div class="mer-chip'+(on?' on':'')+'" data-r="'+esc(u.r)+'">'+av
-      +'<span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersHtml+'</div>';
+  const avOf=u=>{ const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null; const p=(RR&&RR.p)||''; return p?'<img class="mer-av" src="'+esc(p)+'" alt="" onerror="this.style.display=\'none\'">':''; };
+  const callersOf=u=>{ const cs=ORDER.filter(c=>picks[c]===u.r); return cs.length?'<span class="mer-callers">'+cs.map(esc).join(' ')+'</span>':''; };
+  let topCard='';
+  const fu=featured?USA_RIDERS.find(x=>x.r===featured):null;
+  if(fu){
+    const bio=esc(fu.bio)+(fu.site?' <a class="mer-site" href="'+esc(fu.site)+'" target="_blank" rel="noopener">'+esc(fu.siteLabel||'website')+'</a>':'');
+    const tag=myCode?'<span class="mer-tag">Your pick</span>':'<span class="mer-tag obs">Rider bio</span>';
+    topCard='<div class="mer-top">'+avOf(fu)
+      +'<div class="mer-open-body"><div class="mer-line1"><span class="mer-name">'+esc(fu.r)+'</span><span class="mer-team">'+esc(fu.t)+'</span>'+callersOf(fu)+tag+'</div>'
+      +'<div class="mer-bio">'+bio+'</div></div></div>';
+  }
+  const chips=USA_RIDERS.filter(u=>u.r!==featured).map(u=>{
+    return '<div class="mer-chip" data-r="'+esc(u.r)+'">'+avOf(u)
+      +'<span class="mer-name">'+esc(u.r)+'</span><span class="mer-team">'+esc(u.t)+'</span>'+callersOf(u)+'</div>';
   }).join('');
-  const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider to read their bio and switch any time before the stage is scored.'):'Tap a rider to read their bio and make your call for this stage.'):'Watching only - pool seats make the calls. Tap a rider for their bio.';
-  mm.innerHTML='<div class="mer-card"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div></div><div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
-  mm.querySelectorAll('.mer-chip:not(.open)').forEach(ch=>{
-    ch.addEventListener('click',()=>{ window.__merOpen=ch.getAttribute('data-r'); renderMerica(); });
-  });
-  const cb=mm.querySelector('.mer-closebtn');
-  if(cb) cb.addEventListener('click',()=>{ window.__merOpen=null; renderMerica(); });
-  const pb=mm.querySelector('.mer-pick');
-  if(pb) pb.addEventListener('click', async ()=>{
-    if(!myCode||!draft) return;
-    try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), pb.getAttribute('data-r')); }
-    catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
+  const foot=myCode?(mine?('Your call: '+esc(mine)+'. Tap another rider below to switch any time before the stage is scored.'):'Tap a rider to make your call for this stage. Your pick moves up top with their story.'):'Watching only - pool seats make the calls. Tap a rider to read their bio.';
+  mm.innerHTML='<div class="mer-card"><div class="mer-h">'+shield+'<div><div class="mer-t">CAPTAIN \'MERICA - STAGE '+esc(String(STAGE))+'</div><div class="mer-s">Pick the top-finishing American of the day. Right call earns a shield on your card; most shields at season\'s end takes the bragging rights. No draft order, no exclusivity - everybody just picks.</div></div></div>'+topCard+'<div class="mer-chips">'+chips+'</div><div class="mer-foot">'+foot+'</div><div class="mer-credit">Rider photos: A.S.O. / letour.fr</div></div>';
+  mm.querySelectorAll('.mer-chip').forEach(ch=>{
+    ch.addEventListener('click', async ()=>{
+      const r=ch.getAttribute('data-r');
+      if(!myCode){ window.__merOpen=r; renderMerica(); return; }
+      if(!draft) return;
+      try{ await draftRef().update(new firebase.firestore.FieldPath('merica', myCode), r); }
+      catch(e){ const f=mm.querySelector('.mer-foot'); if(f) f.textContent='Could not save the call: '+(e&&e.message||e); }
+    });
   });
 }
 function highlightSeat(){ const clock=(draft&&draft.queue&&draft.queue[0])||null; document.querySelectorAll('.pb-seat').forEach(s=>s.classList.toggle('on', s.dataset.code===clock)); }
@@ -3217,6 +3211,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2111</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2135</div>
 </body>
 </html>
