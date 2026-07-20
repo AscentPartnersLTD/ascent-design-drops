@@ -9,6 +9,21 @@
 <link rel="icon" type="image/png" sizes="32x32" href="tour-icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="tour-icon-180.png">
 <link rel="manifest" href="tour.webmanifest">
+<script>
+/* Per-pool manifest, swapped IMMEDIATELY from the URL (2026-07-20). This must
+   run before the user can possibly hit Add to Home Screen - the later swap in
+   loadPool only fires after sign-in, and Tara captured the default manifest by
+   installing from the gate screen. */
+(function(){
+  try{
+    var m=/[?&]pool=([a-z0-9-]+)/i.exec(location.search);
+    if(m && m[1] && m[1]!=='col-du-fantasy'){
+      var l=document.querySelector('link[rel="manifest"]');
+      if(l) l.setAttribute('href', m[1]+'.webmanifest');
+    }
+  }catch(e){}
+})();
+</script>
 <meta name="theme-color" content="#1b1a17">
 <meta name="apple-mobile-web-app-title" content="Col du Fantasy">
 <meta property="og:title" content="Col du Fantasy - TdF 2026 Pool">
@@ -3348,6 +3363,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0129</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0141</div>
 </body>
 </html>
