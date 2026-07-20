@@ -534,6 +534,10 @@
       #pushBar button{margin-left:auto;flex:none;font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer}
       #pushBar .pb-on{color:#fff;background:var(--gold-d);border:1px solid var(--gold-d)}
       #pushBar .pb-off{color:var(--mute);background:none;border:1px solid var(--line)}
+      /* small alerts-on bell tucked into the rider-selection card once enabled */
+      #draftMount .push-bell{background:none;border:1px solid var(--line);border-radius:999px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#2e7d43;flex:none;padding:0;transition:border-color .15s}
+      #draftMount .push-bell svg{width:15px;height:15px;display:block}
+      #draftMount .push-bell:hover{border-color:#2e7d43}
       .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
       .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
@@ -1407,7 +1411,7 @@ function subscribe(){
     highlightSeat();
     try{ renderMerica(); }catch(e){ console.error('merica render',e); }
     try{ clockPing(); }catch(e){}
-    try{ initPushBar(); }catch(e){}
+    try{ paintPushUI(); }catch(e){}
   }, err=>{ $('draftMount').innerHTML=warn('Permission error: '+esc(err.message)); });
 }
 /* ---------------- on-the-clock web push (2026-07-19, Allen's approved plan) ----------------
@@ -1428,38 +1432,59 @@ function clockPing(){
   try{ fetch(PUSH_BASE+'/clock?pool='+encodeURIComponent(poolId)+'&stage='+encodeURIComponent(STAGE)+'&code='+encodeURIComponent(clk),{method:'POST',keepalive:true}).catch(function(){}); }catch(e){}
 }
 function pushB64ToBytes(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s), out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
-async function initPushBar(){
-  if(!myCode||window.__pushBarInit) return;
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)) return;
-  window.__pushBarInit=1;
+async function ensurePushReg(){
+  if(window.__pushReg!==undefined) return window.__pushReg;
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){ window.__pushReg=null; return null; }
+  try{ window.__pushReg=await navigator.serviceWorker.register('sw.js'); }catch(e){ window.__pushReg=null; }
+  return window.__pushReg;
+}
+/* Alerts UI, two states (Allen's spec 2026-07-20): while OFF, the full
+   acceptance bar sits above the draft card. Once ON, the bar disappears and a
+   small green bell tucks into the rider-selection card's header (or the locked
+   minibar); tapping the bell turns alerts off and pops the bar back out.
+   Runs on every draft snapshot because the draft re-render wipes the bell. */
+async function paintPushUI(){
+  if(!myCode) return;
+  const reg=await ensurePushReg(); if(!reg) return;
+  const sub=await reg.pushManager.getSubscription().catch(()=>null);
   let bar=document.getElementById('pushBar');
   if(!bar){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; bar=document.createElement('div'); bar.id='pushBar'; dm.parentNode.insertBefore(bar, dm); }
-  let reg=null;
-  try{ reg=await navigator.serviceWorker.register('sw.js'); }catch(e){ bar.remove(); return; }
-  const paint=async()=>{
-    const sub=await reg.pushManager.getSubscription().catch(()=>null);
-    const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
-    if(sub){
-      bar.innerHTML='<span class="pb-bell on">'+bell+'</span><span class="pb-txt">On-the-clock alerts are ON for '+esc(myCode)+' on this device.</span><button type="button" class="pb-off">Turn off</button>';
-      bar.querySelector('.pb-off').addEventListener('click', async()=>{
-        try{ await fetch(PUSH_BASE+'/push/unsub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({endpoint:sub.endpoint})}); }catch(e){}
-        try{ await sub.unsubscribe(); }catch(e){}
-        paint();
+  const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+  if(sub){
+    bar.style.display='none'; bar.innerHTML='';
+    const host=document.querySelector('#draftMount .dh')||document.querySelector('#draftMount .minibar');
+    if(host && !host.querySelector('.push-bell')){
+      const b=document.createElement('button');
+      b.type='button'; b.className='push-bell';
+      b.title='On-the-clock alerts are ON for '+myCode+' on this device - tap to turn off';
+      b.setAttribute('aria-label', b.title);
+      b.innerHTML=bell;
+      b.addEventListener('click', async(e)=>{
+        e.stopPropagation();
+        try{ await fetch(PUSH_BASE+'/push/unsub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({endpoint:sub.endpoint})}); }catch(er){}
+        try{ await sub.unsubscribe(); }catch(er){}
+        b.remove();
+        paintPushUI();
       });
-    } else {
-      bar.innerHTML='<span class="pb-bell">'+bell+'</span><span class="pb-txt">Get a buzz on this device when you are on the clock.</span><button type="button" class="pb-on">Turn on alerts</button>';
-      bar.querySelector('.pb-on').addEventListener('click', async()=>{
-        try{
-          const perm=await Notification.requestPermission();
-          if(perm!=='granted'){ bar.querySelector('.pb-txt').textContent='Notifications are blocked for this site - allow them in your browser settings, then try again.'; return; }
-          const s=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:pushB64ToBytes(VAPID_PUB)});
-          await fetch(PUSH_BASE+'/push/sub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({sub:s.toJSON()})});
-          paint();
-        }catch(e){ bar.querySelector('.pb-txt').textContent='Could not switch alerts on: '+((e&&e.message)||e); }
-      });
+      host.appendChild(b);
     }
-  };
-  paint();
+    return;
+  }
+  const stray=document.querySelector('#draftMount .push-bell'); if(stray) stray.remove();
+  bar.style.display='';
+  if(!bar.querySelector('.pb-on')){
+    bar.innerHTML='<span class="pb-bell">'+bell+'</span><span class="pb-txt">Get a buzz on this device when you are on the clock.</span><button type="button" class="pb-on">Turn on alerts</button>';
+    bar.querySelector('.pb-on').addEventListener('click', async()=>{
+      try{
+        const perm=await Notification.requestPermission();
+        if(perm!=='granted'){ bar.querySelector('.pb-txt').textContent='Notifications are blocked for this site - allow them in your browser settings, then try again.'; return; }
+        const s=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:pushB64ToBytes(VAPID_PUB)});
+        await fetch(PUSH_BASE+'/push/sub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({sub:s.toJSON()})});
+        bar.innerHTML='';
+        paintPushUI();
+      }catch(e){ const t=bar.querySelector('.pb-txt'); if(t) t.textContent='Could not switch alerts on: '+((e&&e.message)||e); }
+    });
+  }
 }
 function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div></div>'; }
 function renderMerica(){
@@ -3326,6 +3351,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0104</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0129</div>
 </body>
 </html>
