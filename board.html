@@ -1203,6 +1203,11 @@ var CDF_DIAG=/[?&]diag=1/.test(location.search); var _diagBox=null;
 function diag(msg){ try{ var l=$('gateSplashLabel'); if(l) l.textContent=msg; }catch(e){} if(!CDF_DIAG) return; try{ if(!_diagBox){ _diagBox=document.createElement('div'); _diagBox.style.cssText='position:fixed;left:0;top:0;right:0;z-index:100001;background:rgba(0,0,0,.9);color:#7fe;font:11px/1.55 monospace;padding:6px 9px;max-height:55vh;overflow:auto;white-space:pre-wrap'; document.body.appendChild(_diagBox); } var t=(typeof performance!=='undefined'?performance.now():0); _diagBox.textContent += '['+(t/1000).toFixed(2)+'s] '+msg+'\n'; }catch(e){} }
 // Watchdog: turn any hung await into a visible error instead of an endless spinner.
 function withTimeout(promise, ms, label){ return Promise.race([ Promise.resolve(promise), new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout after '+ms+'ms at: '+label)); }, ms); }) ]); }
+// Report whether Firebase's own session record is on disk right now. This is the
+// exact thing that must survive a close/reopen. Prints into the ?diag=1 trace so a
+// single sign-in tells us if the write actually landed (vs in-memory only).
+function diagDiskCheck(tag){ try{ var req=indexedDB.open('firebaseLocalStorageDb'); req.onerror=function(){ diag(tag+': disk open ERR'); }; req.onsuccess=function(){ try{ var dbx=req.result; if(!dbx.objectStoreNames.contains('firebaseLocalStorage')){ diag(tag+': no firebase store on disk'); return; } var st=dbx.transaction('firebaseLocalStorage','readonly').objectStore('firebaseLocalStorage'); var k=st.getAllKeys(); k.onsuccess=function(){ var keys=k.result||[]; var has=keys.some(function(x){ return (''+x).indexOf('authUser')>-1; }); diag(tag+': disk authUser='+(has?'YES':'NO')+' (keys='+keys.length+')'); }; k.onerror=function(){ diag(tag+': disk read ERR'); }; }catch(e){ diag(tag+': disk EXC '+(e&&e.message)); } }; }catch(e){ diag(tag+': disk EXC '+(e&&e.message)); } }
+diagDiskCheck('load');
 
 auth.onAuthStateChanged(async user=>{
   if(!user){
@@ -1247,6 +1252,8 @@ auth.onAuthStateChanged(async user=>{
     diag('board built, revealing');
     document.documentElement.classList.remove('gated'); document.body.classList.remove('gated');
     var g=$('gate'); if(g) g.style.display='none';
+    // Confirm the session actually landed on disk a couple seconds after sign-in.
+    try{ setTimeout(function(){ diagDiskCheck('post-signin'); }, 2500); }catch(e){}
     try{ window.__runBoard(CDF); }catch(e){ console.error('runBoard error',e); }
     try{ if(CDF.editorial&&CDF.editorial.hlTiles&&CDF.editorial.hlTiles.length){
       const first=document.querySelector('.hl-tile[data-hl]');
@@ -1282,11 +1289,16 @@ document.addEventListener('click',e=>{
     // provably saved a session to disk (verified), while the redirect round-trip
     // came back with no session. Empirical beats the textbook here. Redirect stays
     // as the fallback only when the popup is genuinely blocked/unsupported.
-    diag('signInWithPopup...');
-    auth.signInWithPopup(p).then(function(cred){ diag('popup ok: '+((cred&&cred.user&&cred.user.email)||'?')); }).catch(err=>{
+    diag('setPersistence(LOCAL) then popup...');
+    // Lock LOCAL (IndexedDB) persistence right before signing in and AWAIT it, so
+    // the credential is guaranteed to be written to disk rather than kept only in
+    // memory. The startup setPersistence was fire-and-forget and could lose the race.
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(e){ diag('setPersistence ERR: '+(e&&(e.code||e.message))); }).then(function(){
+      return auth.signInWithPopup(p);
+    }).then(function(cred){ diag('popup ok: '+((cred&&cred.user&&cred.user.email)||'?')); }).catch(err=>{
       const c=err&&err.code;
       diag('popup err: '+(c||(err&&err.message)));
-      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ diag('falling back to redirect'); auth.signInWithRedirect(p).catch(function(e2){ showGate((e2&&e2.message)||'Sign-in could not start.',true); }); }
+      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ diag('falling back to redirect'); auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){}).then(function(){ return auth.signInWithRedirect(p); }).catch(function(e2){ showGate((e2&&e2.message)||'Sign-in could not start.',true); }); }
       else { showGate(err.message,true); }
     });
   } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
@@ -3455,6 +3467,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2120</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2140</div>
 </body>
 </html>
