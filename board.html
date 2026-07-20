@@ -1257,12 +1257,24 @@ document.addEventListener('click',e=>{
   } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
 });
 auth.getRedirectResult().catch(function(err){ if(err){ showGate(err.message,true); } }).finally(function(){
-  setTimeout(function(){
-    if(auth.currentUser || auth.isSignInWithEmailLink(location.href)) return;
-    var _h=''; try{ _h=localStorage.getItem('cdf_wasSignedIn')||''; }catch(e){}
-    if(_h && !window.__cdfGateChecked){ window.__cdfGateChecked=1; setTimeout(function(){ if(!auth.currentUser) showGate(''); }, 1500); return; }
-    showGate('');
-  }, 250);
+  // Decide whether to reveal the login card, without ever flashing it at a
+  // returning or just-signed-in user. Order of events on iOS: getRedirectResult
+  // settles FIRST, then Firebase populates auth.currentUser a beat later and
+  // onAuthStateChanged fires. So a fixed short timer (the old bug) fired while
+  // currentUser was still null and showed the card right before the session
+  // landed. Instead: email-link arrivals finish via the handler below (keep the
+  // splash); if a session already exists the board shows via onAuthStateChanged;
+  // otherwise poll for up to 3s for the session to appear and reveal the card
+  // ONLY if it genuinely never does. Worst case for a real non-member is a 3s
+  // spinner, then the card. A member never sees the card.
+  if(auth.isSignInWithEmailLink(location.href)) return;
+  if(auth.currentUser) return;
+  var waited=0, STEP=150, MAX=3000;
+  var iv=setInterval(function(){
+    if(auth.currentUser){ clearInterval(iv); return; }
+    waited+=STEP;
+    if(waited>=MAX){ clearInterval(iv); if(!auth.currentUser) showGate(''); }
+  }, STEP);
 });
 const LINK_KEY='cdf_emailForSignIn';
 const acs={ url: location.origin+location.pathname+location.search, handleCodeInApp:true };
@@ -3383,6 +3395,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-1822</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-1855</div>
 </body>
 </html>
