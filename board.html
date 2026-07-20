@@ -522,6 +522,15 @@
       .mer-mini .mm-more{font-size:11.5px;color:var(--mute);margin-left:9px;font-family:'Montserrat',sans-serif;font-weight:700}
       .mer-minbtn{margin-left:auto;flex:none;font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
       .mer-minbtn:hover{border-color:#B22234;color:#B22234}
+      /* on-the-clock alerts bar */
+      #pushBar{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:10px 15px;display:flex;align-items:center;gap:10px;margin:0 0 14px}
+      #pushBar .pb-bell{width:18px;height:18px;flex:none;color:var(--mute)}
+      #pushBar .pb-bell.on{color:#2e7d43}
+      #pushBar .pb-bell svg{width:18px;height:18px;display:block}
+      #pushBar .pb-txt{font-size:12px;color:var(--mute);font-weight:600}
+      #pushBar button{margin-left:auto;flex:none;font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer}
+      #pushBar .pb-on{color:#fff;background:var(--gold-d);border:1px solid var(--gold-d)}
+      #pushBar .pb-off{color:var(--mute);background:none;border:1px solid var(--line)}
       .mer-site{color:#B22234;font-weight:700;text-decoration:underline}
       .mer-credit{font-size:10px;color:var(--mute);margin-top:4px;opacity:.8}
       .mer-foot{font-size:11.5px;color:var(--mute);margin-top:10px}
@@ -1385,7 +1394,60 @@ function subscribe(){
     renderDraft();
     highlightSeat();
     try{ renderMerica(); }catch(e){ console.error('merica render',e); }
+    try{ clockPing(); }catch(e){}
+    try{ initPushBar(); }catch(e){}
   }, err=>{ $('draftMount').innerHTML=warn('Permission error: '+esc(err.message)); });
+}
+/* ---------------- on-the-clock web push (2026-07-19, Allen's approved plan) ----------------
+   Any open board reports a clock change to the col-break Worker (which dedups in
+   KV and sends an empty VAPID push to the on-clock seat's subscribed devices);
+   sw.js shows the notification. Seats opt in per device via the alerts bar. */
+const PUSH_BASE='https://col-break.allen-19a.workers.dev';
+const VAPID_PUB='BPwWSnnMDOdo5pRGDIjM5Favj-krr3z2dxmkn7FnrD7fiPGgzpKYXea0JpkXGK1ow3KY70JRek4KItwao6eBGKo';
+function clockPing(){
+  if(!draft) return;
+  const queue=draft.queue||[], picks=draft.picks||[];
+  const pending=(draft.status||'pending')==='pending'&&picks.length===0;
+  const clk=queue[0]||null;
+  if(!clk||pending) return;
+  const key=String(STAGE)+':'+clk;
+  if(window.__cdfClockSent===key) return;
+  window.__cdfClockSent=key;
+  try{ fetch(PUSH_BASE+'/clock?pool='+encodeURIComponent(poolId)+'&stage='+encodeURIComponent(STAGE)+'&code='+encodeURIComponent(clk),{method:'POST',keepalive:true}).catch(function(){}); }catch(e){}
+}
+function pushB64ToBytes(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s), out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
+async function initPushBar(){
+  if(!myCode||window.__pushBarInit) return;
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)) return;
+  window.__pushBarInit=1;
+  let bar=document.getElementById('pushBar');
+  if(!bar){ const dm=document.getElementById('draftMount'); if(!dm||!dm.parentNode) return; bar=document.createElement('div'); bar.id='pushBar'; dm.parentNode.insertBefore(bar, dm); }
+  let reg=null;
+  try{ reg=await navigator.serviceWorker.register('sw.js'); }catch(e){ bar.remove(); return; }
+  const paint=async()=>{
+    const sub=await reg.pushManager.getSubscription().catch(()=>null);
+    const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+    if(sub){
+      bar.innerHTML='<span class="pb-bell on">'+bell+'</span><span class="pb-txt">On-the-clock alerts are ON for '+esc(myCode)+' on this device.</span><button type="button" class="pb-off">Turn off</button>';
+      bar.querySelector('.pb-off').addEventListener('click', async()=>{
+        try{ await fetch(PUSH_BASE+'/push/unsub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({endpoint:sub.endpoint})}); }catch(e){}
+        try{ await sub.unsubscribe(); }catch(e){}
+        paint();
+      });
+    } else {
+      bar.innerHTML='<span class="pb-bell">'+bell+'</span><span class="pb-txt">Get a buzz on this device when you are on the clock.</span><button type="button" class="pb-on">Turn on alerts</button>';
+      bar.querySelector('.pb-on').addEventListener('click', async()=>{
+        try{
+          const perm=await Notification.requestPermission();
+          if(perm!=='granted'){ bar.querySelector('.pb-txt').textContent='Notifications are blocked for this site - allow them in your browser settings, then try again.'; return; }
+          const s=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:pushB64ToBytes(VAPID_PUB)});
+          await fetch(PUSH_BASE+'/push/sub?pool='+encodeURIComponent(poolId)+'&code='+encodeURIComponent(myCode),{method:'POST',body:JSON.stringify({sub:s.toJSON()})});
+          paint();
+        }catch(e){ bar.querySelector('.pb-txt').textContent='Could not switch alerts on: '+((e&&e.message)||e); }
+      });
+    }
+  };
+  paint();
 }
 function warn(t){ return '<div class="draft"><div class="allin"><div class="sm" style="color:var(--red)">'+t+'</div></div></div>'; }
 function renderMerica(){
@@ -3252,6 +3314,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.19-2245</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0003</div>
 </body>
 </html>
