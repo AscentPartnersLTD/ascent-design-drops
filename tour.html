@@ -408,6 +408,11 @@
   /* ---- login gate (Firebase, July 2026) ---- */
   .gate{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:26px;font-family:'Inter',system-ui,sans-serif;overflow:auto}
   .gate.authed{display:none}
+  .gate .gate-splash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .gate.ask .gate-splash{display:none}
+  .gate:not(.ask) .gate-card{display:none}
+  .gate-spin{width:34px;height:34px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:cdfspin .8s linear infinite}
+  @keyframes cdfspin{to{transform:rotate(360deg)}}
   .gate-card{max-width:370px;width:100%;text-align:center;color:#fff}
   .gate-logo{width:88px;height:88px;border-radius:19px;box-shadow:0 12px 34px rgba(0,0,0,.55);margin:0 auto 22px;display:block}
   .gate-h{font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;font-size:33px;letter-spacing:-1px;line-height:.9}
@@ -454,6 +459,7 @@
 </script>
 
 <div id="gate" class="gate" role="dialog" aria-label="Sign in">
+  <div class="gate-splash" aria-hidden="true"><div class="gate-spin"></div></div>
   <div class="gate-card">
     <img class="gate-logo" src="tour-icon-192.png" alt="Col du Fantasy">
     <div class="gate-h">COL DU <span>FANTASY</span></div>
@@ -1169,7 +1175,7 @@ const RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":
 {"r": "I. Izagirre", "t": "Cofidis", "c": "#E2001A", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/161/71895/0:0,400:400-0-0-70/0594b"},
 {"r": "N. Märkl", "t": "Team Picnic PostNL", "c": "#FF6900", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/216/71825/0:0,400:400-0-0-70/eca4d"},
 {"r": "M. Le Berre", "t": "TotalEnergies", "c": "#F04E23", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/206/71815/0:0,400:400-0-0-70/b6f6e"}];
-const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"col-du-fantasy.firebaseapp.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
+const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"auth.coldufantasy.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore(); const FV=firebase.firestore.FieldValue;
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});   // stay signed in across visits
@@ -1181,10 +1187,16 @@ const $=id=>document.getElementById(id);
 let myEmail=null,isOwner=false,poolId=null,pool=null,STAGE=null,ORDER=[],SNAKE=[],PMETA={},JUDGE=null,myCode=null,isJudge=false,draft=null,unsub=null,chosen=null;
 const DEFAULT_POOL='col-du-fantasy';
 const paramPool=new URLSearchParams(location.search).get('pool')||DEFAULT_POOL||null;
-function showGate(msg,err,asHtml){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; if(msg){var m=$('gate-msg')||$('gmsg'); if(m){ if(asHtml){m.innerHTML=msg;}else{m.textContent=msg;} m.className='gate-msg'+(err?' err':'');}}} }
+function showGate(msg,err,asHtml){ document.documentElement.classList.remove('gated'); document.body.classList.remove('gated'); var g=$('gate'); if(g){g.style.display='block'; g.classList.add('ask'); if(msg){var m=$('gate-msg')||$('gmsg'); if(m){ if(asHtml){m.innerHTML=msg;}else{m.textContent=msg;} m.className='gate-msg'+(err?' err':'');}}} }
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){ showGate(''); return; }
+  if(!user){
+    if(auth.isSignInWithEmailLink(location.href)) return;
+    var _h=''; try{ _h=localStorage.getItem('cdf_wasSignedIn')||''; }catch(e){}
+    if(_h && !window.__cdfGateChecked){ window.__cdfGateChecked=1; setTimeout(function(){ if(!auth.currentUser) showGate(''); }, 1200); return; }
+    showGate(''); return;
+  }
+  try{ localStorage.setItem('cdf_wasSignedIn','1'); }catch(e){}
   myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
   // Roster heal (2026-07-19): idempotent repairs applied whenever the operator
   // signs in, wherever that happens. Allen plays AA under a second email that
@@ -2513,7 +2525,7 @@ document.getElementById('stages').addEventListener('click',e=>{
 /* ===== The Numbers: four metrics ===== */
 (function(){
   const players=(CDF.seats||CDF.order).slice();
-  const colors=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const colors=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const picks={}; players.forEach(p=>picks[p]=[]);
   STAGES.forEach(st=>{
     if(!st.picks) return;
@@ -2742,7 +2754,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 /* Hits & Misses: best/worst picks and rider value, computed from STAGES (rider picks, Stage 2 on). */
 (function(){
   const PL=(CDF.seats||CDF.order).slice();
-  const COL=(function(){var _p=['#c0392b','#2c6e8f','#8a929c','#b8862f'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>TABLE[f]||0;
   function ord(n){ const s=['th','st','nd','rd'],v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
@@ -2792,7 +2804,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const todayEl=document.getElementById('wiToday'), ptsEl=document.getElementById('wiPts'), noteEl=document.getElementById('wiNote');
   if(!todayEl||!ptsEl) return;
   const PL=(CDF.seats||CDF.order).slice();
-  const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const TABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const val=f=>(typeof f==='number'?(TABLE[f]||0):0);
   const S=(typeof STAGES!=='undefined')?STAGES:[];
@@ -2900,7 +2912,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const PTABLE={1:25,2:20,3:16,4:13,5:11,6:10,7:9,8:8,9:7,10:6,11:5,12:4,13:3,14:2,15:1};
   const P=f=>(typeof f==='number'?(PTABLE[f]||0):0);
   const PL=(CDF.seats||CDF.order).slice();
-  const COL=(function(){var _p=['#e8b31e','#2d6cdf','#1a8a3a','#c0392b'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
 
   /* ---- points aggregates, computed straight from STAGES over the same completed set ---- */
   // cumulative fantasy points (every scored pick, all completed stages), higher is better
@@ -3079,7 +3091,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   if(!CARD || typeof BREAK_WORKER==='undefined' || !BREAK_WORKER){ return; } // hidden until configured
   CARD.style.display='';
   var BTN=document.getElementById('bwBtn'), BODY=document.getElementById('bwBody');
-  var COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  var COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   var PL=(CDF.seats||CDF.order).slice();
 
   function norm(s){return (s||'').toUpperCase().replace(/[^A-Z]/g,'');}
@@ -3245,7 +3257,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 (function(){
   const box=document.getElementById('tiltBox');
   if(!box || typeof RACE==='undefined') return;
-  const COL=(function(){var _p=['#e8b31e','#26347e','#3aa564','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
   const PLY=(CDF.seats||CDF.order).slice();
 
   // Stage-type weight buckets (how concentrated the obvious best pick is). Tested in order.
@@ -3366,6 +3378,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0141</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-1736</div>
 </body>
 </html>
