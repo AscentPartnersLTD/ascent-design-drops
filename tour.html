@@ -1272,6 +1272,15 @@ async function resolvePool(){
 async function loadPool(id){
   const snap=await db.doc('pools/'+id).get(); if(!snap.exists) throw new Error('That pool does not exist.');
   poolId=id; pool=snap.data(); STAGE=String(pool.startStage);
+  // Per-pool PWA manifest (2026-07-20): the default tour.webmanifest starts the
+  // installed app at tour.html - the PRIMARY pool's board. Members of any other
+  // pool who Add to Home Screen would land on a roster error. Every non-primary
+  // pool ships a <poolId>.webmanifest whose start_url is its own board URL;
+  // create that file in the repo when creating a pool.
+  if(poolId && poolId!=='col-du-fantasy'){
+    const ml=document.querySelector('link[rel="manifest"]');
+    if(ml) ml.setAttribute('href', poolId+'.webmanifest');
+  }
   ORDER=(pool.order&&pool.order.length)?pool.order.slice():Object.values(pool.members||{});
   SNAKE=ORDER.concat(ORDER.slice().reverse()); JUDGE=pool.judge||null;
   PMETA={}; { const seats=ORDER.slice().sort(); ORDER.forEach(c=>{ PMETA[c]={n:(pool.names&&pool.names[c])||c,c:PALETTE[seats.indexOf(c)%PALETTE.length]}; }); }
@@ -3317,6 +3326,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0003</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-0104</div>
 </body>
 </html>
