@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Col du Fantasy - Storage Test</title>
+<style>
+  html,body{margin:0;background:#1b1a17;color:#fff;font-family:-apple-system,system-ui,sans-serif}
+  .wrap{max-width:520px;margin:0 auto;padding:26px 20px 60px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#b7b2a6;font-size:13px;margin:0 0 22px;line-height:1.5}
+  .card{background:#26241f;border-radius:14px;padding:18px 18px;margin:0 0 16px}
+  .lab{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8f8a7f;margin:0 0 8px}
+  .val{font-size:26px;font-weight:800;line-height:1.15}
+  .ok{color:#4fd27a}
+  .bad{color:#ff6a5c}
+  .warn{color:#f0c040}
+  .meta{font-size:12px;color:#8f8a7f;margin-top:8px;word-break:break-all}
+  .verdict{background:#2f2b23;border-radius:14px;padding:18px;font-size:15px;line-height:1.5}
+  .steps{font-size:13px;color:#b7b2a6;line-height:1.7;margin-top:18px}
+  .steps b{color:#fff}
+  .stamp{position:fixed;left:0;right:0;bottom:0;text-align:center;font:11px monospace;color:#6b665c;padding:6px;background:rgba(0,0,0,.5)}
+  button{margin-top:14px;background:#c9971a;color:#1b1a17;border:none;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>iPhone storage test</h1>
+  <p class="sub">This checks one thing: does this iPhone keep saved website data after you close and reopen Safari. No login needed. Run it, close Safari all the way, reopen this same page, and read the result.</p>
+
+  <div class="card">
+    <div class="lab">localStorage</div>
+    <div class="val" id="lsVal">checking...</div>
+    <div class="meta" id="lsMeta"></div>
+  </div>
+
+  <div class="card">
+    <div class="lab">IndexedDB (what your login is stored in)</div>
+    <div class="val" id="idbVal">checking...</div>
+    <div class="meta" id="idbMeta"></div>
+  </div>
+
+  <div class="verdict" id="verdict">Reading...</div>
+
+  <div class="steps">
+    <b>How to run it:</b><br>
+    1. You are on step 1 now. It just saved two markers.<br>
+    2. Close Safari completely (swipe it away in the app switcher).<br>
+    3. Reopen Safari and come back to this exact page.<br>
+    4. If both say <b>SURVIVED</b>, your iPhone keeps logins and the problem is on our side.<br>
+    5. If either says <b>GONE</b>, Safari is wiping saved data (Private Browsing or a cookie/tracking setting), which is why login never sticks.
+  </div>
+</div>
+<div class="stamp">diag build 2026.07.20</div>
+
+<script>
+(function(){
+  var LS_KEY='cdf_diag_marker';
+  var now=new Date();
+  var stampNow=now.toISOString();
+
+  // ---- localStorage test ----
+  var lsPrior=null, lsState='';
+  try{
+    lsPrior=localStorage.getItem(LS_KEY);
+    localStorage.setItem(LS_KEY, stampNow);
+    var readback=localStorage.getItem(LS_KEY);
+    if(readback!==stampNow){ lsState='blocked'; }
+    else if(lsPrior){ lsState='survived'; }
+    else { lsState='fresh'; }
+  }catch(e){ lsState='blocked'; }
+
+  var lsVal=document.getElementById('lsVal'), lsMeta=document.getElementById('lsMeta');
+  if(lsState==='survived'){ lsVal.textContent='SURVIVED'; lsVal.className='val ok'; lsMeta.textContent='Saved on a previous visit: '+lsPrior; }
+  else if(lsState==='fresh'){ lsVal.textContent='FRESH (first run)'; lsVal.className='val warn'; lsMeta.textContent='Marker just written. Close Safari, reopen this page to test survival.'; }
+  else { lsVal.textContent='BLOCKED'; lsVal.className='val bad'; lsMeta.textContent='Safari refused to save. Storage is blocked (Private Browsing or Block All Cookies).'; }
+
+  // ---- IndexedDB test ----
+  var idbVal=document.getElementById('idbVal'), idbMeta=document.getElementById('idbMeta'), verdict=document.getElementById('verdict');
+  function finishVerdict(idbState){
+    var ls=lsState, idb=idbState;
+    var v='', cls='verdict';
+    if(ls==='blocked' || idb==='blocked'){
+      v='RESULT: Safari is BLOCKING storage on this iPhone. This is why login never sticks. Fix is in iPhone Settings, not the site: turn OFF Private Browsing for this tab, and check Settings > Apps > Safari > "Block All Cookies" is OFF and "Prevent Cross-Site Tracking" is OFF. Then rerun.';
+    } else if(ls==='survived' && idb==='survived'){
+      v='RESULT: Storage SURVIVED the reopen. Your iPhone keeps saved data, so the login problem is on our side, not your settings. Tell Allen: both survived.';
+    } else if(ls==='fresh' && idb==='fresh'){
+      v='STEP 1 DONE. Markers saved. Now close Safari all the way, reopen this page, and read the result here.';
+    } else if(idb==='gone' || ls==='gone' || (ls==='fresh')!==(idb==='fresh')){
+      v='RESULT: Saved data was WIPED on reopen (one or both markers are gone). Safari is clearing storage between sessions, which is why login never sticks. That is a Safari setting: check Private Browsing is OFF and Settings > Apps > Safari cookie/tracking settings.';
+    } else {
+      v='RESULT: mixed. localStorage='+ls+', IndexedDB='+idb+'. Screenshot this and send to Allen.';
+    }
+    verdict.textContent=v;
+  }
+
+  try{
+    var req=indexedDB.open('cdf_diag_db',1);
+    req.onupgradeneeded=function(e){ var db=e.target.result; if(!db.objectStoreNames.contains('m')){ db.createObjectStore('m'); } };
+    req.onerror=function(){ idbVal.textContent='BLOCKED'; idbVal.className='val bad'; idbMeta.textContent='Safari refused to open IndexedDB. Storage is blocked.'; finishVerdict('blocked'); };
+    req.onsuccess=function(){
+      var db=req.result;
+      var tx=db.transaction('m','readonly').objectStore('m');
+      var get=tx.get('marker');
+      get.onsuccess=function(){
+        var prior=get.result;
+        // write fresh marker
+        var tx2=db.transaction('m','readwrite').objectStore('m');
+        tx2.put(stampNow,'marker');
+        var idbState = prior ? 'survived' : 'fresh';
+        if(idbState==='survived'){ idbVal.textContent='SURVIVED'; idbVal.className='val ok'; idbMeta.textContent='Saved on a previous visit: '+prior; }
+        else { idbVal.textContent='FRESH (first run)'; idbVal.className='val warn'; idbMeta.textContent='Marker just written. Close Safari, reopen this page to test survival.'; }
+        finishVerdict(idbState);
+      };
+      get.onerror=function(){ idbVal.textContent='READ ERROR'; idbVal.className='val bad'; finishVerdict('blocked'); };
+    };
+  }catch(e){ idbVal.textContent='BLOCKED'; idbVal.className='val bad'; idbMeta.textContent=''+e; finishVerdict('blocked'); }
+})();
+</script>
+</body>
+</html>
