@@ -1212,10 +1212,16 @@ diagDiskCheck('load');
 function authUserOnDisk(){ return new Promise(function(resolve){ try{ var req=indexedDB.open('firebaseLocalStorageDb'); req.onerror=function(){ resolve(false); }; req.onsuccess=function(){ try{ var dbx=req.result; if(!dbx.objectStoreNames.contains('firebaseLocalStorage')){ resolve(false); return; } var st=dbx.transaction('firebaseLocalStorage','readonly').objectStore('firebaseLocalStorage'); var k=st.getAllKeys(); k.onsuccess=function(){ resolve((k.result||[]).some(function(x){ return (''+x).indexOf('authUser')>-1; })); }; k.onerror=function(){ resolve(false); }; }catch(e){ resolve(false); } }; }catch(e){ resolve(false); } }); }
 // THE FIX (firebase-js-sdk #7888): WebKit aborts the IndexedDB transaction Firebase
 // uses to persist the session during the popup's async/cross-frame coordination, so
-// the authUser record never commits. Force a clean re-persist on a FRESH transaction
-// outside that window (getIdToken + updateCurrentUser), then verify it landed and
-// retry once. This is what makes the session survive a Safari close/reopen on iPhone.
-function forceRepersist(u){ if(!u) return Promise.resolve(); return u.getIdToken(true).catch(function(){}).then(function(){ return auth.updateCurrentUser(u); }).then(function(){ diag('forced re-persist'); return new Promise(function(r){ setTimeout(r,400); }); }).then(authUserOnDisk).then(function(landed){ diag('re-persist check: disk authUser='+(landed?'YES':'NO')); if(!landed && auth.currentUser){ return auth.updateCurrentUser(auth.currentUser).then(function(){ return new Promise(function(r){ setTimeout(r,300); }); }).then(authUserOnDisk).then(function(l2){ diag('retry re-persist: disk authUser='+(l2?'YES':'NO')); }); } }).catch(function(e){ diag('re-persist ERR: '+(e&&(e.code||e.message))); }); }
+// Firebase's own authUser record never commits on iPhone. Bypass Firebase's write
+// path entirely: write the session record to disk OURSELVES, in Firebase's exact
+// on-disk format (fbase_key + user.toJSON()), via a single clean IndexedDB
+// transaction with no interleaved async for WebKit to abort. On the next load
+// Firebase reads this record and restores the session. This is the same storage
+// that provably survived a close/reopen on this device.
+function manualPersist(u){ return new Promise(function(resolve){ try{ if(!u){ resolve(false); return; } var rec={ fbase_key:'firebase:authUser:'+firebaseConfig.apiKey+':[DEFAULT]', value:u.toJSON() }; var req=indexedDB.open('firebaseLocalStorageDb'); req.onerror=function(){ diag('manualPersist open ERR'); resolve(false); }; req.onsuccess=function(){ var db=req.result; if(!db.objectStoreNames.contains('firebaseLocalStorage')){ diag('manualPersist: no store'); db.close(); resolve(false); return; } try{ var tx=db.transaction('firebaseLocalStorage','readwrite'); tx.objectStore('firebaseLocalStorage').put(rec); tx.oncomplete=function(){ db.close(); resolve(true); }; tx.onerror=function(){ diag('manualPersist tx ERR'); db.close(); resolve(false); }; tx.onabort=function(){ diag('manualPersist tx ABORT'); db.close(); resolve(false); }; }catch(e){ diag('manualPersist EXC '+(e&&e.message)); try{db.close();}catch(_){}; resolve(false); } }; }catch(e){ diag('manualPersist EXC '+(e&&e.message)); resolve(false); } }); }
+function forceRepersist(u){ if(!u) return Promise.resolve(); return u.getIdToken(true).catch(function(){}).then(function(){ return manualPersist(u); }).then(function(landed){ diag('manual persist after signin: disk authUser='+(landed?'YES':'NO')); }).catch(function(e){ diag('re-persist ERR: '+(e&&(e.code||e.message))); }); }
+// Keep the on-disk copy current on every token change, always via the clean write.
+auth.onIdTokenChanged(function(u){ if(u){ manualPersist(u); } });
 
 auth.onAuthStateChanged(async user=>{
   if(!user){
@@ -3475,6 +3481,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2205</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2230</div>
 </body>
 </html>
