@@ -410,6 +410,8 @@
   .gate:not(.ask) .gate-card{display:none}
   .gate-spin{width:34px;height:34px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:cdfspin .8s linear infinite}
   .gate-splash-label{color:#b7b2a6;font-size:14px;font-family:'Inter',system-ui,sans-serif;letter-spacing:.2px;min-height:18px}
+  .gate-climb{width:min(82vw,360px);height:auto;display:block}
+  .gate-climb-eyebrow{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
   @keyframes cdfspin{to{transform:rotate(360deg)}}
   .gate-card{max-width:370px;width:100%;text-align:center;color:#fff}
   .gate-logo{width:88px;height:88px;border-radius:19px;box-shadow:0 12px 34px rgba(0,0,0,.55);margin:0 auto 22px;display:block}
@@ -457,7 +459,35 @@
 </script>
 
 <div id="gate" class="gate" role="dialog" aria-label="Sign in">
-  <div class="gate-splash" aria-hidden="true"><div class="gate-spin"></div><div class="gate-splash-label" id="gateSplashLabel"></div></div>
+  <div class="gate-splash" aria-hidden="true">
+    <div class="gate-climb-eyebrow">The Climb</div>
+    <svg id="cdfClimb" class="gate-climb" viewBox="0 0 400 260" role="img" aria-label="Loading">
+      <path d="M0,244 L96,150 L166,196 L244,110 L322,178 L400,120 L400,260 L0,260 Z" fill="#1e1e1e"></path>
+      <path d="M18,246 L344,52 L400,246 Z" fill="#000000"></path>
+      <g stroke="#333333" stroke-width="2" stroke-linecap="round">
+        <line x1="100" y1="197" x2="108" y2="192"></line>
+        <line x1="178" y1="150" x2="186" y2="145"></line>
+        <line x1="256" y1="104" x2="264" y2="99"></line>
+      </g>
+      <line x1="20" y1="244" x2="344" y2="52" stroke="#5a5a2a" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"></line>
+      <line class="road-fill" x1="20" y1="244" x2="20" y2="244" stroke="#FFD400" stroke-width="4" stroke-linecap="round"></line>
+      <line x1="344" y1="52" x2="344" y2="28" stroke="#FFD400" stroke-width="2.5"></line>
+      <g transform="translate(344,28)">
+        <rect x="0" y="0" width="7" height="5" fill="#1b1a17"></rect><rect x="7" y="0" width="7" height="5" fill="#FFD400"></rect>
+        <rect x="0" y="5" width="7" height="5" fill="#FFD400"></rect><rect x="7" y="5" width="7" height="5" fill="#1b1a17"></rect>
+      </g>
+      <g class="rider" transform="translate(20,244) rotate(-30.7)">
+        <circle cx="-10" cy="-7.5" r="7" fill="none" stroke="#FFD400" stroke-width="2.2"></circle>
+        <circle cx="10" cy="-7.5" r="7" fill="none" stroke="#FFD400" stroke-width="2.2"></circle>
+        <path d="M-10,-7.5 L1,-7.5 L10,-7.5 M1,-7.5 L-3,-18 L7,-18 M1,-7.5 L-7,-18" fill="none" stroke="#FFD400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M-9,-18 C-11,-25 -4,-27 -3,-22" fill="none" stroke="#1b1a17" stroke-width="4.5" stroke-linecap="round"></path>
+        <path d="M-9,-18 C-11,-25 -4,-27 -3,-22" fill="none" stroke="#FFD400" stroke-width="2.2" stroke-linecap="round"></path>
+        <circle cx="-5" cy="-27" r="3.6" fill="#1b1a17" stroke="#FFD400" stroke-width="1.6"></circle>
+        <path d="M-5,-23.5 L0,-16 M-3,-19 L7,-16" fill="none" stroke="#FFD400" stroke-width="2.2" stroke-linecap="round"></path>
+      </g>
+    </svg>
+    <div class="gate-splash-label" id="gateSplashLabel"></div>
+  </div>
   <div class="gate-card">
     <img class="gate-logo" src="tour-icon-192.png" alt="Col du Fantasy">
     <div class="gate-h">COL DU <span>FANTASY</span></div>
@@ -1173,6 +1203,30 @@ const RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":
 {"r": "I. Izagirre", "t": "Cofidis", "c": "#E2001A", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/161/71895/0:0,400:400-0-0-70/0594b"},
 {"r": "N. Märkl", "t": "Team Picnic PostNL", "c": "#FF6900", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/216/71825/0:0,400:400-0-0-70/eca4d"},
 {"r": "M. Le Berre", "t": "TotalEnergies", "c": "#F04E23", "p": "https://img.aso.fr/core_app/img-cycling-tdf-png/206/71815/0:0,400:400-0-0-70/b6f6e"}];
+// "The Climb" loader (rebuilt lightweight from Design's source): a cyclist scaling
+// the col with the road drawing in behind, looping until the board loads. Defined
+// FIRST and independent of Firebase, so it animates from the first paint even while
+// the auth SDK is still loading. Idles itself once the board is up; restarts on demand.
+(function(){
+  var svg=document.getElementById('cdfClimb'); if(!svg) return;
+  var rider=svg.querySelector('.rider'), road=svg.querySelector('.road-fill'); if(!rider||!road) return;
+  var X0=20,Y0=244,X1=344,Y1=52,dx=X1-X0,dy=Y1-Y0,ROT=-30.7,DUR=2600,HOLD=550,start=null,raf=null;
+  function ease(p){ return p<.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2; }
+  function loop(ts){
+    var g=document.getElementById('gate');
+    if(!g || g.style.display==='none'){ raf=null; return; }   // board is up: stop
+    if(start==null) start=ts;
+    var pos=(ts-start)%(DUR+HOLD), climbing=pos<DUR, p=climbing?pos/DUR:1, e=ease(p);
+    var x=X0+dx*e, y=Y0+dy*e, op=1;
+    if(!climbing){ var h=(pos-DUR)/HOLD; op=h<.4?1:1-(h-.4)/.6; } else if(p<.08){ op=p/.08; }
+    rider.setAttribute('transform','translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+ROT+')');
+    rider.setAttribute('opacity',op.toFixed(2));
+    road.setAttribute('x2',x.toFixed(1)); road.setAttribute('y2',y.toFixed(1)); road.setAttribute('opacity',op.toFixed(2));
+    raf=requestAnimationFrame(loop);
+  }
+  window.__cdfStartClimb=function(){ if(raf==null){ start=null; raf=requestAnimationFrame(loop); } };
+  window.__cdfStartClimb();
+})();
 const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"auth.coldufantasy.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore(); const FV=firebase.firestore.FieldValue;
@@ -1195,7 +1249,7 @@ function showGate(msg,err,asHtml){ document.documentElement.classList.remove('ga
 // Show the spinner (never the login card) with a status label. Used the instant
 // the user taps sign-in and for the whole board-load window, so a working sign-in
 // never leaves them staring at the login card wondering if it failed.
-function showLoading(label){ var g=$('gate'); if(g){ g.style.display='block'; g.classList.remove('ask'); } var l=$('gateSplashLabel'); if(l){ l.textContent=label||''; } }
+function showLoading(label){ var g=$('gate'); if(g){ g.style.display='block'; g.classList.remove('ask'); } var l=$('gateSplashLabel'); if(l){ l.textContent=label||''; } try{ if(window.__cdfStartClimb) window.__cdfStartClimb(); }catch(e){} }
 // Step tracing. The spinner label always shows the current step. With ?diag=1 a
 // full on-screen log renders too, so a stall is pinned to an exact step from one
 // screenshot instead of guesswork.
@@ -3481,6 +3535,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2230</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2305</div>
 </body>
 </html>
