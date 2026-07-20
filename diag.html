@@ -6,118 +6,122 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Col du Fantasy - Storage Test</title>
+<title>Col du Fantasy - Login Storage Probe</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <style>
   html,body{margin:0;background:#1b1a17;color:#fff;font-family:-apple-system,system-ui,sans-serif}
-  .wrap{max-width:520px;margin:0 auto;padding:26px 20px 60px}
+  .wrap{max-width:520px;margin:0 auto;padding:24px 20px 60px}
   h1{font-size:20px;margin:0 0 4px}
-  .sub{color:#b7b2a6;font-size:13px;margin:0 0 22px;line-height:1.5}
-  .card{background:#26241f;border-radius:14px;padding:18px 18px;margin:0 0 16px}
-  .lab{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8f8a7f;margin:0 0 8px}
-  .val{font-size:26px;font-weight:800;line-height:1.15}
-  .ok{color:#4fd27a}
-  .bad{color:#ff6a5c}
-  .warn{color:#f0c040}
-  .meta{font-size:12px;color:#8f8a7f;margin-top:8px;word-break:break-all}
-  .verdict{background:#2f2b23;border-radius:14px;padding:18px;font-size:15px;line-height:1.5}
+  .sub{color:#b7b2a6;font-size:13px;margin:0 0 20px;line-height:1.5}
+  .card{background:#26241f;border-radius:14px;padding:16px 18px;margin:0 0 14px}
+  .lab{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#8f8a7f;margin:0 0 8px}
+  .val{font-size:24px;font-weight:800;line-height:1.15}
+  .ok{color:#4fd27a}.bad{color:#ff6a5c}.warn{color:#f0c040}
+  .meta{font-size:12px;color:#9a948a;margin-top:8px;word-break:break-word}
+  .verdict{background:#2f2b23;border-radius:14px;padding:16px;font-size:15px;line-height:1.5;margin-top:6px}
   .steps{font-size:13px;color:#b7b2a6;line-height:1.7;margin-top:18px}
   .steps b{color:#fff}
+  a.btn{display:inline-block;margin-top:12px;background:#c9971a;color:#1b1a17;text-decoration:none;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:700}
   .stamp{position:fixed;left:0;right:0;bottom:0;text-align:center;font:11px monospace;color:#6b665c;padding:6px;background:rgba(0,0,0,.5)}
-  button{margin-top:14px;background:#c9971a;color:#1b1a17;border:none;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>iPhone storage test</h1>
-  <p class="sub">This checks one thing: does this iPhone keep saved website data after you close and reopen Safari. No login needed. Run it, close Safari all the way, reopen this same page, and read the result.</p>
+  <h1>Login storage probe</h1>
+  <p class="sub">Runs the real Firebase engine on this phone and checks whether it is allowed to save a login to disk. The first box needs no login.</p>
 
   <div class="card">
-    <div class="lab">localStorage</div>
-    <div class="val" id="lsVal">checking...</div>
-    <div class="meta" id="lsMeta"></div>
+    <div class="lab">1. Can Firebase save to disk here?</div>
+    <div class="val" id="persistVal">checking...</div>
+    <div class="meta" id="persistMeta"></div>
   </div>
 
   <div class="card">
-    <div class="lab">IndexedDB (what your login is stored in)</div>
-    <div class="val" id="idbVal">checking...</div>
-    <div class="meta" id="idbMeta"></div>
+    <div class="lab">2. Is a login saved on disk right now?</div>
+    <div class="val" id="sessVal">checking...</div>
+    <div class="meta" id="sessMeta"></div>
   </div>
 
   <div class="verdict" id="verdict">Reading...</div>
 
   <div class="steps">
-    <b>How to run it:</b><br>
-    1. You are on step 1 now. It just saved two markers.<br>
-    2. Close Safari completely (swipe it away in the app switcher).<br>
-    3. Reopen Safari and come back to this exact page.<br>
-    4. If both say <b>SURVIVED</b>, your iPhone keeps logins and the problem is on our side.<br>
-    5. If either says <b>GONE</b>, Safari is wiping saved data (Private Browsing or a cookie/tracking setting), which is why login never sticks.
+    <b>What to do:</b><br>
+    Just screenshot this whole screen and send it. Box 1 is the answer I need. If box 1 says FAILED, that is the bug and it is on our side to fix.
   </div>
+
+  <a class="btn" href="https://coldufantasy.com/tour.html">Go to the pool</a>
 </div>
-<div class="stamp">diag build 2026.07.20</div>
+<div class="stamp">probe build 2026.07.20-2</div>
 
 <script>
 (function(){
-  var LS_KEY='cdf_diag_marker';
-  var now=new Date();
-  var stampNow=now.toISOString();
+  var persistVal=document.getElementById('persistVal'), persistMeta=document.getElementById('persistMeta');
+  var sessVal=document.getElementById('sessVal'), sessMeta=document.getElementById('sessMeta');
+  var verdict=document.getElementById('verdict');
 
-  // ---- localStorage test ----
-  var lsPrior=null, lsState='';
-  try{
-    lsPrior=localStorage.getItem(LS_KEY);
-    localStorage.setItem(LS_KEY, stampNow);
-    var readback=localStorage.getItem(LS_KEY);
-    if(readback!==stampNow){ lsState='blocked'; }
-    else if(lsPrior){ lsState='survived'; }
-    else { lsState='fresh'; }
-  }catch(e){ lsState='blocked'; }
+  var firebaseConfig={ apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"auth.coldufantasy.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
 
-  var lsVal=document.getElementById('lsVal'), lsMeta=document.getElementById('lsMeta');
-  if(lsState==='survived'){ lsVal.textContent='SURVIVED'; lsVal.className='val ok'; lsMeta.textContent='Saved on a previous visit: '+lsPrior; }
-  else if(lsState==='fresh'){ lsVal.textContent='FRESH (first run)'; lsVal.className='val warn'; lsMeta.textContent='Marker just written. Close Safari, reopen this page to test survival.'; }
-  else { lsVal.textContent='BLOCKED'; lsVal.className='val bad'; lsMeta.textContent='Safari refused to save. Storage is blocked (Private Browsing or Block All Cookies).'; }
-
-  // ---- IndexedDB test ----
-  var idbVal=document.getElementById('idbVal'), idbMeta=document.getElementById('idbMeta'), verdict=document.getElementById('verdict');
-  function finishVerdict(idbState){
-    var ls=lsState, idb=idbState;
-    var v='', cls='verdict';
-    if(ls==='blocked' || idb==='blocked'){
-      v='RESULT: Safari is BLOCKING storage on this iPhone. This is why login never sticks. Fix is in iPhone Settings, not the site: turn OFF Private Browsing for this tab, and check Settings > Apps > Safari > "Block All Cookies" is OFF and "Prevent Cross-Site Tracking" is OFF. Then rerun.';
-    } else if(ls==='survived' && idb==='survived'){
-      v='RESULT: Storage SURVIVED the reopen. Your iPhone keeps saved data, so the login problem is on our side, not your settings. Tell Allen: both survived.';
-    } else if(ls==='fresh' && idb==='fresh'){
-      v='STEP 1 DONE. Markers saved. Now close Safari all the way, reopen this page, and read the result here.';
-    } else if(idb==='gone' || ls==='gone' || (ls==='fresh')!==(idb==='fresh')){
-      v='RESULT: Saved data was WIPED on reopen (one or both markers are gone). Safari is clearing storage between sessions, which is why login never sticks. That is a Safari setting: check Private Browsing is OFF and Settings > Apps > Safari cookie/tracking settings.';
+  var persistState='';
+  function setVerdict(){
+    var v='';
+    if(persistState==='failed'){
+      v='RESULT: Firebase CANNOT save to disk on this phone (box 1 FAILED). This is exactly why login never sticks. It is a code-side fix, not your settings. Send this screenshot to Allen.';
+    } else if(persistState==='ok'){
+      v='RESULT: Firebase CAN save to disk (box 1 OK). So the problem is that the login is not being written after Google sign-in. Send this screenshot to Allen; the fix is in how sign-in is completed.';
     } else {
-      v='RESULT: mixed. localStorage='+ls+', IndexedDB='+idb+'. Screenshot this and send to Allen.';
+      v='Reading...';
     }
     verdict.textContent=v;
   }
 
-  try{
-    var req=indexedDB.open('cdf_diag_db',1);
-    req.onupgradeneeded=function(e){ var db=e.target.result; if(!db.objectStoreNames.contains('m')){ db.createObjectStore('m'); } };
-    req.onerror=function(){ idbVal.textContent='BLOCKED'; idbVal.className='val bad'; idbMeta.textContent='Safari refused to open IndexedDB. Storage is blocked.'; finishVerdict('blocked'); };
-    req.onsuccess=function(){
-      var db=req.result;
-      var tx=db.transaction('m','readonly').objectStore('m');
-      var get=tx.get('marker');
-      get.onsuccess=function(){
-        var prior=get.result;
-        // write fresh marker
-        var tx2=db.transaction('m','readwrite').objectStore('m');
-        tx2.put(stampNow,'marker');
-        var idbState = prior ? 'survived' : 'fresh';
-        if(idbState==='survived'){ idbVal.textContent='SURVIVED'; idbVal.className='val ok'; idbMeta.textContent='Saved on a previous visit: '+prior; }
-        else { idbVal.textContent='FRESH (first run)'; idbVal.className='val warn'; idbMeta.textContent='Marker just written. Close Safari, reopen this page to test survival.'; }
-        finishVerdict(idbState);
+  function readSession(){
+    // Look for a saved Firebase auth record in IndexedDB
+    try{
+      var req=indexedDB.open('firebaseLocalStorageDb');
+      req.onerror=function(){ sessVal.textContent='cannot read'; sessVal.className='val warn'; sessMeta.textContent=''; };
+      req.onsuccess=function(){
+        var db=req.result;
+        if(!db.objectStoreNames.contains('firebaseLocalStorage')){ sessVal.textContent='NONE'; sessVal.className='val warn'; sessMeta.textContent='No Firebase storage yet on this device.'; return; }
+        var st=db.transaction('firebaseLocalStorage','readonly').objectStore('firebaseLocalStorage');
+        var g=st.getAll();
+        g.onsuccess=function(){
+          var rows=g.result||[];
+          var user=null;
+          rows.forEach(function(r){ try{ if(r && r.value && r.value.email){ user=r.value.email; } }catch(e){} });
+          if(user){ sessVal.textContent='SAVED'; sessVal.className='val ok'; sessMeta.textContent='Signed in as '+user+' is on disk.'; }
+          else { sessVal.textContent='NONE'; sessVal.className='val warn'; sessMeta.textContent='No saved login on disk right now.'; }
+        };
+        g.onerror=function(){ sessVal.textContent='read error'; sessVal.className='val warn'; };
       };
-      get.onerror=function(){ idbVal.textContent='READ ERROR'; idbVal.className='val bad'; finishVerdict('blocked'); };
-    };
-  }catch(e){ idbVal.textContent='BLOCKED'; idbVal.className='val bad'; idbMeta.textContent=''+e; finishVerdict('blocked'); }
+    }catch(e){ sessVal.textContent='cannot read'; sessVal.className='val warn'; sessMeta.textContent=''+e; }
+  }
+
+  try{
+    firebase.initializeApp(firebaseConfig);
+    var auth=firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function(){
+      persistState='ok';
+      persistVal.textContent='OK (disk allowed)';
+      persistVal.className='val ok';
+      persistMeta.textContent='Firebase accepted disk (IndexedDB) persistence on this phone.';
+      setVerdict();
+    }).catch(function(err){
+      persistState='failed';
+      persistVal.textContent='FAILED';
+      persistVal.className='val bad';
+      persistMeta.textContent='Firebase refused disk persistence: '+(err&&err.code?err.code:'')+' '+(err&&err.message?err.message:err);
+      setVerdict();
+    });
+    // give it a moment then read whatever session exists
+    setTimeout(readSession, 1200);
+  }catch(e){
+    persistState='failed';
+    persistVal.textContent='SDK ERROR';
+    persistVal.className='val bad';
+    persistMeta.textContent=''+e;
+    setVerdict();
+  }
 })();
 </script>
 </body>
