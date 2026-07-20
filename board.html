@@ -1188,10 +1188,11 @@ function showGate(msg,err,asHtml){ document.documentElement.classList.remove('ga
 
 auth.onAuthStateChanged(async user=>{
   if(!user){
-    if(auth.isSignInWithEmailLink(location.href)) return;
-    var _h=''; try{ _h=localStorage.getItem('cdf_wasSignedIn')||''; }catch(e){}
-    if(_h && !window.__cdfGateChecked){ window.__cdfGateChecked=1; setTimeout(function(){ if(!auth.currentUser) showGate(''); }, 1200); return; }
-    showGate(''); return;
+    // Keep the loading splash up. The login form is revealed only after
+    // getRedirectResult() settles with no user (below), so a returning
+    // Google/redirect sign-in shows a spinner through the whole round trip
+    // instead of flashing the login form back like a failed attempt.
+    return;
   }
   try{ localStorage.setItem('cdf_wasSignedIn','1'); }catch(e){}
   myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
@@ -1255,7 +1256,14 @@ document.addEventListener('click',e=>{
     });
   } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
 });
-auth.getRedirectResult().catch(err=>{ if(err) showGate(err.message,true); });
+auth.getRedirectResult().catch(function(err){ if(err){ showGate(err.message,true); } }).finally(function(){
+  setTimeout(function(){
+    if(auth.currentUser || auth.isSignInWithEmailLink(location.href)) return;
+    var _h=''; try{ _h=localStorage.getItem('cdf_wasSignedIn')||''; }catch(e){}
+    if(_h && !window.__cdfGateChecked){ window.__cdfGateChecked=1; setTimeout(function(){ if(!auth.currentUser) showGate(''); }, 1500); return; }
+    showGate('');
+  }, 250);
+});
 const LINK_KEY='cdf_emailForSignIn';
 const acs={ url: location.origin+location.pathname+location.search, handleCodeInApp:true };
 function sendEmailLink(){
@@ -3375,6 +3383,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-1736</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-1822</div>
 </body>
 </html>
