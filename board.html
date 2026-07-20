@@ -1176,6 +1176,12 @@ const RIDERS = [{"r":"J. Vingegaard","t":"Visma-Lease a Bike","c":"#E3C400","p":
 const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"auth.coldufantasy.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore(); const FV=firebase.firestore.FieldValue;
+// iOS Safari's tracking prevention breaks Firestore's default WebChannel streaming
+// transport, so reads after sign-in hang forever with no error - the "spinner then
+// nothing" seen on iPhone. Auto-detect long-polling is already this SDK's default
+// and is documented to NOT reliably fall back, so force plain long-polling, which
+// Safari handles fine. Must run before any Firestore read. (firebase-js-sdk #7354/#7858)
+try{ db.settings({ experimentalForceLongPolling:true }); }catch(e){ console.error('firestore settings',e); }
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});   // stay signed in across visits
 const OWNER_EMAIL="allen@ascentpartnersltd.com";
 const PALETTE=["#c9971a","#2f8f52","#26347e","#cf2530","#7d3ac1","#e07b00","#0f9e9e","#c02d6b"];
@@ -1272,11 +1278,20 @@ document.addEventListener('click',e=>{
   if(t && (t.id==='gbtn'||t.id==='gate-google')){
     const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
     showLoading('Signing you in...');   // spinner up the instant they tap, not the login card
-    auth.signInWithPopup(p).catch(err=>{
-      const c=err&&err.code;
-      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ auth.signInWithRedirect(p).catch(function(e2){ showGate((e2&&e2.message)||'Sign-in could not start.',true); }); }
-      else { showGate(err.message,true); }
-    });
+    // On iOS the popup flow is the flaky one (blocking, focus loss, slow observer).
+    // With our same-site authDomain, redirect is the more reliable path on iPhone,
+    // so iOS goes redirect-first; desktop keeps popup with a redirect fallback.
+    var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    if(_isIOS){
+      diag('iOS: signInWithRedirect');
+      auth.signInWithRedirect(p).catch(function(e2){ showGate((e2&&e2.message)||'Sign-in could not start.',true); });
+    } else {
+      auth.signInWithPopup(p).catch(err=>{
+        const c=err&&err.code;
+        if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'||c==='auth/operation-not-supported-in-this-environment'){ auth.signInWithRedirect(p).catch(function(e2){ showGate((e2&&e2.message)||'Sign-in could not start.',true); }); }
+        else { showGate(err.message,true); }
+      });
+    }
   } else if(t && t.id==='gate-emaillink'){ sendEmailLink(); }
 });
 auth.getRedirectResult().catch(function(err){ if(err){ showGate(err.message,true); } }).finally(function(){
@@ -3443,6 +3458,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2035</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.20-2105</div>
 </body>
 </html>
