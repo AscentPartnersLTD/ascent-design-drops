@@ -398,18 +398,19 @@
     header.mast{padding:20px 0 24px}
     .mast-logo{height:52px;width:52px;border-radius:12px}
     .mast-in{gap:13px}
-    .mast-in{flex-wrap:wrap}
-    .race-ind{flex-basis:100%;width:100%;margin-left:0;margin-top:8px;flex-direction:row;justify-content:space-between;align-items:center;gap:10px;max-width:none;text-align:left}
     .race-ind .cap{display:none}
-    .race-plate{padding:5px 9px}
-    .race-plate img{height:24px}
-    .race-tag{flex-direction:column;align-items:flex-end;gap:3px}
-    .race-ind .rname{font-size:8.5px;max-width:none;text-align:right}
-    .race-ind .flag{height:15px;width:40px;margin-top:0}
+    /* Stat tiles become a 2-col grid; the race chip fills the empty 4th slot. */
+    .hero-lead{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .hero-chip{padding:8px 12px 8px 10px}
+    /* The race cell: not a stat box, just the Tour logo + flag/label placed for balance. */
+    .race-in-grid{flex-basis:auto;width:auto;margin:0;padding:2px 4px;flex-direction:row;align-items:center;justify-content:center;gap:9px;max-width:none;text-align:left}
+    .race-in-grid .race-tag{flex-direction:column;align-items:flex-start;gap:2px}
+    .race-in-grid .rname{font-size:8px;max-width:none;text-align:left;line-height:1.15}
+    .race-in-grid .flag{height:14px;width:36px;margin-top:0}
+    .race-in-grid .race-plate{padding:4px 7px}
+    .race-in-grid .race-plate img{height:22px}
     .callout{text-align:center}
     .callout .d{margin-left:auto;margin-right:auto;max-width:320px}
-    .hero-chip{padding:8px 12px 8px 10px}
-    .hero-lead{gap:8px}
   }
 
   /* ---- login gate (Firebase, July 2026) ---- */
@@ -2012,6 +2013,22 @@ document.getElementById('heroLead').innerHTML = `
   <div class="hero-chip"><div class="badge">${rankLeader}</div><div class="meta"><span class="cap">Rank leader</span><span class="val"><em>${OURS.rank[rankLeader]}</em><small>pts, low wins</small></span></div></div>
   <div class="hero-chip"><div class="badge">${WINS_PICKED}</div><div class="meta"><span class="cap">Winners picked</span><span class="val"><em>${WINS_PICKED}/${COMPLETED.length}</em><small>scored days</small></span></div></div>`;
 
+// Mobile only: drop the Tour logo + flag/label into the empty 4th cell of the stat
+// grid for balance (not a stat box). On desktop it stays in the top-right race chip.
+(function(){
+  function placeRace(){
+    try{
+      var ri=document.querySelector('.race-ind'); if(!ri) return;
+      var hl=document.getElementById('heroLead'), mi=document.querySelector('.mast-in');
+      if(window.matchMedia && window.matchMedia('(max-width:520px)').matches){
+        if(hl && ri.parentNode!==hl){ ri.classList.add('race-in-grid'); hl.appendChild(ri); }
+      } else if(mi && ri.parentNode!==mi){ ri.classList.remove('race-in-grid'); mi.appendChild(ri); }
+    }catch(e){}
+  }
+  placeRace();
+  window.addEventListener('resize', placeRace);
+})();
+
 /* callouts */
 document.getElementById('callouts').innerHTML = `
   <div class="callout"><div class="n">${OURS.placement[placeLeader]}</div><div class="l">Placement leader</div><div class="d">${placeLeader}, lowest placement total through Stage ${THRU}. The primary standing. Lower is better.</div></div>
@@ -3556,6 +3573,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.21-0035</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.21-0055</div>
 </body>
 </html>
