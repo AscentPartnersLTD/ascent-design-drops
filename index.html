@@ -691,14 +691,20 @@
     </style>
     <div class="today-order" id="todayOrder"></div>
     <style>
-      .tm-link{display:flex;align-items:center;gap:13px;text-decoration:none;background:var(--card);border:1px solid var(--line);border-left:4px solid #ef5a28;border-radius:14px;padding:13px 17px;margin:0 0 20px;box-shadow:var(--sh);transition:box-shadow .15s,transform .15s}
-      .tm-link:hover{box-shadow:0 6px 18px rgba(0,0,0,.10);transform:translateY(-1px)}
-      .tm-ic{width:38px;height:38px;flex:none;border-radius:10px;background:#ef5a28;display:flex;align-items:center;justify-content:center}
-      .tm-ic svg{width:21px;height:21px;color:#fff}
-      .tm-txt{display:flex;flex-direction:column;line-height:1.3}
-      .tm-txt b{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:var(--ink)}
-      .tm-txt span{font-size:12px;color:var(--mute)}
-      .tm-arrow{margin-left:auto;color:#ef5a28;font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px}
+      /* Overview link: mobile only, compact */
+      .tm-link{display:none;align-items:center;gap:11px;text-decoration:none;background:var(--card);border:1px solid var(--line);border-left:4px solid #ef5a28;border-radius:12px;padding:10px 13px;margin:0 0 16px;box-shadow:var(--sh)}
+      .tm-ic{width:30px;height:30px;flex:none;border-radius:8px;background:#ef5a28;display:flex;align-items:center;justify-content:center}
+      .tm-ic svg{width:17px;height:17px;color:#fff}
+      .tm-txt{display:flex;flex-direction:column;line-height:1.25}
+      .tm-txt b{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13.5px;color:var(--ink)}
+      .tm-txt span{font-size:11px;color:var(--mute)}
+      .tm-arrow{margin-left:auto;color:#ef5a28;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px}
+      /* Desktop header chip next to Winners Picked, matches .hero-chip */
+      .tm-chip{text-decoration:none;cursor:pointer;transition:background .15s}
+      .tm-chip:hover{background:rgba(255,255,255,.10)}
+      .tm-chip .tm-badge{width:30px;height:30px;border-radius:8px;background:#ef5a28;display:flex;align-items:center;justify-content:center;flex:none}
+      .tm-chip .tm-badge svg{width:17px;height:17px;color:#fff}
+      @media(max-width:520px){ .tm-link{display:flex} .tm-chip{display:none} }
     </style>
     <a class="tm-link" href="https://wedu.team/blogs/the-move" target="_blank" rel="noopener noreferrer" aria-label="Listen to The Move podcast">
       <span class="tm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M18 12h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1z"/><path d="M6 12H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1z"/></svg></span>
@@ -2047,7 +2053,8 @@ const THRU = OURS.through;
 document.getElementById('heroLead').innerHTML = `
   <div class="hero-chip"><div class="badge">${placeLeader}</div><div class="meta"><span class="cap">Placement leader</span><span class="val"><em>${OURS.placement[placeLeader]}</em><small>pts, low wins</small></span></div></div>
   <div class="hero-chip"><div class="badge">${rankLeader}</div><div class="meta"><span class="cap">Rank leader</span><span class="val"><em>${OURS.rank[rankLeader]}</em><small>pts, low wins</small></span></div></div>
-  <div class="hero-chip"><div class="badge">${WINS_PICKED}</div><div class="meta"><span class="cap">Winners picked</span><span class="val"><em>${WINS_PICKED}/${COMPLETED.length}</em><small>scored days</small></span></div></div>`;
+  <div class="hero-chip"><div class="badge">${WINS_PICKED}</div><div class="meta"><span class="cap">Winners picked</span><span class="val"><em>${WINS_PICKED}/${COMPLETED.length}</em><small>scored days</small></span></div></div>
+  <a class="hero-chip tm-chip" href="https://wedu.team/blogs/the-move" target="_blank" rel="noopener noreferrer" aria-label="Listen to The Move podcast"><div class="tm-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M18 12h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1z"/><path d="M6 12H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1z"/></svg></div><div class="meta"><span class="cap">Listen to</span><span class="val">The Move</span></div></a>`;
 
 // Mobile only: drop the Tour logo + flag/label into the empty 4th cell of the stat
 // grid for balance (not a stat box). On desktop it stays in the top-right race chip.
