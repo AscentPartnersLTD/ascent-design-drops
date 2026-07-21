@@ -510,15 +510,17 @@
     <img class="gate-logo" src="tour-icon-192.png" alt="Col du Fantasy">
     <div class="gate-h">COL DU <span>FANTASY</span></div>
     <div class="gate-sub">Private Fantasy Cycling Site</div>
-    <button id="gate-google" class="gate-btn">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16z"/><path fill="#FBBC05" d="M10.4 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.1-5.5c-2 1.3-4.5 2.1-8.5 2.1-6.3 0-11.7-3.7-13.6-9.1l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
-    <div class="gate-or">or</div>
-    <input id="gate-email" class="gate-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@email.com" aria-label="Your email">
-    <button id="gate-emaillink" class="gate-link-btn" type="button">Email me a sign-in link</button>
+    <div id="gstep-email">
+      <input id="gate-email" class="gate-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@email.com" aria-label="Your email">
+      <button id="gate-send" class="gate-link-btn" type="button">Email me a sign-in code</button>
+    </div>
+    <div id="gstep-code" style="display:none">
+      <input id="gate-code" class="gate-email" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="6-digit code">
+      <button id="gate-verify" class="gate-link-btn" type="button">Sign in</button>
+      <button id="gate-back" class="gate-link-btn" type="button" style="background:none;box-shadow:none;color:#8f8a7f;font-size:12.5px;margin-top:2px">Use a different email</button>
+    </div>
     <div id="gate-msg" class="gate-msg" aria-live="polite"></div>
-    <div class="gate-foot">Sign in with your approved Google account, or get a one-time link sent to your approved email. Access by invitation only.</div>
+    <div class="gate-foot">Access is by invitation. Enter your approved email and we&#39;ll send you a one-time sign-in code.</div>
   </div>
 </div>
 
@@ -1332,12 +1334,14 @@ auth.onAuthStateChanged(async user=>{
     diag('auth: no user yet');
     return;
   }
+  if(window.__cdfBoardUp) return;
   diag('auth: signed in as '+(user.email||'?'));
   try{ localStorage.setItem('cdf_wasSignedIn','1'); }catch(e){}
   // Sign-in succeeded. Swap the login card for the spinner immediately so the
   // (sometimes long) board-load below shows a loading state, not the login form.
   try{ showLoading('Loading your board...'); }catch(e){}
-  myEmail=(user.email||'').toLowerCase(); isOwner=(myEmail===OWNER_EMAIL);
+  var _idr=null; try{ _idr=await user.getIdTokenResult(); }catch(e){}
+  myEmail=(((_idr&&_idr.claims&&_idr.claims.email)||user.email||'').toLowerCase()); isOwner=(myEmail===OWNER_EMAIL);
   // Roster heal (2026-07-19): idempotent owner-only repairs. Runs in the
   // BACKGROUND (not awaited) so a slow or hung Firestore write on mobile can
   // never stall the board load. Allen plays AA under a second email the
@@ -1366,6 +1370,7 @@ auth.onAuthStateChanged(async user=>{
     diag('board built, revealing');
     document.documentElement.classList.remove('gated'); document.body.classList.remove('gated');
     var g=$('gate'); if(g) g.style.display='none';
+    window.__cdfBoardUp=true;
     // Confirm the session actually landed on disk a couple seconds after sign-in.
     try{ setTimeout(function(){ diagDiskCheck('post-signin'); }, 2500); }catch(e){}
     try{ window.__runBoard(CDF); }catch(e){ console.error('runBoard error',e); }
@@ -1446,6 +1451,64 @@ auth.getRedirectResult().then(function(res){ if(res && res.user){ diag('redirect
     if(waited>=MAX){ clearInterval(iv); if(!auth.currentUser){ diag('no session after 3s; showing login card'); showGate(''); } }
   }, STEP);
 });
+// ---- Email + one-time code sign-in (Option B). Replaces the Google popup/redirect. ----
+var AUTH_API='https://api.coldufantasy.com';
+function gEmailVal(){ var i=$('gate-email'); return ((i&&i.value)||'').trim().toLowerCase(); }
+function gStep(which){ var e=$('gstep-email'), c=$('gstep-code'); if(e) e.style.display=(which==='code'?'none':'block'); if(c) c.style.display=(which==='code'?'block':'none'); }
+function gMsg(html,err){ var m=$('gate-msg'); if(m){ m.innerHTML=html||''; m.className='gate-msg'+(err?' err':''); } }
+var _cdfSending=false,_cdfVerifying=false;
+function cdfSendCode(){
+  if(_cdfSending) return; var email=gEmailVal();
+  if(!/.+@.+\..+/.test(email)){ gMsg('Enter a valid email address.',true); return; }
+  _cdfSending=true; var b=$('gate-send'); if(b){ b.disabled=true; b.textContent='Sending...'; }
+  fetch(AUTH_API+'/auth/request',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+    .catch(function(){}).then(function(){
+      _cdfSending=false; if(b){ b.disabled=false; b.textContent='Email me a sign-in code'; }
+      gStep('code'); gMsg('If <b>'+esc(email)+'</b> is on the roster, a 6-digit code is on its way. Enter it below - it expires in 10 minutes.');
+      var ci=$('gate-code'); if(ci){ ci.value=''; try{ci.focus();}catch(e){} }
+    });
+}
+function cdfVerifyCode(){
+  if(_cdfVerifying) return; var email=gEmailVal(); var ci=$('gate-code'); var code=((ci&&ci.value)||'').replace(/\D/g,'');
+  if(!/^\d{6}$/.test(code)){ gMsg('Enter the 6-digit code from your email.',true); return; }
+  _cdfVerifying=true; var b=$('gate-verify'); if(b){ b.disabled=true; b.textContent='Signing in...'; }
+  showLoading('Signing you in...');
+  fetch(AUTH_API+'/auth/verify',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:code})})
+    .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ return {ok:r.ok,d:d}; }); })
+    .then(function(res){
+      if(!res.ok||!res.d||!res.d.firebaseToken){ var er=(res.d&&res.d.error); throw new Error(er==='invalid_or_expired'?'That code has expired. Go back and send a fresh one.':'That code is not right. Check it and try again.'); }
+      return auth.signInWithCustomToken(res.d.firebaseToken);
+    })
+    .catch(function(e){
+      _cdfVerifying=false; if(b){ b.disabled=false; b.textContent='Sign in'; }
+      showGate(''); gStep('code'); gMsg((e&&e.message)||'Sign-in failed. Try again.',true);
+    });
+}
+document.addEventListener('click',function(e){
+  var t=e.target&&e.target.closest?e.target.closest('#gate-send,#gate-verify,#gate-back'):null; if(!t) return;
+  if(t.id==='gate-send') cdfSendCode();
+  else if(t.id==='gate-verify') cdfVerifyCode();
+  else if(t.id==='gate-back'){ gStep('email'); gMsg(''); var i=$('gate-email'); if(i){ try{i.focus();}catch(_){} } }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter') return; var g=$('gate'); if(!g||!g.classList.contains('ask')) return;
+  var cs=$('gstep-code');
+  if(cs&&cs.style.display!=='none'){ e.preventDefault(); cdfVerifyCode(); }
+  else if(document.activeElement&&document.activeElement.id==='gate-email'){ e.preventDefault(); cdfSendCode(); }
+});
+// Boot: trade the durable first-party cookie for a fresh Firebase token. The cookie is
+// first-party to coldufantasy.com and survives iOS's 7-day script-storage purge, so a
+// returning member signs straight in with no interaction. Small delay so Firebase's own
+// (faster, in-window) persistence restores first and we never double sign-in.
+setTimeout(function(){
+  if(auth.currentUser) return;
+  fetch(AUTH_API+'/auth/token',{credentials:'include'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){ if(d&&d.firebaseToken && !auth.currentUser){ return auth.signInWithCustomToken(d.firebaseToken); } return null; })
+    .then(function(res){ if(!res && !auth.currentUser){ showGate(''); } })
+    .catch(function(){ if(!auth.currentUser){ showGate(''); } });
+}, 500);
+
 // iOS Safari reopens a tab from a frozen snapshot without re-running anything.
 // If that snapshot is the login card but a real session is now on disk, the page
 // just doesn't know it yet. Reload once to restore it so reopen behaves like a
