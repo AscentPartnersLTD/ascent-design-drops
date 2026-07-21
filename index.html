@@ -690,6 +690,21 @@
       }
     </style>
     <div class="today-order" id="todayOrder"></div>
+    <style>
+      .tm-link{display:flex;align-items:center;gap:13px;text-decoration:none;background:var(--card);border:1px solid var(--line);border-left:4px solid #ef5a28;border-radius:14px;padding:13px 17px;margin:0 0 20px;box-shadow:var(--sh);transition:box-shadow .15s,transform .15s}
+      .tm-link:hover{box-shadow:0 6px 18px rgba(0,0,0,.10);transform:translateY(-1px)}
+      .tm-ic{width:38px;height:38px;flex:none;border-radius:10px;background:#ef5a28;display:flex;align-items:center;justify-content:center}
+      .tm-ic svg{width:21px;height:21px;color:#fff}
+      .tm-txt{display:flex;flex-direction:column;line-height:1.3}
+      .tm-txt b{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:var(--ink)}
+      .tm-txt span{font-size:12px;color:var(--mute)}
+      .tm-arrow{margin-left:auto;color:#ef5a28;font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px}
+    </style>
+    <a class="tm-link" href="https://wedu.team/blogs/the-move" target="_blank" rel="noopener noreferrer" aria-label="Listen to The Move podcast">
+      <span class="tm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M18 12h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1z"/><path d="M6 12H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1z"/></svg></span>
+      <span class="tm-txt"><b>Listen to The Move</b><span>The stage recap podcast, after the racing</span></span>
+      <span class="tm-arrow">&gt;</span>
+    </a>
     <div id="draftMount"></div>
     <div class="break-card" id="breakWidget" style="display:none">
       <style>
