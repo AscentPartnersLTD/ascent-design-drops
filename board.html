@@ -572,6 +572,9 @@
       .mer-tag{margin-left:auto;flex:none;font-size:9.5px;font-weight:800;letter-spacing:1.2px;color:#fff;background:#B22234;border-radius:999px;padding:4px 10px;text-transform:uppercase;white-space:nowrap}
       .mer-tag.obs{background:#7d786d}
       .mer-line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+      .mer-line{display:flex;align-items:center;gap:9px;margin-top:10px;font-size:13px;color:var(--ink2);line-height:1.5}
+      .mer-line svg{width:24px;height:24px;flex:none}
+      .mer-line b{color:var(--ink)}
       .mer-bio{font-size:12px;color:var(--mute);line-height:1.55;margin-top:6px}
       /* collapsed thin bar once the stage's draft is locked (mirrors the main picks minibar) */
       .mer-mini{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--sh);padding:11px 15px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
@@ -1510,6 +1513,16 @@ const USA_RIDERS=[
  {r:"M. Riccitello",t:"Decathlon CMA CGM Team",bio:"Born 2002 in Tucson, Arizona, the youngest of the six. Broke through with fifth overall and the best young rider jersey at the 2025 Vuelta, then opened 2026 by winning the Tour de la Provence for his new French team. A pure climber built for the high mountains."}
 ];
 const SHARED_UPCOMING = {
+  17: { route:"Chambery > Voiron", type:"Sprint or breakaway", km:174.7,
+    intel:{
+      summary:"A deceptive transition day from Chambery to Voiron: 174.7 km that reads flat but hides about 2,400 m of climbing, with a late rise inside the closing kilometres before a downhill-and-flat run to the line. A bunch sprint if the fast men's teams keep it together, a breakaway win if they let it slip.",
+      facts:[
+        "174.7 km with about 2,400 m of climbing on a lumpier profile than the sprinters would like",
+        "The Col des Pres (3.5 km at 6.6 percent) and the Col de Couz break up the middle third",
+        "A final short rise crests about 6 km out, then mostly downhill and flat into Voiron",
+        "Sprinters' teams against the break, with a reduced bunch sprint the likely outcome"
+      ]
+    } },
   14: { route:"Mulhouse > Le Markstein", type:"Mountains / Vosges", km:155.3,
     intel:{
       summary:"A short, savage Vosges mountain day, seven climbs and 3,800 m of climbing that ends on the Col du Haag before a 6 km run-in to Le Markstein; the first real GC summit test since the Pyrenees.",
@@ -1905,15 +1918,15 @@ const UPCOMING = CDF.upcoming;
    Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
    each time you roll UPCOMING to the next stage. Coordinates are the finish town. */
 const WEATHER = {
-  stage: 16, place: "Thonon-les-Bains", finish: "Evian-les-Bains > Thonon-les-Bains",
-  lat: 46.371, lon: 6.479, date: "2026-07-21"
+  stage: 17, place: "Voiron", finish: "Chambery > Voiron",
+  lat: 45.366, lon: 5.591, date: "2026-07-22"
 };
 
 /* The stage AFTER upcoming, for the "Next two stages" card on Stats. Brief course
    info only (no picks). Update it each time UPCOMING rolls forward. */
 const NEXT2 = {
-  n: 17, route: "Chambery > Voiron", type: "Sprint or breakaway", km: 174.7,
-  line: "Flat on paper, lumpy in truth: 174.7 km with about 2,400 m of climbing over the Col des Pres (3.5 km at 6.6) and the Col de Couz, a last 2.5 km rise 6 km out, then mostly downhill and flat to the line in Voiron. Sprinters against the break."
+  n: 18, route: "Voiron > Orcieres-Merlette", type: "Mountain summit finish", km: 185.2,
+  line: "The Alps arrive: 185.2 km from Voiron with about 3,900 m of climbing, closing on the Orcieres-Merlette summit, an 11.5 km climb at 5.4 percent to the line. A GC day where the climbers and yellow-jersey contenders settle it."
 };
 
 /* "Who's in the break?" live widget. Paste the deployed Cloudflare Worker URL here
