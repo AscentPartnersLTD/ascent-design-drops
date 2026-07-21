@@ -954,7 +954,7 @@
         <div>
           <div class="tilt-sh">How much is first pick worth, by stage type?</div>
           <div id="tiltSliders"></div>
-          <div class="tilt-foot">First-pick order follows the group's rotation, anchored to today's board. It is a what-if lens, not a score.</div>
+          <div class="tilt-foot">First-pick order rotates one seat forward each stage from the group's order. A void stage takes no draft, so it does not advance the rotation. It is a what-if lens, not a score.</div>
         </div>
         <div>
           <div class="tilt-sh">First-pick value <span>(weighted, over the scope)</span></div>
@@ -962,7 +962,7 @@
           <div id="tiltSay" class="tilt-say"></div>
         </div>
       </div>
-      <div class="tilt-sh" style="margin-top:20px">Who leads off, stage by stage</div>
+      <div class="tilt-sh" style="margin-top:20px">Who leads off, stage by stage <span>(whole Tour)</span></div>
       <div id="tiltStrip" class="tilt-strip"></div>
       <div class="tilt-how">
         <div class="tilt-sh" style="margin-bottom:9px">How this works</div>
@@ -3467,16 +3467,21 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   function bucket(type){ for(const w of WEIGHTS){ if(w.test(type)) return w.key; } return 'hilly'; }
   const weights={}; WEIGHTS.forEach(w=>weights[w.key]=w.def);
 
-  // Void-aware draft order: AA led Stage 1, cycle AA>JB>JJ>JP, void stages take no draft (no advance).
+  // Leadoff rotates one seat forward each stage from the group's live order
+  // (CDF.order at the current stage). A void stage takes no draft, so it does
+  // NOT advance the rotation count - stages after a void stay in phase.
   function seasonOrder(){
-    // pool board: orders anchor to the group's live order at the current
-    // stage (CDF.order), rotating forward/back by stage offset
     const base=CDF.order.slice(), m=base.length;
     const anchor=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?Number(UPCOMING.n):1;
+    const stages=RACE.slice().sort((a,b)=>a.n-b.n);
+    const idx={}; let k=0;
+    stages.forEach(st=>{ if(st.voidPool) return; idx[st.n]=k; k++; });
+    let anchorIdx=(idx[anchor]!=null)?idx[anchor]:0;
+    if(idx[anchor]==null){ stages.forEach(st=>{ if(!st.voidPool && st.n<=anchor && idx[st.n]!=null) anchorIdx=idx[st.n]; }); }
     const ord={};
-    RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
+    stages.forEach(st=>{
       if(st.voidPool){ ord[st.n]=null; return; }
-      const off=(((st.n-anchor)%m)+m)%m;
+      const off=(((idx[st.n]-anchorIdx)%m)+m)%m;
       ord[st.n]=base.slice(off).concat(base.slice(0,off));
     });
     return ord;
@@ -3518,8 +3523,15 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     sayEl.innerHTML = even
       ? `With these weights the draft order comes out even: no one's first picks land on softer stages than anyone else's.`
       : `<b>${low}</b> keeps drawing first pick on ${list} - the ${scope==='rest'?'remaining ':''}days a first pick is worth least - while <b>${high}</b> gets first crack at the richest stages. Same number of first picks, very different value.`;
-    // schedule strip
-    stripEl.innerHTML=scopeStages(scope).map(st=>{
+    // schedule strip: always the whole Tour from Stage 1, so the full leadoff
+    // order is visible; the void stage shows as taking no draft
+    stripEl.innerHTML=RACE.slice().sort((a,b)=>a.n-b.n).map(st=>{
+      if(st.voidPool || !ORD[st.n]){
+        return `<div class="tchip" style="border-top-color:var(--line2);opacity:.5">
+        <span class="tc-s">S${st.n}</span><span class="tc-who" style="color:var(--mute)">-</span>
+        <div class="tc-type">Void</div>
+        <div class="tc-wt">no draft</div></div>`;
+      }
       const p=ORD[st.n][0], b=bucket(st.type);
       return `<div class="tchip" style="border-top-color:${COL[p]}">
         <span class="tc-s">S${st.n}</span><span class="tc-who" style="color:${COL[p]}">${p}</span>
@@ -3573,6 +3585,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.21-0055</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.21-1340 tilt-fix</div>
 </body>
 </html>
