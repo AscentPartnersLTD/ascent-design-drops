@@ -324,7 +324,14 @@
   @media(max-width:640px){ .combat-wrap{grid-template-columns:1fr} }
 
   .statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:32px}
-  .stat{background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .stat{background:var(--paper2);border:1px solid var(--line);border-left:7px solid var(--dpc,var(--line2));border-radius:12px;padding:16px 18px 16px 20px}
+  .stat-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .dp-tag{font-family:'Montserrat',sans-serif;font-weight:800;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dpc,var(--mute));white-space:nowrap;margin-top:1px}
+  .dp-filter{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+  .dp-chip{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);background:var(--paper2);border:1px solid var(--line2);border-radius:999px;padding:6px 13px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center}
+  .dp-chip:hover{border-color:var(--mute)}
+  .dp-chip.on{color:#fff;background:var(--ink);border-color:var(--ink)}
+  .dp-chip .dpdot{width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--dpc,var(--mute))}
   .stat .k{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:10px;color:var(--mute);font-weight:700}
   .stat .v{font-family:'Montserrat',sans-serif;font-weight:900;font-size:32px;margin:8px 0 2px;line-height:0.9;color:var(--gold)}
   .stat .v.ink{color:var(--ink)}
@@ -973,6 +980,7 @@
       </div>
     </div>
     <h2 class="eyebrow" style="margin-top:26px">Datapoints</h2>
+    <div class="dp-filter" id="dpFilter"></div>
     <div class="statgrid" id="statgrid"></div>
     <h2 class="eyebrow">Rider Archetypes</h2>
     <div id="archetypes"></div>
@@ -2883,8 +2891,16 @@ document.getElementById('resultsTable').innerHTML =
 const stats=[{k:"Placement leader",v:OURS.placement[placeLeader],d:`${placeLeader}, lowest total (primary standing). Next: ${placeOrder.slice(1).map(k=>k+' '+OURS.placement[k]).join(', ')}.`},
   {k:"Rank leader",v:OURS.rank[rankLeader],ink:true,d:`${rankLeader}, lowest rank total. ${rankOrder.slice(1).map(k=>k+' '+OURS.rank[k]).join(', ')} behind.`},
   {k:"Stage winners picked",v:`${WINS_PICKED}/${COMPLETED.length}`,d:`Days the pool drafted the actual winner, across ${COMPLETED.length} scored stages.`}].concat((CDF.editorial&&CDF.editorial.stats&&CDF.editorial.stats.length)?CDF.editorial.stats:[{k:'Stats and notes',v:'',d:'This fills in with the pool\'s highlights and records as stages are scored.'}]);
-document.getElementById('statgrid').innerHTML=stats.map(s=>
-  `<div class="stat"><div class="k">${s.k}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`).join('');
+const DP_TYPES={standing:{lab:'Standings',c:'#c9971a'},record:{lab:'Records',c:'#26347e'},history:{lab:'History',c:'#2f8f52'},moment:{lab:'Moments',c:'#cf2530'}};
+stats.forEach((s,i)=>{ if(!s.type) s.type=(i<3?'standing':'record'); });
+function dpRender(flt){
+  document.getElementById('statgrid').innerHTML=stats.filter(s=>flt==='all'||s.type===flt).map(s=>{
+    const m=DP_TYPES[s.type]||{lab:'',c:'var(--line2)'};
+    return `<div class="stat" style="--dpc:${m.c}"><div class="stat-top"><div class="k">${s.k}</div>${m.lab?`<span class="dp-tag" style="--dpc:${m.c}">${m.lab}</span>`:''}</div><div class="v ${s.ink?'ink':''} ${s.small?'small':''}">${s.v}</div><div class="d">${s.d}</div></div>`;
+  }).join('');
+}
+(function(){ const f=document.getElementById('dpFilter'); if(!f) return; const present=['standing','record','history','moment'].filter(t=>stats.some(s=>s.type===t)); f.innerHTML='<button class="dp-chip on" data-dpt="all">All</button>'+present.map(t=>`<button class="dp-chip" data-dpt="${t}"><span class="dpdot" style="--dpc:${DP_TYPES[t].c}"></span>${DP_TYPES[t].lab}</button>`).join(''); f.addEventListener('click',function(e){ const b=e.target.closest('.dp-chip'); if(!b) return; f.querySelectorAll('.dp-chip').forEach(x=>x.classList.remove('on')); b.classList.add('on'); dpRender(b.dataset.dpt); }); })();
+dpRender('all');
 
 const arch=(CDF.editorial&&CDF.editorial.arch&&CDF.editorial.arch.length)?CDF.editorial.arch:[{k:'',t:'Rider archetypes',b:'These build up as the pool rides through the race and the picks tell a story.'}];
 document.getElementById('archetypes').innerHTML=arch.map(a=>
