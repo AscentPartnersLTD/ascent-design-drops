@@ -1944,32 +1944,7 @@ const NEXT2 = {
    (see break-widget-setup.md). While it is empty the widget stays hidden, so no one
    sees a dead button. The widget asks the Worker for the current stage (UPCOMING.n). */
 const BREAK_WORKER = "https://col-break.allen-19a.workers.dev";
-/* --- Live active roster + Out-of-the-race strip (v5) ------------------------
-   Pull the current field from the race Worker so abandoned riders drop off the
-   pick list automatically, and show who is out. Falls back to the embedded list
-   if the Worker is unreachable. --- */
-(function(){ try{
-  var s=document.createElement('style');
-  s.textContent='.out-strip{margin:0 0 12px;padding:9px 13px;border-radius:11px;background:#2a1a17;border:1px solid rgba(207,37,48,.35);color:#f0c9c2;font-size:12.5px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}.out-strip .os-lab{font-family:\'Montserrat\',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#e08b7f;white-space:nowrap}.out-strip .os-names{color:#f0c9c2;line-height:1.5}';
-  document.head.appendChild(s);
-}catch(e){} })();
-function renderOutStrip(out){ try{
-  var mount=document.getElementById('draftMount'); if(!mount) return;
-  var el=document.getElementById('outStrip');
-  if(!out||!out.length){ if(el) el.remove(); return; }
-  if(!el){ el=document.createElement('div'); el.id='outStrip'; el.className='out-strip'; mount.parentNode.insertBefore(el, mount); }
-  var names=out.map(function(o){ var rr=null; try{ rr=RIDERS.filter(function(x){return x.b===o.bib;})[0]; }catch(e){} return (rr&&rr.r)||o.name||('#'+o.bib); });
-  el.innerHTML='<span class="os-lab">Out of the race</span><span class="os-names">'+names.map(function(n){return esc(n);}).join(', ')+'</span>';
-}catch(e){} }
-(function(){ try{
-  if(typeof BREAK_WORKER==='undefined'||!BREAK_WORKER) return;
-  var st=(typeof UPCOMING!=='undefined'&&UPCOMING&&UPCOMING.n)||'';
-  if(!st) return;
-  fetch(BREAK_WORKER+'/roster?stage='+encodeURIComponent(st))
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(d){ if(!d||!Array.isArray(d.activeBibs)||!d.activeBibs.length) return; window.__ACTIVE=new Set(d.activeBibs); renderOutStrip(d.out||[]); })
-    .catch(function(){});
-}catch(e){} })();
+
   // deployed Cloudflare Worker (col-break)
 
 /* Today's Order (the daily pick order). It ROTATES one spot forward every stage from
