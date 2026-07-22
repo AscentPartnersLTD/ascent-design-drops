@@ -1009,7 +1009,7 @@
         <div>
           <div class="tilt-sh">How much is first pick worth, by stage type?</div>
           <div id="tiltSliders"></div>
-          <div class="tilt-foot">First-pick order: AA led Stage 1 and it rotates one seat forward each stage. The void Stage 9 took no draft, so the cycle restarts with AA on Stage 10. It is a what-if lens, not a score.</div>
+          <div class="tilt-foot">First-pick order rotates one seat forward each stage from the group's order. A void stage takes no draft, so it does not advance the rotation. It is a what-if lens, not a score.</div>
         </div>
         <div>
           <div class="tilt-sh">First-pick value <span>(weighted, over the scope)</span></div>
@@ -3554,17 +3554,22 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   function bucket(type){ for(const w of WEIGHTS){ if(w.test(type)) return w.key; } return 'hilly'; }
   const weights={}; WEIGHTS.forEach(w=>weights[w.key]=w.def);
 
-  // AA led Stage 1; the leadoff rotates one seat forward each stage through the
-  // group's order (CDF.order). A void stage (S9) took no draft, so it does NOT
-  // advance the rotation - the cycle restarts cleanly with AA on Stage 10.
+  // Leadoff rotates one seat forward each stage from the group's live order
+  // (CDF.order at the current stage). A void stage takes no draft, so it does
+  // NOT advance the rotation count - stages after a void stay in phase.
   function seasonOrder(){
-    let base=CDF.order.slice(); const m=base.length;
-    const S1='AA', i=base.indexOf(S1); if(i>0) base=base.slice(i).concat(base.slice(0,i));
-    let line=base.slice(); const ord={};
-    RACE.slice().sort((a,b)=>a.n-b.n).forEach(st=>{
-      if(st.voidPool){ ord[st.n]=null; return; }   // void: no draft, no advance
-      ord[st.n]=line.slice();
-      line=line.slice(1).concat(line.slice(0,1));
+    const base=CDF.order.slice(), m=base.length;
+    const anchor=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?Number(UPCOMING.n):1;
+    const stages=RACE.slice().sort((a,b)=>a.n-b.n);
+    const idx={}; let k=0;
+    stages.forEach(st=>{ if(st.voidPool) return; idx[st.n]=k; k++; });
+    let anchorIdx=(idx[anchor]!=null)?idx[anchor]:0;
+    if(idx[anchor]==null){ stages.forEach(st=>{ if(!st.voidPool && st.n<=anchor && idx[st.n]!=null) anchorIdx=idx[st.n]; }); }
+    const ord={};
+    stages.forEach(st=>{
+      if(st.voidPool){ ord[st.n]=null; return; }
+      const off=(((idx[st.n]-anchorIdx)%m)+m)%m;
+      ord[st.n]=base.slice(off).concat(base.slice(0,off));
     });
     return ord;
   }
