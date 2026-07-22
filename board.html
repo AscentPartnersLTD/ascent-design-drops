@@ -1943,7 +1943,11 @@ const NEXT2 = {
 /* "Who's in the break?" live widget. Paste the deployed Cloudflare Worker URL here
    (see break-widget-setup.md). While it is empty the widget stays hidden, so no one
    sees a dead button. The widget asks the Worker for the current stage (UPCOMING.n). */
-const BREAK_WORKER = "https://col-break.allen-19a.workers.dev";
+const BREAK_ENDPOINTS = [
+  "https://api.coldufantasy.com/api/break",   // primary: Vercel, stable custom domain
+  "https://col-break.allen-19a.workers.dev"   // fallback: Cloudflare Worker (best-effort; tried only if the primary fails)
+];
+const BREAK_WORKER = BREAK_ENDPOINTS[0];       // primary; kept for the widget "configured?" guard
 
   // deployed Cloudflare Worker (col-break)
 
@@ -3459,15 +3463,63 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     wireRefresh();
   }
 
+  /* Endpoint failover + last-good snapshot (2026-07-22 rebuild).
+     On-demand only: a click/Refresh does ONE fresh pull. It tries the primary
+     endpoint, falls back to the secondary only if the primary errors or times
+     out, and if BOTH fail it shows the last good snapshot for THIS stage with a
+     "briefly unreachable" stamp instead of a dead card. No polling, no caching. */
+  function bwUrl(base, stage){
+    base=base.replace(/\/$/,'');
+    var sep=/\/api\/break$/.test(base) ? '?stage=' : '/?stage=';
+    return base+sep+encodeURIComponent(stage);
+  }
+  function bwFetchOne(base, stage){
+    var ctrl=('AbortController' in window)?new AbortController():null;
+    var opt=ctrl?{cache:'no-store',signal:ctrl.signal}:{cache:'no-store'};
+    var timeout=new Promise(function(_,rej){ setTimeout(function(){ if(ctrl){ try{ctrl.abort();}catch(e){} } rej(new Error('timeout')); },6000); });
+    var req=fetch(bwUrl(base,stage),opt).then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); });
+    return Promise.race([req, timeout]);   // settles even if AbortController is unavailable
+  }
+  function bwSaveGood(d){
+    if(!d||!d.live||!d.groups||!d.groups.length) return;
+    for(var i=0;i<d.groups.length;i++){ if(!d.groups[i]||!Array.isArray(d.groups[i].riders)) return; }  // never persist a payload render() can't draw
+    try{ localStorage.setItem('cdf_break_lastgood', JSON.stringify({at:Date.now(), stage:String(d.stage), data:d})); }catch(e){}
+  }
+  function bwLastGood(){
+    try{ var s=localStorage.getItem('cdf_break_lastgood'); if(!s) return null; var o=JSON.parse(s); return (o&&o.data)?o:null; }catch(e){ return null; }
+  }
+  function bwStaleNote(at){
+    try{
+      var t=new Date(at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      var n=document.createElement('div'); n.className='bw-muted'; n.style.margin='0 0 8px';
+      n.textContent='Showing the last snapshot from '+t+'. The live feed did not answer just now - hit Refresh to try again.';
+      var ctrls=BODY.querySelector('.bw-controls');
+      if(ctrls && ctrls.nextSibling) BODY.insertBefore(n, ctrls.nextSibling); else BODY.insertBefore(n, BODY.firstChild);
+    }catch(e){}
+  }
+
   function doFetch(){
     var rf=document.getElementById('bwRefresh'); if(rf) rf.disabled=true;
     BODY.className='bw-body has'; BODY.innerHTML='<div class="bw-muted">Reading the race...</div>';
     var stage=(typeof UPCOMING!=='undefined'&&UPCOMING.n)?UPCOMING.n:'';
     try{ var ov=new URLSearchParams(location.search).get('bwstage'); if(ov) stage=ov; }catch(e){}
-    fetch(BREAK_WORKER.replace(/\/$/,'')+'/?stage='+encodeURIComponent(stage),{cache:'no-store'})
-      .then(function(r){return r.json();})
-      .then(function(d){ render(d); })
-      .catch(function(){ render({error:true}); });
+    var eps=(typeof BREAK_ENDPOINTS!=='undefined'&&BREAK_ENDPOINTS.length)?BREAK_ENDPOINTS.slice():[BREAK_WORKER];
+    function bwErrorCard(){
+      try{ render({error:true}); }
+      catch(e){ try{ BODY.className='bw-body has'; BODY.innerHTML=controlsRow('')+'<div class="bw-muted">Could not reach the live feed right now. Hit Refresh in a moment.</div>'; wireRefresh(); }catch(_){} }
+    }
+    (function tryNext(i){
+      if(i>=eps.length){   // both endpoints failed
+        var lg=bwLastGood(), shown=false;
+        if(lg && String(lg.stage)===String(stage)){ try{ render(lg.data); bwStaleNote(lg.at); shown=true; }catch(e){ shown=false; } }
+        if(!shown) bwErrorCard();
+        return;
+      }
+      bwFetchOne(eps[i], stage).then(function(d){
+        bwSaveGood(d);                               // no-ops unless it is a renderable live race
+        try{ render(d); }catch(e){ tryNext(i+1); }   // reachable but unrenderable -> try the next endpoint
+      }).catch(function(){ tryNext(i+1); });
+    })(0);
   }
 
   var bwOpen=false;
