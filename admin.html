@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Col du Fantasy - Admin</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CDF Admin">
+<meta name="theme-color" content="#1b1a17">
+<link rel="manifest" href="admin.webmanifest">
+<link rel="apple-touch-icon" href="tour-icon-180.png">
+<link rel="icon" href="tour-icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<style>
+ :root{--gold:#e8b31e}
+ *{box-sizing:border-box}
+ body{margin:0;background:#191813;color:#e7e2d6;font-family:'Inter',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+ .wrap{max-width:600px;margin:0 auto;padding:calc(30px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom))}
+ .logo{width:72px;height:72px;border-radius:17px;display:block;margin:0 auto 15px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+ .h{font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;font-size:27px;letter-spacing:-.5px;text-align:center;line-height:.95}
+ .h span{color:var(--gold)}
+ .sub{text-align:center;color:#8f8a7f;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;font-family:'Montserrat',sans-serif;font-weight:700;margin:7px 0 26px}
+ .card{max-width:330px;margin:0 auto;text-align:center}
+ .inp{display:block;width:100%;margin:0 auto 11px;background:rgba(255,255,255,.08);border:0;border-radius:11px;padding:13px 15px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#fff;text-align:center}
+ .inp::placeholder{color:#8f8a7f}
+ .inp:focus{background:rgba(255,255,255,.15);outline:none}
+ .btn{display:block;width:100%;background:rgba(255,255,255,.10);color:#fff;border:0;border-radius:12px;padding:13px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:14px;cursor:pointer}
+ .btn:hover{background:rgba(255,255,255,.17)}
+ .btn:disabled{opacity:.6;cursor:default}
+ .msg{margin-top:16px;font-size:13px;min-height:18px;color:#cfcabd;line-height:1.5}
+ .msg.err{color:#f2b0a8}.msg b{color:#fff}
+ .foot{margin-top:24px;text-align:center;font-size:11px;color:#7d786d;line-height:1.55}
+ .pools{display:grid;gap:12px}
+ .pcard{display:flex;align-items:center;gap:14px;background:#201f1b;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px 17px;text-decoration:none;color:#e7e2d6;transition:border-color .15s,transform .15s}
+ .pcard:hover{border-color:rgba(232,179,30,.5);transform:translateY(-1px)}
+ .pdot{width:44px;height:44px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:#191813;background:var(--gold)}
+ .pname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:17px;line-height:1.15}
+ .pmeta{color:#8f8a7f;font-size:12.5px;margin-top:3px}
+ .parrow{margin-left:auto;color:#7d786d;font-size:22px;line-height:1}
+ .row2{display:flex;justify-content:space-between;align-items:center;margin:20px 3px 13px}
+ .lbl{font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#7d786d}
+ .link{background:none;border:0;color:#8f8a7f;font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;padding:4px}
+ .link:hover{color:#fff}
+ .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="tour-icon-192.png" alt="Col du Fantasy">
+  <div class="h">COL DU <span>FANTASY</span></div>
+  <div class="sub">Master Admin</div>
+
+  <div id="gate" class="card hide">
+    <div id="gEmailStep">
+      <input id="gEmail" class="inp" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@email.com" aria-label="Your email">
+      <button id="gSend" class="btn" type="button">Email me a sign-in code</button>
+    </div>
+    <div id="gCodeStep" class="hide">
+      <input id="gCode" class="inp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="6-digit code">
+      <button id="gVerify" class="btn" type="button">Sign in</button>
+      <button id="gBack" class="link" type="button" style="margin-top:9px">Use a different email</button>
+    </div>
+    <div id="gMsg" class="msg" aria-live="polite"></div>
+    <div class="foot">Sign in once. Every pool you run or play in is right here - no switching accounts, no separate logins.</div>
+  </div>
+
+  <div id="hub" class="hide">
+    <div class="row2"><div class="lbl">Your pools</div><button id="hOut" class="link" type="button">Sign out</button></div>
+    <div id="pools" class="pools"></div>
+    <div class="foot" id="hWho"></div>
+  </div>
+
+  <div id="splash" class="foot" style="margin-top:40px">Loading...</div>
+</div>
+<script>
+const firebaseConfig = { apiKey:"AIzaSyBH78lk1jwmu5WPmItdfTq_z1c92KBgOdw", authDomain:"auth.coldufantasy.com", projectId:"col-du-fantasy", storageBucket:"col-du-fantasy.firebasestorage.app", messagingSenderId:"243850980867", appId:"1:243850980867:web:77c8455a03d972cb4fa836" };
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.firestore();
+try{ db.settings({ experimentalForceLongPolling:true }); }catch(e){}
+const AUTH_API='https://api.coldufantasy.com';
+const OWNER_EMAIL='allen@ascentpartnersltd.com';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const init=r=>String(r||'').replace(/[^A-Za-z. ]/g,'').split(/[.\s]+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+function show(el,on){ if(el) el.classList.toggle('hide', !on); }
+function gMsg(h,err){ var m=$('gMsg'); m.innerHTML=h||''; m.className='msg'+(err?' err':''); }
+function gStep(code){ show($('gEmailStep'), !code); show($('gCodeStep'), code); }
+function emailVal(){ return ($('gEmail').value||'').trim().toLowerCase(); }
+function showGate(){ show($('splash'),false); show($('hub'),false); show($('gate'),true); }
+var busy=false;
+$('gSend').onclick=function(){
+  if(busy) return; var e=emailVal();
+  if(!/.+@.+\..+/.test(e)){ gMsg('Enter a valid email.',true); return; }
+  busy=true; this.disabled=true; this.textContent='Sending...';
+  fetch(AUTH_API+'/auth/request',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})})
+   .catch(function(){}).then(function(){ busy=false; $('gSend').disabled=false; $('gSend').textContent='Email me a sign-in code'; gStep(true); gMsg('If <b>'+esc(e)+'</b> is registered, a 6-digit code is on its way. It expires in 10 minutes.'); $('gCode').value=''; try{$('gCode').focus();}catch(_){}; });
+};
+$('gVerify').onclick=function(){
+  if(busy) return; var e=emailVal(); var c=($('gCode').value||'').replace(/\D/g,'');
+  if(!/^\d{6}$/.test(c)){ gMsg('Enter the 6-digit code.',true); return; }
+  busy=true; this.disabled=true; this.textContent='Signing in...';
+  fetch(AUTH_API+'/auth/verify',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,code:c})})
+   .then(function(r){ return r.json().catch(function(){return{};}).then(function(d){return{ok:r.ok,d:d};}); })
+   .then(function(res){ if(!res.ok||!res.d.firebaseToken){ throw new Error((res.d&&res.d.error)==='invalid_or_expired'?'That code expired. Send a fresh one.':'That code is not right. Try again.'); } return auth.signInWithCustomToken(res.d.firebaseToken); })
+   .catch(function(err){ busy=false; $('gVerify').disabled=false; $('gVerify').textContent='Sign in'; gStep(true); gMsg((err&&err.message)||'Sign-in failed.',true); });
+};
+$('gBack').onclick=function(){ gStep(false); gMsg(''); try{$('gEmail').focus();}catch(_){} };
+$('gCode').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('gVerify').click(); } });
+$('gEmail').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('gSend').click(); } });
+$('hOut').onclick=async function(){ try{ await fetch(AUTH_API+'/auth/logout',{method:'POST',credentials:'include'}); }catch(e){} try{ await auth.signOut(); }catch(e){} location.reload(); };
+
+auth.onAuthStateChanged(async function(user){
+  if(!user){ showGate(); return; }
+  var idr=null; try{ idr=await user.getIdTokenResult(); }catch(e){}
+  var email=(((idr&&idr.claims&&idr.claims.email)||user.email||'').toLowerCase());
+  await renderHub(email);
+});
+async function renderHub(email){
+  show($('splash'),false); show($('gate'),false); show($('hub'),true);
+  $('hWho').textContent='Signed in as '+email;
+  var isOwner=(email===OWNER_EMAIL);
+  var pools=[];
+  try{
+    if(isOwner){ var all=await db.collection('pools').get(); all.forEach(function(d){ pools.push({id:d.id,data:d.data()}); }); }
+    else { var idx=await db.doc('userPools/'+email).get(); var list=(idx.exists&&idx.data().pools)||[];
+      for(var i=0;i<list.length;i++){ try{ var s=await db.doc('pools/'+list[i]).get(); if(s.exists) pools.push({id:list[i],data:s.data()}); }catch(e){} } }
+  }catch(e){ $('pools').innerHTML='<div class="foot">Could not load pools ('+esc(e.code||e.message||e)+').</div>'; return; }
+  if(!pools.length){ $('pools').innerHTML='<div class="foot">No pools found for this account yet.</div>'; return; }
+  pools.sort(function(a,b){ return String((a.data.name||a.id)).localeCompare(String(b.data.name||b.id)); });
+  $('pools').innerHTML=pools.map(function(p){
+    var nm=(p.data.name)||p.id; var sub=(p.data.subtitle)||'Cycling fantasy pool';
+    return '<a class="pcard" href="board.html?pool='+encodeURIComponent(p.id)+'"><span class="pdot">'+esc(init(nm)||'CDF')+'</span><span><span class="pname">'+esc(nm)+'</span><br><span class="pmeta">'+esc(sub)+'</span></span><span class="parrow">&rsaquo;</span></a>';
+  }).join('');
+}
+// Boot: trade the durable first-party cookie for a Firebase token so a returning
+// admin lands straight on the hub with no sign-in. Small delay lets Firebase's own
+// persistence restore first.
+setTimeout(function(){
+  if(auth.currentUser) return;
+  fetch(AUTH_API+'/auth/token',{credentials:'include'}).then(function(r){ return r.ok?r.json():null; })
+   .then(function(d){ if(d&&d.firebaseToken && !auth.currentUser) return auth.signInWithCustomToken(d.firebaseToken); return null; })
+   .then(function(res){ if(!res && !auth.currentUser){ showGate(); } })
+   .catch(function(){ if(!auth.currentUser){ showGate(); } });
+}, 400);
+</script>
+</body>
+</html>
