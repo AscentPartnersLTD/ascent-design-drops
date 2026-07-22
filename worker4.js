@@ -178,6 +178,53 @@ function poolStage(url) {
   return pool && stage ? { pool, stage } : null;
 }
 
+// ---- Live active roster + daily abandon diff (v5) ----
+// GET /roster?stage=N : N is the upcoming/current stage. Finds the latest raced
+// stage <= N that has a general classification (itg = everyone still in the race),
+// returns that active bib set, and diffs it against the most recent earlier stage
+// stored in KV to report who has dropped out (abandon / DNF / DNS / OTL). The board
+// filters its pick list to activeBibs (so abandoned riders cannot be drafted) and
+// renders `out` in an "Out of the race" strip. KV keys: roster:active:{stage}.
+async function handleRoster(request, url, env) {
+  if (url.pathname !== "/roster") return null;
+  if (!env.STATE) return json({ error: "KV binding STATE missing" }, 500);
+  const hint = (url.searchParams.get("stage") || "").replace(/[^0-9]/g, "").slice(0, 2);
+  if (!hint) return json({ error: "need ?stage=N (the upcoming or current stage)" }, 400);
+
+  // latest raced stage <= hint with a general classification
+  let useStage = null, gc = null;
+  for (let s = Number(hint); s >= Number(hint) - 3 && s > 0; s--) {
+    const rt = await getJSON(`rankingType-${YEAR}-${s}`).catch(() => null);
+    const g = Array.isArray(rt)
+      ? rt.filter((d) => d && d.type === "itg").sort((a, b) => (b.rankings || []).length - (a.rankings || []).length)[0]
+      : null;
+    if (g && (g.rankings || []).length) { useStage = s; gc = g; break; }
+  }
+  if (!gc) return json({ error: "no classification found near stage " + hint }, 404);
+
+  const activeBibs = (gc.rankings || []).map((r) => r.bib).filter((x) => x != null);
+  const activeSet = new Set(activeBibs);
+
+  // names by bib for the drop list
+  const comp = await getJSON(`allCompetitors-${YEAR}`).catch(() => null);
+  const byBib = {};
+  (Array.isArray(comp) ? comp : []).forEach((c) => {
+    if (c.bib != null) byBib[c.bib] = (c.firstname ? c.firstname[0] + ". " : "") + (c.lastname || "");
+  });
+
+  const setKey = (s) => "roster:active:" + s;
+  await env.STATE.put(setKey(useStage), JSON.stringify(activeBibs), { expirationTtl: TTL });
+  let prevActive = null, prevStage = null;
+  for (let s = useStage - 1; s >= useStage - 6 && s > 0; s--) {
+    const v = await env.STATE.get(setKey(s));
+    if (v) { prevActive = new Set(JSON.parse(v)); prevStage = s; break; }
+  }
+  const out = [];
+  if (prevActive) for (const b of prevActive) if (!activeSet.has(b)) out.push({ bib: b, name: byBib[b] || ("#" + b) });
+
+  return json({ stage: useStage, count: activeBibs.length, activeBibs, out, prevStage });
+}
+
 async function handleWatch(request, url, env) {
   if (!env.STATE) return json({ error: "KV binding STATE missing" }, 500);
 
@@ -236,6 +283,8 @@ export default {
       if (watched) return watched;
       const pushed = await handlePush(request, url, env);
       if (pushed) return pushed;
+      const roster = await handleRoster(request, url, env);
+      if (roster) return roster;
 
       const stage = (url.searchParams.get("stage") || "").replace(/[^0-9]/g, "");
       if (!stage) return json({ error: "missing ?stage=N" }, 400);
