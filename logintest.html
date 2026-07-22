@@ -457,6 +457,20 @@
   .gate-signout{margin-top:16px;background:none;border:1px solid rgba(255,255,255,.22);color:#b7b2a6;border-radius:9px;padding:9px 16px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer}
   .gate-signout:hover{border-color:rgba(255,255,255,.4);color:#fff}
   html.gated,body.gated{overflow:hidden}
+  .acct-fab{position:fixed;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:9000;min-width:46px;height:44px;padding:0 12px;border-radius:22px;background:#1f1e1a;border:1px solid rgba(255,255,255,.18);color:#e8b31e;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;letter-spacing:.02em;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 5px 16px rgba(0,0,0,.45)}
+  .acct-fab.show{display:inline-flex}
+  .acct-fab svg{width:12px;height:12px;margin-left:6px;opacity:.7}
+  .acct-panel{position:fixed;top:calc(60px + env(safe-area-inset-top));right:14px;z-index:9001;background:#201f1b;border:1px solid rgba(255,255,255,.16);border-radius:15px;padding:9px;min-width:222px;max-width:82vw;box-shadow:0 14px 38px rgba(0,0,0,.55);display:none}
+  .acct-panel.show{display:block}
+  .acct-who{font-size:11px;color:#8f8a7f;padding:6px 9px 9px;word-break:break-all;line-height:1.4}
+  .acct-lbl{font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7d786d;padding:4px 9px 5px}
+  .acct-pool{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 9px;color:#e7e2d6;font-size:14px;font-family:'Inter',system-ui,sans-serif;cursor:pointer}
+  .acct-pool:hover{background:rgba(255,255,255,.07)}
+  .acct-pool.cur{color:#e8b31e;font-weight:700}
+  .acct-pool.cur::after{content:'\2713';margin-left:auto;font-weight:700}
+  .acct-sep{height:1px;background:rgba(255,255,255,.1);margin:7px 5px}
+  .acct-out{width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 9px;color:#f2b0a8;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer}
+  .acct-out:hover{background:rgba(242,176,168,.10)}
 </style>
 </head>
 <body>
@@ -476,6 +490,14 @@
 })();
 </script>
 
+<button id="acctFab" class="acct-fab" aria-label="Account and pools" aria-haspopup="true"><span id="acctFabTxt">CDF</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+<div id="acctPanel" class="acct-panel" role="menu">
+  <div class="acct-who" id="acctWho"></div>
+  <div class="acct-lbl">Switch pool</div>
+  <div id="acctPools"></div>
+  <div class="acct-sep"></div>
+  <button class="acct-out" id="acctOut" type="button">Sign out</button>
+</div>
 <div id="gate" class="gate" role="dialog" aria-label="Sign in">
   <div class="gate-splash" aria-hidden="true">
     <div class="gate-climb-eyebrow">The Climb</div>
@@ -1371,6 +1393,7 @@ auth.onAuthStateChanged(async user=>{
     document.documentElement.classList.remove('gated'); document.body.classList.remove('gated');
     var g=$('gate'); if(g) g.style.display='none';
     window.__cdfBoardUp=true;
+    try{ buildAcctMenu(); }catch(e){}
     // Confirm the session actually landed on disk a couple seconds after sign-in.
     try{ setTimeout(function(){ diagDiskCheck('post-signin'); }, 2500); }catch(e){}
     try{ window.__runBoard(CDF); }catch(e){ console.error('runBoard error',e); }
@@ -1509,6 +1532,37 @@ setTimeout(function(){
     .catch(function(){ if(!auth.currentUser){ showGate(''); } });
 }, 500);
 
+// ---- Account + pool switcher (multi-group): one icon, switch pools/identity in-app. ----
+async function cdfSignOut(){
+  try{ await fetch(AUTH_API+'/auth/logout',{method:'POST',credentials:'include'}); }catch(e){}
+  try{ await auth.signOut(); }catch(e){}
+  try{ localStorage.removeItem('cdf_wasSignedIn'); }catch(e){}
+  window.__cdfBoardUp=false;
+  location.href = location.origin + '/?signedout=1';
+}
+async function buildAcctMenu(){
+  try{
+    var fab=$('acctFab'); if(!fab) return;
+    var who=$('acctWho'); if(who) who.textContent=myEmail||'';
+    var ft=$('acctFabTxt'); if(ft) ft.textContent=(myCode || (myEmail? myEmail[0].toUpperCase() : 'CDF'));
+    var pools=[];
+    if(isOwner){ var all=await db.collection('pools').get(); all.forEach(function(d){ pools.push({id:d.id,name:(d.data().name||d.id)}); }); }
+    else { var idx=await db.doc('userPools/'+myEmail).get(); var list=(idx.exists&&idx.data().pools)||[];
+      for(var i=0;i<list.length;i++){ try{ var s=await db.doc('pools/'+list[i]).get(); if(s.exists) pools.push({id:list[i],name:(s.data().name||list[i])}); }catch(e){} } }
+    if(!pools.some(function(p){return p.id===poolId;})) pools.unshift({id:poolId,name:(pool&&pool.name)||poolId});
+    var box=$('acctPools');
+    if(box){ box.innerHTML=pools.map(function(p){ return '<button class="acct-pool'+(p.id===poolId?' cur':'')+'" type="button" data-pool="'+esc(p.id)+'">'+esc(p.name)+'</button>'; }).join(''); }
+    fab.classList.add('show');
+  }catch(e){ console.error('acct menu',e); }
+}
+document.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.closest&&t.closest('#acctFab')){ var p=$('acctPanel'); if(p) p.classList.toggle('show'); return; }
+  var pb=t.closest&&t.closest('.acct-pool');
+  if(pb){ var pid=pb.getAttribute('data-pool'); if(pid && pid!==poolId){ location.href=location.origin+'/board.html?pool='+encodeURIComponent(pid); } else { var pn=$('acctPanel'); if(pn) pn.classList.remove('show'); } return; }
+  if(t.closest&&t.closest('#acctOut')){ cdfSignOut(); return; }
+  var pnl=$('acctPanel'); if(pnl&&pnl.classList.contains('show') && !(t.closest&&t.closest('#acctPanel'))){ pnl.classList.remove('show'); }
+});
 // iOS Safari reopens a tab from a frozen snapshot without re-running anything.
 // If that snapshot is the login card but a real session is now on disk, the page
 // just doesn't know it yet. Reload once to restore it so reopen behaves like a
