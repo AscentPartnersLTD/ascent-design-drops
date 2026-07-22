@@ -126,7 +126,14 @@ async function renderHub(email){
   var isOwner=(email===OWNER_EMAIL);
   var pools=[];
   try{
-    if(isOwner){ var all=await db.collection('pools').get(); all.forEach(function(d){ pools.push({id:d.id,data:d.data()}); }); }
+    if(isOwner){
+      var seen={};
+      // Preferred: list every pool. Needs a Firestore `list` rule on /pools.
+      try{ var all=await db.collection('pools').get(); all.forEach(function(d){ if(!seen[d.id]){ seen[d.id]=1; pools.push({id:d.id,data:d.data()}); } }); }catch(e){}
+      // Fallback/guarantee: individually fetch known pools (a per-doc `get`, which the board already relies on) so the owner view is never empty even if the list query is denied.
+      var KNOWN_POOLS=['col-du-fantasy','lowry-city-rollers'];
+      for(var k=0;k<KNOWN_POOLS.length;k++){ if(seen[KNOWN_POOLS[k]]) continue; try{ var s=await db.doc('pools/'+KNOWN_POOLS[k]).get(); if(s.exists){ seen[KNOWN_POOLS[k]]=1; pools.push({id:KNOWN_POOLS[k],data:s.data()}); } }catch(e){} }
+    }
     else { var idx=await db.doc('userPools/'+email).get(); var list=(idx.exists&&idx.data().pools)||[];
       for(var i=0;i<list.length;i++){ try{ var s=await db.doc('pools/'+list[i]).get(); if(s.exists) pools.push({id:list[i],data:s.data()}); }catch(e){} } }
   }catch(e){ $('pools').innerHTML='<div class="foot">Could not load pools ('+esc(e.code||e.message||e)+').</div>'; return; }
