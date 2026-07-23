@@ -3353,7 +3353,11 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
 
   function norm(s){return (s||'').toUpperCase().replace(/[^A-Z]/g,'');}
   function surname(pick){return norm(String(pick).replace(/^[A-Za-z]\.\s*/,''));}
-  function matches(feedName,pick){var s=surname(pick);return s.length>=3 && norm(feedName).indexOf(s)>=0;}
+  function initialOf(nm){var m=String(nm).trim().match(/^([A-Za-z])\.?(?:\s|$)/);return m?m[1].toUpperCase():'';}
+  // Match a feed rider to a pool pick by surname, but when BOTH names carry a leading
+  // initial and the initials differ, reject - otherwise same-surname siblings collide
+  // (e.g. T. Johannessen in the break vs his brother A. Johannessen in the peloton).
+  function matches(feedName,pick){var s=surname(pick); if(s.length<3) return false; if(norm(feedName).indexOf(s)<0) return false; var pi=initialOf(pick), fi=initialOf(feedName); if(pi&&fi&&pi!==fi) return false; return true;}
   function gapStr(sec){sec=Math.round(sec||0); if(sec<=0)return 'front'; var m=Math.floor(sec/60),s=sec%60; return m+"'"+(s<10?'0':'')+s+'"';}
   function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 
@@ -3695,6 +3699,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.23-autofire</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.23-breakfix</div>
 </body>
 </html>
