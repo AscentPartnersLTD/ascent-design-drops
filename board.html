@@ -1116,6 +1116,7 @@
       .arlequin-bar .arl-val small{font-weight:600;color:#8ea0b2;font-size:10px}
       .arlequin-bar .arl-val .arl-ck{color:#e8c96a;font-weight:800;margin-left:1px}
       .arlequin-bar .arl-hold{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12.5px;color:#e8c96a;margin:0 0 11px}
+      .arlequin-bar .arl-tag{font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:10.5px;color:#e8c96a;margin:3px 0 7px}
       @media(max-width:560px){.arlequin-bar{flex-direction:column;align-items:stretch}.arlequin-bar .arl-emblem{align-self:center}.arlequin-bar .arl-row{grid-template-columns:16px 76px 1fr 50px}}
     </style>
     <h2 class="eyebrow">Allegiances &middot; the teams each of us keeps riding with</h2>
@@ -3070,7 +3071,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       const pct=Math.round(s.n/MAXT*100), col=COL[s.p]||'#c9971a', qual=s.n>=MIN, hold=qual&&i===0;
       return `<div class="arl-row${hold?' lead':''}"><span class="arl-pos">${i+1}</span><span class="arl-nm">${nameOf(s.p)}</span><span class="arl-track"><span class="arl-thresh" style="left:${(MIN/MAXT*100).toFixed(1)}%" title="15 to qualify"></span><span class="arl-fill" style="width:${Math.max(pct,4)}%;background:${col}"></span></span><span class="arl-val">${s.n}${qual?'<small class="arl-ck">&#10003;</small>':''}</span></div>`;
     }).join('');
-    arlEl.innerHTML=`<div class="arl-emblem"><img src="emblem-arlequin.png" alt="Le Maillot Arlequin" onerror="this.closest('.arl-emblem').style.display='none'"></div><div class="arl-body"><div class="arl-h">Le Maillot Arlequin</div><div class="arl-sub">Goes to whoever drafts the most different 2026 teams by the end of the Tour. Everyone stays in the running; a minimum of ${MIN} teams qualifies, and the gold line marks 15.</div><div class="arl-hold">${holder}</div><div class="arl-rows">${rows}</div></div>`;
+    arlEl.innerHTML=`<div class="arl-emblem"><img src="emblem-arlequin.png" alt="Le Maillot Arlequin" onerror="this.closest('.arl-emblem').style.display='none'"></div><div class="arl-body"><div class="arl-h">Le Maillot Arlequin</div><div class="arl-tag">Largest variety of teams</div><div class="arl-sub">Whoever ends the Tour with the most different 2026 teams takes it. Everyone stays in the running; ${MIN} teams is the minimum to qualify, marked by the gold line.</div><div class="arl-hold">${holder}</div><div class="arl-rows">${rows}</div></div>`;
   }
 })();
 
