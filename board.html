@@ -1972,10 +1972,10 @@ const RACE = [
   { n:12, date:"Jul 16", route:"Magny-Cours > Chalon-sur-Saone", type:"Flat sprint", win:"Tim Merlier", extra:"Merlier doubles up" },
   { n:13, date:"Jul 17", route:"Dole > Belfort",           type:"Hilly / Ballon d'Alsace", win:"Mauro Schmid",  extra:"Longest stage, break stays away" },
   { n:14, date:"Jul 18", route:"Mulhouse > Le Markstein",  type:"Mountain / Vosges", win:"T. Pogacar", extra:"Seven climbs, 155.3 km" },
-  { n:15, date:"Jul 19", route:"Plateau de Solaison",      type:"Summit finish",     win:"", upcoming:true, extra:"New summit finish" },
-  { n:16, date:"Jul 21", route:"Evian-les-Bains ITT",      type:"Individual TT",     win:"", upcoming:true, extra:"26.1 km, Lake Geneva" },
-  { n:17, date:"Jul 22", route:"Flat stage",               type:"Flat sprint",       win:"", upcoming:true, extra:"Sprinters' chance" },
-  { n:18, date:"Jul 23", route:"Orcieres-Merlette",        type:"Summit finish",     win:"", upcoming:true, extra:"Alpine summit" },
+  { n:15, date:"Jul 19", route:"Champagnole > Plateau de Solaison", type:"Summit finish", win:"Remco Evenepoel", extra:"New summit finish; Evenepoel over Pogacar" },
+  { n:16, date:"Jul 21", route:"Evian-les-Bains > Thonon-les-Bains", type:"Individual TT", win:"Remco Evenepoel", extra:"Back-to-back; beat Pogacar against the clock" },
+  { n:17, date:"Jul 22", route:"Chambery > Voiron",        type:"Hilly sprint",      win:"Jasper Philipsen",  extra:"Third stage win of his Tour" },
+  { n:18, date:"Jul 23", route:"Voiron > Orcieres-Merlette", type:"Summit finish",   win:"Richard Carapaz",   extra:"Soloed from the break in the Alps" },
   { n:19, date:"Jul 24", route:"Gap > Alpe d'Huez",        type:"Summit finish",     win:"", upcoming:true, extra:"128 km, 21 hairpins" },
   { n:20, date:"Jul 25", route:"Alpe d'Huez (queen)",      type:"Queen stage",       win:"", upcoming:true, extra:"Galibier + Sarenne, 5,600 m" },
   { n:21, date:"Jul 26", route:"Paris > Champs-Elysees",   type:"Finale / Montmartre",win:"", upcoming:true, extra:"Three Montmartre climbs" }
@@ -2011,15 +2011,15 @@ const UPCOMING = CDF.upcoming;
    Open-Meteo (free, no key) for the finish town on `date`. Update place/lat/lon/date
    each time you roll UPCOMING to the next stage. Coordinates are the finish town. */
 const WEATHER = {
-  stage: 17, place: "Voiron", finish: "Chambery > Voiron",
-  lat: 45.366, lon: 5.591, date: "2026-07-22"
+  stage: 19, place: "Alpe d'Huez", finish: "Gap > Alpe d'Huez",
+  lat: 45.0925, lon: 6.0706, date: "2026-07-24"
 };
 
 /* The stage AFTER upcoming, for the "Next two stages" card on Stats. Brief course
    info only (no picks). Update it each time UPCOMING rolls forward. */
 const NEXT2 = {
-  n: 18, route: "Voiron > Orcieres-Merlette", type: "Mountain summit finish", km: 185.2,
-  line: "The Alps arrive: 185.2 km from Voiron with about 3,900 m of climbing, closing on the Orcieres-Merlette summit, an 11.5 km climb at 5.4 percent to the line. A GC day where the climbers and yellow-jersey contenders settle it."
+  n: 20, route: "Bourg d'Oissans > Alpe d'Huez", type: "Queen stage summit finish", km: 170.9,
+  line: "The queen stage: 170.9 km and about 5,450 m of climbing over the Croix de Fer, the Telegraphe and the Galibier (2,642 m, the Tour's highest point), then the Col de Sarenne into a second Alpe d'Huez finish. This is where the overall is decided."
 };
 
 /* "Who's in the break?" live widget. Paste the deployed Cloudflare Worker URL here
