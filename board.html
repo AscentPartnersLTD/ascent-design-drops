@@ -3077,7 +3077,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
       const pct=Math.round(s.n/MAXT*100), col=COL[s.p]||'#c9971a', qual=s.n>=MIN, hold=qual&&i===0;
       return `<div class="arl-row${hold?' lead':''}"><span class="arl-pos">${i+1}</span><span class="arl-nm">${nameOf(s.p)}</span><span class="arl-track"><span class="arl-thresh" style="left:${(MIN/MAXT*100).toFixed(1)}%" title="15 to qualify"></span><span class="arl-fill" style="width:${Math.max(pct,4)}%;background:${col}"></span></span><span class="arl-val">${s.n}${qual?'<small class="arl-ck">&#10003;</small>':''}</span></div>`;
     }).join('');
-    arlEl.innerHTML=`<div class="arl-emblem"><img src="emblem-arlequin.png" alt="Le Maillot Arlequin" onerror="this.closest('.arl-emblem').style.display='none'"></div><div class="arl-body"><div class="arl-h">Le Maillot Arlequin</div><div class="arl-tag">Largest variety of teams</div><div class="arl-sub">Whoever ends the Tour with the most different 2026 teams takes it. Everyone stays in the running; ${MIN} teams is the minimum to qualify, marked by the gold line.</div><div class="arl-hold">${holder}</div><div class="arl-rows">${rows}</div></div>`;
+    arlEl.innerHTML=`<div class="arl-emblem"><img src="emblem-arlequin.png" alt="Le Maillot Arlequin" onerror="this.closest('.arl-emblem').style.display='none'"></div><div class="arl-body"><div class="arl-h">Le Maillot Arlequin</div><div class="arl-tag">Largest variety of teams</div><div class="arl-sub">Goes to whoever ends the Tour having drafted the largest variety of teams. Everyone stays in the running; ${MIN} teams is the minimum to qualify, and the gold line marks it.</div><div class="arl-hold">${holder}</div><div class="arl-rows">${rows}</div></div>`;
   }
 })();
 
