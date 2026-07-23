@@ -1635,10 +1635,15 @@ async function buildCDF(){
   stages.sort((a,b)=>a.n-b.n);
   const upPicks={}; ORDER.forEach(c=>upPicks[c]=[]);
   // pull the live draft's picks so the stage card and Allegiances reflect the round the moment it is drafted
+  let draftDoc={};
   try{ const dsnap=await db.doc('pools/'+poolId+'/drafts/'+STAGE).get();
-    if(dsnap.exists){ (dsnap.data().picks||[]).forEach(p=>{ if(p&&p.player&&p.rider&&upPicks[p.player]) upPicks[p.player].push(p.rider); }); } }catch(e){}
+    if(dsnap.exists){ draftDoc=dsnap.data()||{}; (draftDoc.picks||[]).forEach(p=>{ if(p&&p.player&&p.rider&&upPicks[p.player]) upPicks[p.player].push(p.rider); }); } }catch(e){}
   const su=(SHARED_UPCOMING&&SHARED_UPCOMING[Number(STAGE)])||{};
-  const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:su.route||'', type:su.type||'', km:su.km||0, intel:su.intel||{summary:'',facts:[]}, picks:upPicks };
+  // Course intel and pre-race reads are data-driven (2026-07-23): the draft doc in
+  // Firestore wins, the baked SHARED_UPCOMING is the fallback. This is what lets the
+  // draft-done endpoint post reads with no board redeploy.
+  const dIntel=(draftDoc.intel&&draftDoc.intel.summary)?draftDoc.intel:null;
+  const upcoming={ n:Number(STAGE), order:ORDER.slice(), route:(draftDoc.route||su.route||''), type:(draftDoc.type||su.type||''), km:(draftDoc.km||su.km||0), intel:(dIntel||su.intel||{summary:'',facts:[]}), reads:(draftDoc.reads||su.reads||null), picks:upPicks };
   const official=pool.official||{ through:0, placement:Object.assign({},zero), rank:Object.assign({},zero) };
   const ledger=pool.personaLedger||{order:ORDER.slice(),by:{},seen:{}};
   const rp=pool.riderProfile||riderProfile;
@@ -1826,7 +1831,7 @@ function renderDraft(){
   // Claude's hourly watcher. Fire-and-forget, once per page load, idempotent on
   // the Worker side (first write wins). No pick data leaves beyond code+rider.
   if(done && picks.length>0 && !window.__cdfDonePing){ window.__cdfDonePing=1;
-    try{ fetch('https://col-break.allen-19a.workers.dev/done?pool='+encodeURIComponent(poolId)+'&stage='+encodeURIComponent(STAGE),{method:'POST',keepalive:true,body:JSON.stringify({picks:picks.map(p=>({n:p.n,player:p.player,rider:p.rider}))})}).catch(function(){}); }catch(e){}
+    try{ fetch('https://api.coldufantasy.com/api/draft-done?pool='+encodeURIComponent(poolId)+'&stage='+encodeURIComponent(STAGE),{method:'POST',keepalive:true,body:JSON.stringify({picks:picks.map(p=>({n:p.n,player:p.player,rider:p.rider}))})}).catch(function(){}); }catch(e){}
   }
   if(done && picks.length){ renderMini(picks); return; }
   let nodes='';
@@ -2871,7 +2876,7 @@ const upIntel=up.intel
   ?`<div class="note"><span class="lab">Course intel</span>${up.intel.summary?`<div class="isum">${up.intel.summary}</div>`:''}${up.intel.facts?`<ul class="ifacts">${up.intel.facts.map(f=>`<li>${f}</li>`).join('')}</ul>`:''}</div>`
   :'';
 const upRead=up.reads
-  ?`<div class="note"><span class="lab">The read</span>${['AA','JP','JB','JJ'].filter(k=>up.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${up.reads[k]}</div>`).join('')}</div>`
+  ?`<div class="note"><span class="lab">The read</span>${(up.order||['AA','JP','JB','JJ']).filter(k=>up.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${up.reads[k]}</div>`).join('')}</div>`
   :`<div class="note"><span class="lab">The read</span><span class="pl" style="font-style:italic">Posts once the day's picks are called.</span></div>`;
 document.getElementById('stages').insertAdjacentHTML('afterbegin',
   `<div class="stage live open">
@@ -3690,6 +3695,6 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
     font:600 9px/1 'Montserrat',sans-serif;letter-spacing:.04em;color:rgba(146,141,129,.5)}
   body.gated #cdfBuild{display:none}
 </style>
-<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.23-reroute</div>
+<div id="cdfBuild" title="Build version - if this differs from the newest, the page is cached">pool v2026.07.23-autofire</div>
 </body>
 </html>
