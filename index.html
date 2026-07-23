@@ -297,6 +297,10 @@
   .medal.prix{background:#fdf4dd;color:#a9790a}
   .medal.win{background:#eef4ef;color:#2f7d4f}
   .medal.zero{background:#f3f1ea;color:#b7b1a3}
+  .medal.mer{background:#eef1f8}
+  .medal.mer.zero{background:#f3f1ea}
+  .medal.mer.zero svg circle{stroke:#c2bcae}
+  .medal.mer.zero svg path{fill:#c2bcae}
   .pc-story{font-size:11.5px;line-height:1.5;color:var(--ink2);border-top:1px solid var(--line);padding-top:11px;margin-top:2px}
   @media(max-width:760px){ .palmares{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media(max-width:440px){ .palmares{grid-template-columns:1fr} }
@@ -962,6 +966,35 @@
     </div>
     <h2 class="eyebrow" style="margin-top:26px">Combativity awards</h2>
     <div id="combativity"></div>
+    <div class="metricbox" id="mericaTrackerBox" style="margin-top:14px">
+      <style>
+        #mericaTrackerBox .mt-top{display:flex;gap:18px;align-items:flex-start;margin-top:10px}
+        #mericaTrackerBox .mt-emblem img{width:96px;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.28))}
+        #mericaTrackerBox .mt-tally{flex:1;min-width:0}
+        #mericaTrackerBox .mt-hold{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+        #mericaTrackerBox .mt-holdlab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--mute)}
+        #mericaTrackerBox .mt-holdnm{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;color:var(--ink)}
+        #mericaTrackerBox .mt-row{display:grid;grid-template-columns:120px 1fr 26px;align-items:center;gap:10px;padding:5px 0}
+        #mericaTrackerBox .mt-row+.mt-row{border-top:1px solid var(--line)}
+        #mericaTrackerBox .mt-nm{font-size:13px;color:var(--ink2)}
+        #mericaTrackerBox .mt-row.hold .mt-nm{color:var(--ink);font-weight:700}
+        #mericaTrackerBox .mt-shields{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+        #mericaTrackerBox .mt-shico{width:16px;height:16px}
+        #mericaTrackerBox .mt-none{font-size:11px;color:var(--gray);font-style:italic}
+        #mericaTrackerBox .mt-ct{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+        #mericaTrackerBox .mt-watch{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
+        #mericaTrackerBox .mt-wlab{font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:var(--mute);margin-bottom:8px}
+        #mericaTrackerBox .mt-wrow{display:grid;grid-template-columns:46px 1fr 1fr;align-items:center;gap:10px;padding:5px 0;font-size:12.5px}
+        #mericaTrackerBox .mt-wrow+.mt-wrow{border-top:1px solid var(--line)}
+        #mericaTrackerBox .mt-wn{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--mute);font-size:11px}
+        #mericaTrackerBox .mt-wr{color:var(--ink)} #mericaTrackerBox .mt-wr em{color:var(--mute);font-style:normal;font-variant-numeric:tabular-nums}
+        #mericaTrackerBox .mt-ww{color:var(--ink2)}
+        @media(max-width:560px){#mericaTrackerBox .mt-top{flex-direction:column}#mericaTrackerBox .mt-emblem{align-self:center}#mericaTrackerBox .mt-wrow{grid-template-columns:40px 1fr}#mericaTrackerBox .mt-ww{grid-column:2}}
+      </style>
+      <div class="mh">Captain 'Merica</div>
+      <div class="msub">Top American of the stage. Back the day's best-placed American call to earn a shield; most shields at season's end takes the jersey.</div>
+      <div id="mericaTracker"></div>
+    </div>
     <div class="metricbox" id="tiltBox" style="margin-top:14px">
       <style>
         #tiltBox .tilt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
@@ -1066,9 +1099,25 @@
       table.teamgrid td.z{color:var(--gray)}
       table.teamgrid tr.tot td{border-top:2px solid var(--line2);border-bottom:none;font-family:'Montserrat',sans-serif;font-weight:800;color:var(--ink)}
       table.teamgrid .teamdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;vertical-align:middle}
+      .arlequin-bar{display:flex;gap:18px;align-items:center;background:linear-gradient(135deg,#1b2a3a,#243B53);border:1px solid #10202e;border-radius:14px;padding:16px 20px;margin-bottom:18px;box-shadow:var(--sh)}
+      .arlequin-bar .arl-emblem img{width:104px;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+      .arlequin-bar .arl-body{flex:1;min-width:0}
+      .arlequin-bar .arl-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;color:#f4ecd8;letter-spacing:.02em}
+      .arlequin-bar .arl-sub{font-size:11.5px;color:#c7cfd8;margin:3px 0 12px;line-height:1.45;max-width:640px}
+      .arlequin-bar .arl-rows{display:flex;flex-direction:column;gap:7px}
+      .arlequin-bar .arl-row{display:grid;grid-template-columns:18px 116px 1fr 56px;align-items:center;gap:10px}
+      .arlequin-bar .arl-pos{font-family:'Montserrat',sans-serif;font-weight:800;font-size:11px;color:#8ea0b2;text-align:center}
+      .arlequin-bar .arl-row.lead .arl-pos{color:#e8c96a}
+      .arlequin-bar .arl-nm{font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;color:#f4ecd8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .arlequin-bar .arl-track{background:rgba(255,255,255,.12);border-radius:6px;height:12px;overflow:hidden}
+      .arlequin-bar .arl-fill{display:block;height:100%;border-radius:6px}
+      .arlequin-bar .arl-val{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:#f4ecd8;text-align:right;font-variant-numeric:tabular-nums}
+      .arlequin-bar .arl-val small{font-weight:600;color:#8ea0b2;font-size:10px}
+      @media(max-width:560px){.arlequin-bar{flex-direction:column;align-items:stretch}.arlequin-bar .arl-emblem{align-self:center}.arlequin-bar .arl-row{grid-template-columns:16px 76px 1fr 50px}}
     </style>
     <h2 class="eyebrow">Allegiances &middot; the teams each of us keeps riding with</h2>
     <p class="palmares-note">Every pick counts toward its rider's 2026 team. This is who you trust, where you are concentrated, and which squads the pool leans on. The stripe is each manager's mix, sized by how often they have gone back to a team.</p>
+    <div class="arlequin-bar" id="arlequinBar"></div>
     <div class="alleg-grid" id="allegCards"></div>
     <div class="table-toggle"><button id="seeTableBtn" class="see-table-btn">See data table</button></div>
     <div id="teamTableWrap" class="team-table-wrap" hidden></div>
@@ -1748,7 +1797,7 @@ function renderMerica(){
   // The featured rider in the wide top slot: your current pick (seats), or the
   // last rider an observer tapped (local bio browsing, nothing written).
   const featured=myCode?mine:(window.__merOpen||null);
-  const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const shield='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#B31942" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#3C3B6E" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const avOf=u=>{ const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===u.r):null; const p=(RR&&RR.p)||''; return p?'<img class="mer-av" src="'+esc(p)+'" alt="" onerror="this.style.display=\'none\'">':''; };
   // Once the stage's draft is locked, the card collapses to a thin bar under the
   // main picks minibar (Allen, 2026-07-19) so the Break Tracker stays above the
@@ -1758,7 +1807,7 @@ function renderMerica(){
   // everyone picks blind, then the reveal happens on the collapsed bar.
   const callersOf=u=>{ if(!stageOn) return ''; const cs=ORDER.filter(c=>picks[c]===u.r); return cs.length?'<span class="mer-callers">'+cs.map(esc).join(' ')+'</span>':''; };
   if(stageOn && !window.__merExpand){
-    const shieldMini='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+    const shieldMini='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#B31942" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#3C3B6E" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
     const entries=ORDER.filter(c=>picks[c]).map(c=>{
       const r=picks[c]; const RR=(typeof RIDERS!=='undefined')?RIDERS.find(x=>x.r===r):null;
       const img=(RR&&RR.p)?'<img src="'+esc(RR.p)+'" onerror="this.remove()">':'';
@@ -2572,7 +2621,7 @@ const PERSONA_BY = (function(){
    profile-pic slot and the running medal count (awards add up across the season). */
 (function(){
   const el=document.getElementById('palmares'); if(!el) return;
-  const merIC='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const merIC='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#B31942" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#3C3B6E" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
   const MER={}; PL4.forEach(function(p){MER[p]=0;});
   STAGES.forEach(function(s){ ((s.merica&&s.merica.correct)||[]).forEach(function(c){ if(MER[c]!=null) MER[c]++; }); });
   const jerseySVG='<svg viewBox="0 0 48 48" class="pc-jersey" aria-hidden="true"><path d="M17 8l-8 4-4 9 5 3 2-3v16h24V21l2 3 5-3-4-9-8-4-4 4-4 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 8a4 4 0 008 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
@@ -2728,7 +2777,7 @@ function stageCard(st){
           ?`<div class="verify-line"><span class="vflag">NEEDS VERIFY</span> ${st.verify}</div>`
           :`<div class="pending-line">Finishes pending: ${st.verify}</div>`):''}
        ${awardsRow(st)}
-       ${st.merica?`<div class="mer-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg><span><b>Captain 'Merica:</b> ${st.merica.top} (${ordinal(st.merica.f)})${st.merica.correct&&st.merica.correct.length?' - called by '+st.merica.correct.join(', '):' - nobody called it'}</span></div>`:''}
+       ${st.merica?`<div class="mer-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#B31942" stroke-width="1.7"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#3C3B6E" stroke-width="1.7"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg><span><b>Captain 'Merica:</b> ${st.merica.top} (${ordinal(st.merica.f)})${st.merica.correct&&st.merica.correct.length?' - called by '+st.merica.correct.join(', '):' - nobody called it'}</span></div>`:''}
        <div class="note"><span class="lab">The read</span>${st.reads?codes.filter(k=>st.reads[k]).map(k=>`<div class="readrow"><b>${k}</b> ${st.reads[k]}</div>`).join(''):st.note}</div>`;
   }
   const right = st.voidStage ? `<div class="dns-stamp">DNS</div>`
@@ -3004,7 +3053,42 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   const wrap=document.getElementById('teamTableWrap'); if(wrap) wrap.innerHTML=html;
   const btn=document.getElementById('seeTableBtn');
   if(btn&&wrap){ btn.addEventListener('click',()=>{ if(wrap.hasAttribute('hidden')){wrap.removeAttribute('hidden');btn.textContent='Hide data table';} else {wrap.setAttribute('hidden','');btn.textContent='See data table';} }); }
+  /* Le Maillot Arlequin bar: distinct 2026 teams drafted, progress toward all 23. */
+  const arlEl=document.getElementById('arlequinBar');
+  if(arlEl){
+    const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+    const nameOf=c=>(CDF.names&&CDF.names[c])||c;
+    const scores=PL.map(p=>({p,n:Object.keys(counts[p]).length})).sort((a,b)=>b.n-a.n||a.p.localeCompare(b.p));
+    const rows=scores.map((s,i)=>{
+      const pct=Math.round(s.n/23*100), col=COL[s.p]||'#c9971a';
+      return `<div class="arl-row${i===0&&s.n>0?' lead':''}"><span class="arl-pos">${i+1}</span><span class="arl-nm">${nameOf(s.p)}</span><span class="arl-track"><span class="arl-fill" style="width:${Math.max(pct,4)}%;background:${col}"></span></span><span class="arl-val">${s.n}<small>/23</small></span></div>`;
+    }).join('');
+    arlEl.innerHTML=`<div class="arl-emblem"><img src="emblem-arlequin.png" alt="Le Maillot Arlequin" onerror="this.closest('.arl-emblem').style.display='none'"></div><div class="arl-body"><div class="arl-h">Le Maillot Arlequin</div><div class="arl-sub">Distinct 2026 teams drafted. The jersey goes to anyone who picks a rider from every one of the 23 teams.</div><div class="arl-rows">${rows}</div></div>`;
+  }
 })();
+
+;
+
+/* Captain 'Merica season tracker: shield tally + stage-by-stage American watch, from STAGES.merica. */
+(function(){ try{
+  const el=document.getElementById('mericaTracker'); if(!el) return;
+  const S=(typeof STAGES!=='undefined')?STAGES:[]; if(!S.length){ el.innerHTML='<div class="msub">The tracker fills in as stages are scored.</div>'; return; }
+  const PL=(CDF.seats||CDF.order).slice();
+  const COL=(function(){var _p=['#c9971a','#26347e','#2f8f52','#cf2530'],_s=CDF.order.slice().sort(),o={};_s.forEach(function(c,i){o[c]=_p[i%_p.length];});return o;})();
+  const nameOf=c=>(CDF.names&&CDF.names[c])||c;
+  function ord(n){ const s=['th','st','nd','rd'],v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+  const SH='<svg class="mt-shico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#B31942" stroke-width="2"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#3C3B6E" stroke-width="2"/><path fill="#3C3B6E" d="M12 8.2l1.15 2.33 2.57.37-1.86 1.81.44 2.56L12 14.06l-2.3 1.21.44-2.56-1.86-1.81 2.57-.37z"/></svg>';
+  const MER={}; PL.forEach(p=>MER[p]=0); const watch=[];
+  S.forEach(s=>{ if(s.merica&&s.merica.top){ watch.push(s); (s.merica.correct||[]).forEach(c=>{ if(MER[c]!=null) MER[c]++; }); } });
+  watch.sort((a,b)=>b.n-a.n);
+  const max=Math.max(0,...PL.map(p=>MER[p]));
+  const holders=PL.filter(p=>MER[p]===max&&max>0);
+  const holderTxt=holders.length?(holders.length===1?nameOf(holders[0])+' holds the jersey':holders.map(nameOf).join(' & ')+' share the lead'):'Up for grabs';
+  const board=PL.map(p=>({p,n:MER[p]})).sort((a,b)=>b.n-a.n||a.p.localeCompare(b.p));
+  const tally=board.map(b=>{const hold=max>0&&b.n===max;const sh=b.n>0?Array(Math.min(b.n,10)).fill(SH).join(''):'<span class="mt-none">no shields yet</span>';return `<div class="mt-row${hold?' hold':''}"><span class="mt-nm">${nameOf(b.p)}</span><span class="mt-shields">${sh}</span><span class="mt-ct" style="color:${COL[b.p]||'#1b1a17'}">${b.n}</span></div>`;}).join('');
+  const wrows=watch.map(s=>{const cor=(s.merica.correct||[]).map(nameOf);const who=cor.length?cor.join(', '):'no call took it';return `<div class="mt-wrow"><span class="mt-wn">St ${s.n}</span><span class="mt-wr">${s.merica.top} <em>${ord(s.merica.f)}</em></span><span class="mt-ww">${who}</span></div>`;}).join('');
+  el.innerHTML=`<div class="mt-top"><div class="mt-emblem"><img src="emblem-captain.png" alt="Captain 'Merica" onerror="this.closest('.mt-emblem').style.display='none'"></div><div class="mt-tally"><div class="mt-hold"><span class="mt-holdlab">Current holder</span><span class="mt-holdnm">${holderTxt}</span></div>${tally}</div></div>${watch.length?`<div class="mt-watch"><div class="mt-wlab">Stage-by-stage American watch</div>${wrows}</div>`:''}`;
+}catch(e){ console.error('merica tracker',e); } })();
 
 ;
 
